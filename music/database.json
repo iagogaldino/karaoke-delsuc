@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-06T17:45:53.539Z",
+  "lastUpdated": "2025-12-06T19:14:06.374Z",
   "songs": [
     {
       "id": "AlceuValenca",
@@ -65,13 +65,52 @@
         "vocals": "vocals.wav",
         "instrumental": "instrumental.wav",
         "waveform": "waveform.json",
-        "lyrics": "MatuÃª - 333(mp3_160K).lrc"
+        "lyrics": "MatuÃª - 333(mp3_160K).lrc",
+        "video": "video.mp4"
       },
       "metadata": {
         "sampleRate": 44100,
         "format": "wav",
         "createdAt": "2025-12-06T17:45:53.539Z",
-        "lastProcessed": "2025-12-06T17:45:53.539Z"
+        "lastProcessed": "2025-12-06T19:14:06.374Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "72nPaQWBHbY",
+        "title": "(VENDIDO) Matuê x Brandão85 x 333 Type Beat - \" Lucros \" || prod.inokkz",
+        "url": "https://www.youtube.com/watch?v=72nPaQWBHbY",
+        "duration": 177,
+        "thumbnail": "https://i.ytimg.com/vi/72nPaQWBHbY/maxresdefault.jpg",
+        "uploader": "prod.inokkz",
+        "view_count": 486,
+        "file": "video.mp4",
+        "file_size": 5354506
+      }
+    },
+    {
+      "id": "miunnkaj-c6z8aq",
+      "name": "14PescadordeIluses",
+      "displayName": "14 Pescadorde Iluses",
+      "artist": "Unknown",
+      "duration": 306.3379591836735,
+      "files": {
+        "original": "original.mp3",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-06T19:02:48.498Z",
+        "lastProcessed": "2025-12-06T19:02:48.498Z"
       },
       "status": {
         "vocals": true,

@@ -7,6 +7,7 @@ import { waveformRoutes } from './routes/waveform.js';
 import { lyricsRoutes } from './routes/lyrics.js';
 import { songsRoutes } from './routes/songs.js';
 import { processingRoutes } from './routes/processing.js';
+import { videoRoutes } from './routes/video.js';
 import { setupWebSocket } from './websocket/sync.js';
 
 const app = express();
@@ -22,6 +23,7 @@ app.use('/api/waveform', waveformRoutes);
 app.use('/api/lyrics', lyricsRoutes);
 app.use('/api/songs', songsRoutes);
 app.use('/api/processing', processingRoutes);
+app.use('/api/video', videoRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

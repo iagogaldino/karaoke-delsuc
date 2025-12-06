@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import LyricsDisplay from './LyricsDisplay';
 import { useSyncWebSocket } from '../hooks/useSyncWebSocket';
 import AudioPlayer from './AudioPlayer';
@@ -27,18 +27,35 @@ export default function KaraokeView({
   const [lyrics, setLyrics] = useState<any[]>([]);
   const [isReady, setIsReady] = useState(false);
   const [showSongSelector, setShowSongSelector] = useState(false);
+  const [hasVideo, setHasVideo] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const { currentTime, isPlaying, play, pause, seek } = useSyncWebSocket();
 
-  // Carregar letras quando a música mudar
+  // Carregar letras e verificar vídeo quando a música mudar
   useEffect(() => {
     if (!songId) {
       setIsReady(false);
       setLyrics([]);
+      setHasVideo(false);
       return;
     }
 
     setIsReady(false);
+    setHasVideo(false);
 
+    // Carregar informações da música para verificar se tem vídeo
+    fetch(`/api/songs/${songId}`)
+      .then(res => res.json())
+      .then(data => {
+        // A API retorna o objeto song diretamente
+        const song = data.song || data;
+        if (song && song.files?.video) {
+          setHasVideo(true);
+        }
+      })
+      .catch(err => console.error('Error loading song info:', err));
+
+    // Carregar letras
     fetch(`/api/lyrics/json?song=${songId}`)
       .then(res => res.json())
       .then(data => {
@@ -52,6 +69,36 @@ export default function KaraokeView({
       setIsReady(true);
     }
   }, [lyrics, songId]);
+
+  // Sincronizar vídeo com o áudio
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !hasVideo) return;
+
+    // Garantir que o vídeo está muted (sem áudio)
+    video.muted = true;
+
+    // Sincronizar tempo
+    const timeDiff = Math.abs(video.currentTime - currentTime);
+    if (timeDiff > 0.5 && timeDiff < 5) { // Tolerância de 0.5s, mas evitar grandes saltos
+      video.currentTime = currentTime;
+    }
+
+    // Sincronizar play/pause
+    if (isPlaying && video.paused) {
+      video.play().catch(err => console.error('Error playing video:', err));
+    } else if (!isPlaying && !video.paused) {
+      video.pause();
+    }
+  }, [currentTime, isPlaying, hasVideo]);
+
+  // Lidar com seek do vídeo
+  const handleVideoSeek = () => {
+    const video = videoRef.current;
+    if (video && Math.abs(video.currentTime - currentTime) > 0.5) {
+      seek(video.currentTime);
+    }
+  };
 
   // Abrir modal automaticamente quando não houver música selecionada
   useEffect(() => {
@@ -116,10 +163,28 @@ export default function KaraokeView({
 
       {/* Área de vídeo/imagem */}
       <div className="karaoke-media-area">
-        <div className="media-placeholder">
-          <i className="fas fa-image"></i>
-          <p>Área de vídeo da música ou imagem</p>
-        </div>
+        {hasVideo && songId ? (
+          <video
+            ref={videoRef}
+            src={`/api/video?song=${songId}`}
+            className="karaoke-video"
+            onTimeUpdate={handleVideoSeek}
+            onLoadedMetadata={() => {
+              const video = videoRef.current;
+              if (video) {
+                video.muted = true; // Garantir que está muted
+                video.currentTime = currentTime;
+              }
+            }}
+            playsInline
+            muted={true}
+          />
+        ) : (
+          <div className="media-placeholder">
+            <i className="fas fa-image"></i>
+            <p>Área de vídeo da música ou imagem</p>
+          </div>
+        )}
       </div>
 
       {/* Área de letras */}

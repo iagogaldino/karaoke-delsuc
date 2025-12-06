@@ -13,6 +13,7 @@ export interface SongFile {
   instrumental: string;
   waveform: string;
   lyrics: string;
+  video?: string;
 }
 
 export interface SongMetadata {
@@ -30,6 +31,18 @@ export interface SongStatus {
   ready: boolean;
 }
 
+export interface VideoInfo {
+  id?: string;
+  title?: string;
+  url?: string;
+  thumbnail?: string;
+  duration?: number;
+  file?: string;
+  uploader?: string;
+  view_count?: number;
+  file_size?: number;
+}
+
 export interface Song {
   id: string;
   name: string;
@@ -39,6 +52,7 @@ export interface Song {
   files: SongFile;
   metadata: SongMetadata;
   status: SongStatus;
+  video?: VideoInfo;
 }
 
 export interface Database {
