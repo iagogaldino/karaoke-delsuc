@@ -49,8 +49,21 @@ export default function AudioPlayer({
     instrumental.load();
 
     const handleLoadedMetadata = () => {
-      if (vocals.duration && instrumental.duration) {
-        setDuration(Math.max(vocals.duration, instrumental.duration));
+      if (vocals.duration && instrumental.duration && isFinite(vocals.duration) && isFinite(instrumental.duration)) {
+        const maxDuration = Math.max(vocals.duration, instrumental.duration);
+        if (maxDuration > 0 && isFinite(maxDuration)) {
+          setDuration(maxDuration);
+        }
+      }
+    };
+    
+    // Atualizar duração quando mudar
+    const updateDuration = () => {
+      if (vocals.duration && instrumental.duration && isFinite(vocals.duration) && isFinite(instrumental.duration)) {
+        const maxDuration = Math.max(vocals.duration, instrumental.duration);
+        if (maxDuration > 0 && isFinite(maxDuration)) {
+          setDuration(maxDuration);
+        }
       }
     };
 
@@ -108,6 +121,8 @@ export default function AudioPlayer({
 
     vocals.addEventListener('loadedmetadata', handleLoadedMetadata);
     instrumental.addEventListener('loadedmetadata', handleLoadedMetadata);
+    vocals.addEventListener('durationchange', updateDuration);
+    instrumental.addEventListener('durationchange', updateDuration);
     vocals.addEventListener('canplay', handleCanPlay);
     instrumental.addEventListener('canplay', handleCanPlay);
     vocals.addEventListener('progress', handleProgress);
@@ -120,6 +135,8 @@ export default function AudioPlayer({
       clearTimeout(bufferTimeout);
       vocals.removeEventListener('loadedmetadata', handleLoadedMetadata);
       instrumental.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      vocals.removeEventListener('durationchange', updateDuration);
+      instrumental.removeEventListener('durationchange', updateDuration);
       vocals.removeEventListener('canplay', handleCanPlay);
       instrumental.removeEventListener('canplay', handleCanPlay);
       vocals.removeEventListener('progress', handleProgress);
@@ -222,8 +239,18 @@ export default function AudioPlayer({
   };
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
+    if (!isFinite(seconds) || isNaN(seconds) || seconds < 0) {
+      return '0:00';
+    }
+    
+    const totalSeconds = Math.floor(seconds);
+    const hours = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    const secs = totalSeconds % 60;
+    
+    if (hours > 0) {
+      return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    }
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
@@ -243,32 +270,33 @@ export default function AudioPlayer({
         </button>
 
         <div className="time-display">
-          <span>{formatTime(currentTime)}</span>
-          <span>/</span>
+          <span>{formatTime(Math.min(currentTime, duration > 0 ? duration : currentTime))}</span>
+          <span className="time-separator">/</span>
           <span>{formatTime(duration)}</span>
         </div>
       </div>
 
       <div className="progress-container">
+        <div className="progress-bar">
+          <div
+            className="progress-buffered"
+            style={{ width: `${duration > 0 ? Math.min((buffered / duration) * 100, 100) : 0}%` }}
+          />
+          <div
+            className="progress-filled"
+            style={{ width: `${duration > 0 ? Math.min((currentTime / duration) * 100, 100) : 0}%` }}
+          />
+        </div>
         <input
           type="range"
           min="0"
-          max={duration || 0}
-          value={currentTime}
+          max={duration > 0 ? duration : 0}
+          value={Math.min(currentTime, duration > 0 ? duration : 0)}
           onChange={handleSeek}
           className="progress-slider"
-          disabled={isBuffering}
+          disabled={isBuffering || duration <= 0}
+          step="0.1"
         />
-        <div className="progress-bar">
-          <div
-            className="progress-filled"
-            style={{ width: `${(currentTime / duration) * 100}%` }}
-          />
-          <div
-            className="progress-buffered"
-            style={{ width: `${(buffered / duration) * 100}%` }}
-          />
-        </div>
       </div>
 
       {isBuffering && (
