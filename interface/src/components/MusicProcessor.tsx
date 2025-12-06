@@ -9,6 +9,7 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingStep, setProcessingStep] = useState<string>('');
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [musicName, setMusicName] = useState<string>('');
   const [progress, setProgress] = useState(0);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -23,11 +24,20 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
     }
 
     setUploadedFile(file);
+    
+    // Preencher nome da música automaticamente com o nome do arquivo (sem extensão)
+    const fileName = file.name.replace(/\.[^/.]+$/, '');
+    setMusicName(fileName);
   };
 
   const handleProcess = async () => {
     if (!uploadedFile) {
       alert('Por favor, selecione um arquivo de áudio primeiro');
+      return;
+    }
+
+    if (!musicName || musicName.trim() === '') {
+      alert('Por favor, insira um nome para a música');
       return;
     }
 
@@ -61,7 +71,8 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
         },
         body: JSON.stringify({
           fileId: newFileId,
-          musicName: uploadData.musicName,
+          musicName: musicName.trim(), // Usar o nome inserido pelo usuário
+          displayName: musicName.trim(), // Nome para exibição
           songId: songId, // Enviar songId para o backend
           tempPath: uploadData.tempPath
         })
@@ -87,6 +98,7 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
           if (status.status === 'completed') {
             setIsProcessing(false);
             setUploadedFile(null);
+            setMusicName('');
             setProgress(0);
             
             if (onProcessComplete && status.songId) {
@@ -152,6 +164,21 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
           <p className="file-size">
             {(uploadedFile.size / (1024 * 1024)).toFixed(2)} MB
           </p>
+        </div>
+      )}
+
+      {uploadedFile && (
+        <div className="music-name-input">
+          <label htmlFor="music-name">Nome da Música:</label>
+          <input
+            type="text"
+            id="music-name"
+            value={musicName}
+            onChange={(e) => setMusicName(e.target.value)}
+            placeholder="Digite o nome da música"
+            disabled={isProcessing}
+            className="name-input"
+          />
         </div>
       )}
 

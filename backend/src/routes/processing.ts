@@ -314,7 +314,7 @@ router.post('/upload', upload.single('audio'), async (req, res) => {
  */
 router.post('/start', async (req, res) => {
   try {
-    const { fileId, musicName, tempPath, songId } = req.body;
+    const { fileId, musicName, displayName, tempPath, songId } = req.body;
 
     if (!fileId || !musicName || !tempPath || !songId) {
       return res.status(400).json({ error: 'Dados incompletos' });
@@ -347,7 +347,7 @@ router.post('/start', async (req, res) => {
     console.log(`${'='.repeat(60)}\n`);
 
     // Iniciar processamento em background
-    processMusic(fileId, tempPath, musicDir, songId, musicName).catch(err => {
+    processMusic(fileId, tempPath, musicDir, songId, musicName, displayName || musicName).catch(err => {
       console.error(`[${fileId}] ❌ Erro fatal no processamento:`, err);
       const status = processingStatus.get(fileId);
       if (status) {
@@ -390,7 +390,8 @@ async function processMusic(
   tempPath: string,
   musicDir: string,
   songId: string,
-  musicName: string
+  musicName: string,
+  displayName: string
 ) {
   const status = processingStatus.get(fileId);
   if (!status) return;
@@ -810,7 +811,7 @@ async function processMusic(
       const songData = {
         id: songId,
         name: musicName,
-        displayName: musicName.replace(/([A-Z])/g, ' $1').trim(),
+        displayName: displayName || musicName.replace(/([A-Z])/g, ' $1').trim(),
         artist: 'Unknown',
         duration: duration,
         files: {
@@ -886,6 +887,217 @@ async function processMusic(
       console.error(`[${fileId}] 📚 Stack trace:`, error.stack);
     }
     console.error(`${'='.repeat(60)}\n`);
+  }
+}
+
+/**
+ * POST /api/processing/download-video/:songId
+ * Processar vídeo separadamente para uma música
+ */
+router.post('/download-video/:songId', async (req, res) => {
+  try {
+    const { songId } = req.params;
+    const song = getSongById(songId);
+    
+    if (!song) {
+      return res.status(404).json({ error: 'Música não encontrada' });
+    }
+
+    // Permitir reprocessar mesmo se já tiver vídeo (para atualizar ou baixar novamente)
+
+    const musicDir = join(PROJECT_ROOT, 'music', songId);
+    const processId = `video-${songId}-${Date.now()}`;
+
+    // Criar status de processamento
+    processingStatus.set(processId, {
+      status: 'processing',
+      step: 'Iniciando download de vídeo...',
+      progress: 0
+    });
+
+    // Iniciar processamento em background
+    downloadVideoForSong(processId, song, musicDir).catch(err => {
+      console.error(`[${processId}] ❌ Erro fatal no download de vídeo:`, err);
+      const status = processingStatus.get(processId);
+      if (status) {
+        status.status = 'error';
+        status.error = err.message;
+      }
+    });
+
+    res.json({
+      processId,
+      message: 'Processamento de vídeo iniciado',
+      statusUrl: `/api/processing/status/${processId}`
+    });
+  } catch (error: any) {
+    console.error('Error starting video processing:', error);
+    res.status(500).json({ error: 'Erro ao iniciar processamento de vídeo', message: error.message });
+  }
+});
+
+/**
+ * Função para baixar vídeo para uma música específica
+ */
+async function downloadVideoForSong(
+  processId: string,
+  song: any,
+  musicDir: string
+) {
+  const status = processingStatus.get(processId);
+  if (!status) return;
+
+  try {
+    status.step = 'Identificando música pelas letras...';
+    status.progress = 10;
+
+    // Verificar se tem letras para identificar a música
+    if (!song.files?.lyrics) {
+      throw new Error('Música precisa ter letras para identificar e buscar vídeo');
+    }
+
+    const lyricsPath = join(musicDir, song.files.lyrics);
+    if (!existsSync(lyricsPath)) {
+      throw new Error('Arquivo de letras não encontrado');
+    }
+
+    // Usar o nome da música com "Clip" para buscar clipes musicais
+    const baseQuery = song.displayName || song.name;
+    
+    if (!baseQuery || baseQuery.trim().length === 0) {
+      throw new Error('Não foi possível identificar a música para buscar o vídeo');
+    }
+
+    // Adicionar "Clip" na busca para priorizar clipes musicais
+    const searchQuery = `Clip ${baseQuery}`;
+
+    console.log(`[${processId}] 🔍 Buscando vídeo para: "${searchQuery}"`);
+
+    // Verificar se yt-dlp está disponível
+    status.step = 'Verificando yt-dlp...';
+    status.progress = 20;
+
+    try {
+      // Testar se yt-dlp está instalado
+      await execPython(
+        'python -c "import yt_dlp; print(\'OK\')"',
+        undefined,
+        `${processId} [yt-dlp check]`
+      );
+    } catch (error: any) {
+      throw new Error('yt-dlp não está instalado. Instale com: pip install yt-dlp');
+    }
+
+    // Usar script de download do YouTube
+    const downloadScript = join(PROJECT_ROOT, 'youtube-downloader', 'download_video.py');
+    
+    if (!existsSync(downloadScript)) {
+      throw new Error('Script de download do YouTube não encontrado. Verifique se o arquivo youtube-downloader/download_video.py existe.');
+    }
+
+    status.step = 'Baixando vídeo do YouTube...';
+    status.progress = 30;
+
+    // Executar download
+    const videoResult = await execPython(
+      `python "${downloadScript}" "${searchQuery}" "${musicDir}"`,
+      undefined,
+      `${processId} [YouTube Download]`,
+      (progress: number, message?: string) => {
+        const stepProgress = 30 + (progress * 0.6);
+        status.progress = Math.round(stepProgress);
+        if (message) {
+          status.step = `Baixando vídeo... ${progress}%`;
+        }
+      }
+    );
+
+    // Verificar se o vídeo foi baixado
+    const videoPath = join(musicDir, 'video.mp4');
+    if (!existsSync(videoPath)) {
+      // Tentar outros formatos
+      const possibleFormats = ['video.mkv', 'video.webm', 'video.avi'];
+      let foundVideo = false;
+      
+      for (const format of possibleFormats) {
+        const testPath = join(musicDir, format);
+        if (existsSync(testPath)) {
+          // Renomear para mp4 se necessário
+          if (format !== 'video.mp4') {
+            renameSync(testPath, videoPath);
+          }
+          foundVideo = true;
+          break;
+        }
+      }
+      
+      if (!foundVideo) {
+        throw new Error('Vídeo não foi baixado corretamente');
+      }
+    }
+
+    status.step = 'Salvando informações do vídeo...';
+    status.progress = 95;
+
+    // Extrair informações do vídeo do output
+    let videoInfo: any = null;
+    try {
+      const outputLines = videoResult.stdout.split('\n');
+      const jsonStart = outputLines.findIndex(line => line.trim().startsWith('{'));
+      if (jsonStart !== -1) {
+        const jsonLines = outputLines.slice(jsonStart);
+        const jsonStr = jsonLines.join('\n').trim();
+        videoInfo = JSON.parse(jsonStr);
+      }
+    } catch (err) {
+      console.warn(`[${processId}] ⚠️  Não foi possível extrair informações do vídeo do output`);
+    }
+
+    // Atualizar banco de dados
+    const updatedSong = await getSongById(song.id);
+    if (updatedSong) {
+      const updatedFiles = { ...updatedSong.files, video: 'video.mp4' };
+      await updateSong(song.id, {
+        ...updatedSong,
+        files: updatedFiles,
+        video: videoInfo ? {
+          ...videoInfo,
+          file: 'video.mp4'
+        } : undefined
+      });
+    }
+
+    status.status = 'completed';
+    status.songId = song.id;
+    status.step = 'Download de vídeo concluído!';
+    status.progress = 100;
+
+    console.log(`[${processId}] ✅ Vídeo baixado com sucesso!`);
+    
+    // Limpar status após 1 hora
+    setTimeout(() => {
+      processingStatus.delete(processId);
+      console.log(`[${processId}] 🧹 Status de download de vídeo removido (limpeza automática)`);
+    }, 3600000);
+
+  } catch (error: any) {
+    status.status = 'error';
+    status.error = error.message;
+    status.step = 'Erro no download de vídeo';
+    
+    console.error(`\n${'='.repeat(60)}`);
+    console.error(`[${processId}] ❌ ERRO durante o download de vídeo:`);
+    console.error(`[${processId}] 📝 Mensagem: ${error.message}`);
+    if (error.stack) {
+      console.error(`[${processId}] 📚 Stack trace:`, error.stack);
+    }
+    console.error(`${'='.repeat(60)}\n`);
+    
+    // Limpar status após 1 hora
+    setTimeout(() => {
+      processingStatus.delete(processId);
+      console.log(`[${processId}] 🧹 Status de download de vídeo removido (limpeza automática)`);
+    }, 3600000);
   }
 }
 
