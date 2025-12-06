@@ -1,0 +1,25 @@
+.waveform-container {
+  width: 100%;
+}
+
+.waveform-container h3 {
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.waveform-loading {
+  text-align: center;
+  padding: 1rem;
+  font-size: 0.9rem;
+  opacity: 0.8;
+  margin-bottom: 1rem;
+}
+
+.waveform-canvas {
+  width: 100%;
+  height: 150px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  display: block;
+}
+

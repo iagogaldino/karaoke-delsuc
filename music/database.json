@@ -1,0 +1,85 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-12-06T17:45:53.539Z",
+  "songs": [
+    {
+      "id": "AlceuValenca",
+      "name": "AlceuValenca",
+      "displayName": "Alceu Valença",
+      "artist": "Alceu Valença",
+      "duration": 268.15,
+      "files": {
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-06T00:00:00.000Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      }
+    },
+    {
+      "id": "miuku74r-cqb05i",
+      "name": "iago",
+      "displayName": "iago",
+      "artist": "Unknown",
+      "duration": 8.015986394557823,
+      "files": {
+        "original": "original.mp3",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": ""
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-06T17:38:26.529Z",
+        "lastProcessed": "2025-12-06T17:38:26.529Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      }
+    },
+    {
+      "id": "miukw804-ak7aau",
+      "name": "Matu333mp3160K",
+      "displayName": "Matu333mp3160 K",
+      "artist": "Unknown",
+      "duration": 321.4929931972789,
+      "files": {
+        "original": "original.mp3",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "MatuÃª - 333(mp3_160K).lrc"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-06T17:45:53.539Z",
+        "lastProcessed": "2025-12-06T17:45:53.539Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      }
+    }
+  ]
+}

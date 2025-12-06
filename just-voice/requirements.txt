@@ -1,0 +1,28 @@
+# Dependências para extração de voz usando Demucs
+# Instale com: pip install -r requirements.txt
+
+# Demucs - Modelo de separação de áudio da Meta
+demucs>=4.0.0
+
+# PyTorch - Framework de deep learning usado pelo Demucs
+# Para CPU (descomente se não tiver GPU):
+# torch>=2.0.0
+# torchaudio>=2.0.0
+
+# Para GPU com CUDA 11.8 (descomente se tiver GPU NVIDIA):
+# Instale de: https://pytorch.org/get-started/locally/
+# Exemplo: pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+# Para GPU com CUDA 12.1 (descomente se tiver GPU NVIDIA):
+# pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu121
+
+# Para CPU (versão padrão - funciona sem GPU):
+torch>=2.0.0
+torchaudio>=2.0.0
+
+# Biblioteca para processar arquivos de áudio
+soundfile>=0.12.0
+
+# Biblioteca adicional para suporte a vários formatos de áudio
+mutagen>=1.47.0
+

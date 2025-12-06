@@ -1,0 +1,33 @@
+{
+  "name": "lrc-generator",
+  "version": "1.0.0",
+  "description": "Sistema automático para gerar arquivos LRC de músicas usando OpenAI Speech API",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "generate": "tsx src/index.ts",
+    "lrc": "tsx src/index.ts"
+  },
+  "keywords": [
+    "lrc",
+    "karaoke",
+    "lyrics",
+    "openai",
+    "transcription"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "openai": "^4.28.0",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "tsx": "^4.7.1",
+    "typescript": "^5.3.3"
+  }
+}
+

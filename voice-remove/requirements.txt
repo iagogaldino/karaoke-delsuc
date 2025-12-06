@@ -1,0 +1,6 @@
+demucs
+torch
+torchaudio
+pydub
+soundfile
+
