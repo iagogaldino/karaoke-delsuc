@@ -256,6 +256,10 @@ function App() {
                 <LyricsDisplay
                   lyrics={lyrics}
                   currentTime={currentTime}
+                  songId={selectedSong}
+                  onLyricsUpdate={(updatedLyrics) => {
+                    setLyrics(updatedLyrics);
+                  }}
                 />
               </div>
             </>

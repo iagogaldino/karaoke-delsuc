@@ -92,3 +92,113 @@
   font-size: 1.05rem;
 }
 
+.lyric-line {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.lyric-text {
+  flex: 1;
+}
+
+.lyric-edit-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+  margin-left: 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.lyric-line:hover .lyric-edit-btn {
+  opacity: 1;
+}
+
+.lyric-edit-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.lyric-line.editing {
+  background: rgba(74, 144, 226, 0.2) !important;
+  border-left: 3px solid #4a90e2 !important;
+}
+
+.lyric-edit-container {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lyric-edit-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(74, 144, 226, 0.5);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font-size: 1.4rem;
+  font-weight: 600;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.lyric-edit-input:focus {
+  border-color: #4a90e2;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.lyric-edit-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.lyric-edit-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.lyric-save-btn,
+.lyric-cancel-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: all 0.2s;
+  color: #fff;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lyric-save-btn {
+  background: rgba(74, 144, 226, 0.3);
+}
+
+.lyric-save-btn:hover:not(:disabled) {
+  background: rgba(74, 144, 226, 0.5);
+  transform: scale(1.05);
+}
+
+.lyric-cancel-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.05);
+}
+
+.lyric-save-btn:disabled,
+.lyric-cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+

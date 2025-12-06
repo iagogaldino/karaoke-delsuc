@@ -1,5 +1,5 @@
 import { Router, Request, Response } from 'express';
-import { readFileSync, existsSync, statSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, statSync } from 'fs';
 import { PATHS } from '../utils/paths.js';
 import { getSongById } from '../utils/database.js';
 import { join } from 'path';
@@ -138,17 +138,82 @@ router.get('/json', (req, res) => {
       return null;
     }).filter(item => item !== null);
 
+  res.json({
+    lyrics,
+    totalLines: lyrics.length
+  });
+} catch (error: any) {
+  console.error('Error parsing lyrics:', error);
+  if (error.code === 'ENOENT' || error.code === 'EISDIR') {
+    res.status(404).json({ error: 'Lyrics file not found' });
+  } else {
+    res.status(500).json({ error: 'Internal server error', message: error.message });
+  }
+}
+});
+
+/**
+ * PUT /api/lyrics
+ * Atualiza uma linha específica do arquivo LRC
+ */
+router.put('/', (req, res) => {
+  try {
+    const { songId, lineIndex, newText } = req.body;
+
+    if (!songId || lineIndex === undefined || !newText) {
+      res.status(400).json({ error: 'Missing required fields: songId, lineIndex, newText' });
+      return;
+    }
+
+    const lrcPath = getLyricsPath(songId);
+    
+    if (!lrcPath) {
+      res.status(404).json({ error: 'Lyrics file not found' });
+      return;
+    }
+
+    // Ler arquivo atual
+    const lrcContent = readFileSync(lrcPath, 'utf-8');
+    const lines = lrcContent.split('\n');
+
+    // Encontrar a linha correspondente ao índice
+    let currentIndex = 0;
+    let found = false;
+
+    const updatedLines = lines.map((line, idx) => {
+      // Verificar se é uma linha de letra (formato [mm:ss.xx]texto)
+      const match = line.match(/^(\[(\d{2}):(\d{2})\.(\d{2})\])(.*)$/);
+      if (match) {
+        if (currentIndex === lineIndex) {
+          found = true;
+          // Manter o timestamp e atualizar apenas o texto
+          return `${match[1]}${newText}`;
+        }
+        currentIndex++;
+      }
+      return line;
+    });
+
+    if (!found) {
+      res.status(404).json({ error: 'Line index not found' });
+      return;
+    }
+
+    // Salvar arquivo atualizado
+    const updatedContent = updatedLines.join('\n');
+    writeFileSync(lrcPath, updatedContent, 'utf-8');
+
+    console.log(`[Lyrics] ✅ Linha ${lineIndex} atualizada para: "${newText}"`);
+
     res.json({
-      lyrics,
-      totalLines: lyrics.length
+      success: true,
+      message: 'Lyrics updated successfully',
+      lineIndex,
+      newText
     });
   } catch (error: any) {
-    console.error('Error parsing lyrics:', error);
-    if (error.code === 'ENOENT' || error.code === 'EISDIR') {
-      res.status(404).json({ error: 'Lyrics file not found' });
-    } else {
-      res.status(500).json({ error: 'Internal server error', message: error.message });
-    }
+    console.error('Error updating lyrics:', error);
+    res.status(500).json({ error: 'Internal server error', message: error.message });
   }
 });
 
