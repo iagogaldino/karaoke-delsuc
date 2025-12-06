@@ -3,6 +3,7 @@ import AudioPlayer from './components/AudioPlayer';
 import LyricsDisplay from './components/LyricsDisplay';
 import AudioControls, { AudioMode } from './components/AudioControls';
 import MusicProcessor from './components/MusicProcessor';
+import KaraokeView from './components/KaraokeView';
 import { useSyncWebSocket } from './hooks/useSyncWebSocket';
 import './App.css';
 
@@ -22,6 +23,7 @@ interface Song {
 }
 
 function App() {
+  const [viewMode, setViewMode] = useState<'config' | 'presentation'>('presentation');
   const [songs, setSongs] = useState<Song[]>([]);
   const [selectedSong, setSelectedSong] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -133,6 +135,21 @@ function App() {
     }
   }, [lyrics, selectedSong]);
 
+  // Se estiver no modo de apresentação, mostrar a tela de karaokê
+  if (viewMode === 'presentation') {
+    return (
+      <KaraokeView
+        songId={selectedSong}
+        onSettingsClick={() => setViewMode('config')}
+        onSelectSong={(songId) => setSelectedSong(songId)}
+        audioMode={audioMode}
+        vocalsVolume={vocalsVolume}
+        instrumentalVolume={instrumentalVolume}
+      />
+    );
+  }
+
+  // Modo de configuração (tela atual)
   return (
     <div className="app">
       <div className="app-container">
@@ -147,6 +164,16 @@ function App() {
               <i className={`fas ${showProcessor ? 'fa-times' : 'fa-plus'}`}></i>
             </button>
             {showProcessor && <span className="add-music-label">Processar Nova Música</span>}
+            {selectedSong && (
+              <button
+                className="presentation-btn"
+                onClick={() => setViewMode('presentation')}
+                title="Ir para tela de apresentação"
+              >
+                <i className="fas fa-tv"></i>
+                <span>Apresentação</span>
+              </button>
+            )}
           </div>
 
           {showProcessor && (
