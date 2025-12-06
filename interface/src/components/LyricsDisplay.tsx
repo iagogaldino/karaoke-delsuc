@@ -36,7 +36,7 @@ export default function LyricsDisplay({ lyrics, currentTime }: LyricsDisplayProp
 
   // Scroll automático para linha ativa
   useEffect(() => {
-    if (activeRef.current && lyricsRef.current) {
+    if (activeRef.current && lyricsRef.current && activeIndex >= 0) {
       const container = lyricsRef.current;
       const activeElement = activeRef.current;
 
@@ -46,9 +46,12 @@ export default function LyricsDisplay({ lyrics, currentTime }: LyricsDisplayProp
       const offsetTop = activeRect.top - containerRect.top;
       const scrollPosition = container.scrollTop + offsetTop - containerRect.height / 2 + activeRect.height / 2;
 
-      container.scrollTo({
-        top: scrollPosition,
-        behavior: 'smooth'
+      // Usar requestAnimationFrame para scroll mais suave
+      requestAnimationFrame(() => {
+        container.scrollTo({
+          top: Math.max(0, scrollPosition),
+          behavior: 'smooth'
+        });
       });
     }
   }, [activeIndex]);

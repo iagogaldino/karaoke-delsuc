@@ -1,71 +1,94 @@
 .lyrics-display {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .lyrics-display h3 {
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
   font-size: 1.5rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.95);
+  letter-spacing: 0.5px;
 }
 
 .no-lyrics {
   text-align: center;
-  padding: 2rem;
-  opacity: 0.7;
+  padding: 3rem 2rem;
+  opacity: 0.6;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1rem;
 }
 
 .lyrics-container {
-  max-height: 400px;
+  flex: 1;
+  max-height: 500px;
   overflow-y: auto;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 8px;
+  overflow-x: hidden;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  scroll-behavior: smooth;
 }
 
 .lyrics-container::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 .lyrics-container::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
 }
 
 .lyrics-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  transition: background 0.2s;
 }
 
 .lyrics-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.35);
 }
 
 .lyric-line {
-  padding: 0.75rem 1rem;
-  margin: 0.5rem 0;
-  font-size: 1.2rem;
-  line-height: 1.6;
-  transition: all 0.3s ease;
-  border-radius: 4px;
-  opacity: 0.4;
+  padding: 1rem 1.25rem;
+  margin: 0.25rem 0;
+  font-size: 1.15rem;
+  line-height: 1.7;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 8px;
+  opacity: 0.35;
+  color: rgba(255, 255, 255, 0.6);
+  min-height: 2.5rem;
+  display: flex;
+  align-items: center;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .lyric-line.past {
-  opacity: 0.6;
-  color: rgba(255, 255, 255, 0.7);
+  opacity: 0.5;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 1.1rem;
 }
 
 .lyric-line.active {
   opacity: 1;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.02);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.01);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  padding: 1.25rem 1.5rem;
+  margin: 0.5rem 0;
+  border-left: 3px solid rgba(255, 255, 255, 0.3);
 }
 
 .lyric-line.future {
   opacity: 0.3;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 1.05rem;
 }
 
