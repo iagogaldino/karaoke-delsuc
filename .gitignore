@@ -60,18 +60,18 @@ waveform-generator/wave_images/
 waveform-generator/wave_json/
 lrc-generator/lrc-output/
 
-# Audio files (opcional - descomente se não quiser versionar)
-# music/
-# *.mp3
-# *.wav
-# *.m4a
-# *.flac
-# *.ogg
+# Audio files - arquivos grandes, não versionar
+*.mp3
+*.wav
+*.m4a
+*.flac
+*.ogg
+*.wma
 
-# Large processed files (opcional - descomente se não quiser versionar)
-# *.wav
-# *.mp3
+# Large processed files
+*.wav
+*.mp3
 
-# Database (opcional - descomente se não quiser versionar)
+# Database - pode ser versionado, mas comentado por padrão
 # music/database.json
 
