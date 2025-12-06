@@ -8,6 +8,39 @@
   min-height: fit-content;
 }
 
+.player-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.player-thumbnail {
+  width: 80px;
+  height: 80px;
+  min-width: 80px;
+  min-height: 80px;
+  background: #4a90e2;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 2rem;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+}
+
 .player-controls {
   display: flex;
   align-items: center;
@@ -22,10 +55,10 @@
   background: #4a90e2;
   border: none;
   border-radius: 8px;
-  width: 50px;
-  height: 50px;
-  min-width: 50px;
-  min-height: 50px;
+  width: 45px;
+  height: 45px;
+  min-width: 45px;
+  min-height: 45px;
   cursor: pointer;
   transition: all 0.3s;
   display: flex;
@@ -36,15 +69,13 @@
   flex-shrink: 0;
 }
 
-.play-pause-btn:not([data-playing="true"]):not(:disabled)::before {
-  content: '▶';
+.play-pause-btn:not([data-playing="true"]):not(:disabled) i {
   display: block;
   font-size: 1rem;
   margin-left: 2px;
 }
 
-.play-pause-btn[data-playing="true"]::before {
-  content: '⏸';
+.play-pause-btn[data-playing="true"] i {
   display: block;
   font-size: 1rem;
   margin-left: 0;

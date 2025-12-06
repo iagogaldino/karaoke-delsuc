@@ -144,7 +144,7 @@ function App() {
               onClick={() => setShowProcessor(!showProcessor)}
               title={showProcessor ? "Ocultar processador" : "Processar nova música"}
             >
-              {showProcessor ? '✕' : '➕'}
+              <i className={`fas ${showProcessor ? 'fa-times' : 'fa-plus'}`}></i>
             </button>
             {showProcessor && <span className="add-music-label">Processar Nova Música</span>}
           </div>
@@ -170,7 +170,7 @@ function App() {
                 }}
                 title="Atualizar lista"
               >
-                🔄
+                <i className="fas fa-sync-alt"></i>
               </button>
             </div>
             {isLoadingSongs ? (
@@ -193,17 +193,19 @@ function App() {
                   <span className="song-name">{song.displayName || song.name}</span>
                   <div className="song-actions">
                     {song.status.ready && (
-                      <span className="play-icon">▶</span>
+                      <span className="play-icon"><i className="fas fa-play"></i></span>
                     )}
                     {!song.status.ready && (
-                      <span className="processing-icon" title="Processamento incompleto">⏳</span>
+                      <span className="processing-icon" title="Processamento incompleto">
+                        <i className="fas fa-hourglass-half"></i>
+                      </span>
                     )}
                     <button
                       className="delete-btn"
                       onClick={(e) => handleDeleteSong(song.id, e)}
                       title="Remover música"
                     >
-                      🗑️
+                      <i className="fas fa-trash-alt"></i>
                     </button>
                   </div>
                 </div>
@@ -219,7 +221,9 @@ function App() {
         <main className="karaoke-area">
           {!selectedSong ? (
             <div className="empty-state">
-              <div className="empty-icon">🎤</div>
+              <div className="empty-icon">
+                <i className="fas fa-microphone"></i>
+              </div>
               <h2>Selecione uma música</h2>
               <p>Escolha uma música da lista ao lado para começar</p>
             </div>

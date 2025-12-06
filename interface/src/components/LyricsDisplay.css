@@ -114,6 +114,13 @@
   font-size: 0.9rem;
   margin-left: 0.5rem;
   color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lyric-edit-btn i {
+  font-size: 0.85rem;
 }
 
 .lyric-line:hover .lyric-edit-btn {
@@ -180,6 +187,11 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.lyric-save-btn i,
+.lyric-cancel-btn i {
+  font-size: 0.9rem;
 }
 
 .lyric-save-btn {

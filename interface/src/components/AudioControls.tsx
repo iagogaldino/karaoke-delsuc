@@ -30,7 +30,8 @@ export default function AudioControls({
           className="toggle-advanced"
           onClick={() => setShowAdvanced(!showAdvanced)}
         >
-          {showAdvanced ? '▼' : '▶'} {showAdvanced ? 'Ocultar' : 'Avançado'}
+          <i className={`fas ${showAdvanced ? 'fa-chevron-down' : 'fa-chevron-right'}`}></i>
+          <span>{showAdvanced ? 'Ocultar' : 'Avançado'}</span>
         </button>
       </div>
 
@@ -41,19 +42,23 @@ export default function AudioControls({
             className={`mode-btn ${mode === 'both' ? 'active' : ''}`}
             onClick={() => onModeChange('both')}
           >
-            🎤🎵 Ambos (Karaokê)
+            <i className="fas fa-microphone"></i>
+            <i className="fas fa-music"></i>
+            <span>Ambos (Karaokê)</span>
           </button>
           <button
             className={`mode-btn ${mode === 'vocals-only' ? 'active' : ''}`}
             onClick={() => onModeChange('vocals-only')}
           >
-            🎤 Apenas Vocals
+            <i className="fas fa-microphone"></i>
+            <span>Apenas Vocals</span>
           </button>
           <button
             className={`mode-btn ${mode === 'instrumental-only' ? 'active' : ''}`}
             onClick={() => onModeChange('instrumental-only')}
           >
-            🎵 Apenas Instrumental
+            <i className="fas fa-music"></i>
+            <span>Apenas Instrumental</span>
           </button>
         </div>
       </div>

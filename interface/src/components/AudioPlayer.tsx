@@ -259,20 +259,30 @@ export default function AudioPlayer({
       <audio ref={vocalsRef} preload="auto" />
       <audio ref={instrumentalRef} preload="auto" />
 
-      <div className="player-controls">
-        <button
-          className="play-pause-btn"
-          onClick={isPlaying ? onPause : onPlay}
-          disabled={isBuffering}
-          data-playing={isPlaying ? 'true' : 'false'}
-        >
-          {isBuffering && '⏳'}
-        </button>
-
-        <div className="time-display">
-          <span>{formatTime(Math.min(currentTime, duration > 0 ? duration : currentTime))}</span>
-          <span className="time-separator">/</span>
-          <span>{formatTime(duration)}</span>
+      <div className="player-header">
+        <div className="player-thumbnail">
+          <i className="fas fa-music"></i>
+        </div>
+        <div className="player-info">
+          <button
+            className="play-pause-btn"
+            onClick={isPlaying ? onPause : onPlay}
+            disabled={isBuffering}
+            data-playing={isPlaying ? 'true' : 'false'}
+          >
+            {isBuffering ? (
+              <i className="fas fa-hourglass-half"></i>
+            ) : isPlaying ? (
+              <i className="fas fa-pause"></i>
+            ) : (
+              <i className="fas fa-play"></i>
+            )}
+          </button>
+          <div className="time-display">
+            <span>{formatTime(Math.min(currentTime, duration > 0 ? duration : currentTime))}</span>
+            <span className="time-separator">/</span>
+            <span>{formatTime(duration)}</span>
+          </div>
         </div>
       </div>
 

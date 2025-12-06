@@ -183,7 +183,11 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
                       disabled={isSaving || editText.trim() === ''}
                       title="Salvar (Enter)"
                     >
-                      {isSaving ? '⏳' : '✓'}
+                      {isSaving ? (
+                        <i className="fas fa-hourglass-half"></i>
+                      ) : (
+                        <i className="fas fa-check"></i>
+                      )}
                     </button>
                     <button
                       className="lyric-cancel-btn"
@@ -191,7 +195,7 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
                       disabled={isSaving}
                       title="Cancelar (Esc)"
                     >
-                      ✕
+                      <i className="fas fa-times"></i>
                     </button>
                   </div>
                 </div>
@@ -203,7 +207,7 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
                     onClick={() => handleEdit(index)}
                     title="Editar linha"
                   >
-                    ✏️
+                    <i className="fas fa-edit"></i>
                   </button>
                 </>
               )}

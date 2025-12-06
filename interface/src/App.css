@@ -44,6 +44,10 @@
   margin-bottom: 0.5rem;
 }
 
+.add-music-btn i {
+  font-size: 1.2rem;
+}
+
 .add-music-btn {
   width: 40px;
   height: 40px;
@@ -121,6 +125,17 @@
   padding: 0.25rem 0.5rem;
   border-radius: 0.25rem;
   transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.refresh-btn i {
+  font-size: 1rem;
+}
+
+.refresh-btn.spinning i {
+  animation: spin 1s linear infinite;
 }
 
 .refresh-btn:hover {
@@ -191,11 +206,24 @@
 .play-icon {
   font-size: 0.8rem;
   opacity: 0.7;
+  display: flex;
+  align-items: center;
+}
+
+.play-icon i {
+  font-size: 0.7rem;
 }
 
 .processing-icon {
   font-size: 0.8rem;
   opacity: 0.5;
+  display: flex;
+  align-items: center;
+}
+
+.processing-icon i {
+  font-size: 0.7rem;
+  animation: spin 1s linear infinite;
 }
 
 .delete-btn {
@@ -212,6 +240,10 @@
   justify-content: center;
   opacity: 0;
   transform: scale(0.8);
+}
+
+.delete-btn i {
+  font-size: 0.9rem;
 }
 
 .song-item:hover .delete-btn {
@@ -264,6 +296,13 @@
   font-size: 4rem;
   margin-bottom: 1rem;
   opacity: 0.5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.empty-icon i {
+  font-size: 4rem;
 }
 
 .empty-state h2 {

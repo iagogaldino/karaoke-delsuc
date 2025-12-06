@@ -27,6 +27,9 @@
   cursor: pointer;
   font-size: 0.9rem;
   transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .toggle-advanced:hover {
@@ -60,6 +63,14 @@
   cursor: pointer;
   font-size: 0.95rem;
   transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.mode-btn i {
+  font-size: 1rem;
 }
 
 .mode-btn:hover {
