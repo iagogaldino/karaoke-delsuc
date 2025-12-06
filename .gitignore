@@ -72,6 +72,10 @@ lrc-generator/lrc-output/
 *.wav
 *.mp3
 
+# Large JSON files (waveform data)
+**/waveform.json
+music/*/waveform.json
+
 # Database - pode ser versionado, mas comentado por padrão
 # music/database.json
 
