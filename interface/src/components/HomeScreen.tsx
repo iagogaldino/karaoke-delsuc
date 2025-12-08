@@ -246,6 +246,15 @@ export default function HomeScreen({ onSelectSong, onSettingsClick }: HomeScreen
 
   return (
     <div className="home-screen">
+      {/* Luzes de fundo animadas */}
+      <div className="background-lights">
+        <div className="light light-1"></div>
+        <div className="light light-2"></div>
+        <div className="light light-3"></div>
+        <div className="light light-4"></div>
+        <div className="light light-5"></div>
+      </div>
+
       {onSettingsClick && (
         <button
           className="home-settings-btn"
