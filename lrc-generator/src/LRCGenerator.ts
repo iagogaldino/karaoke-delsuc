@@ -109,6 +109,19 @@ export class LRCGenerator {
   }
 
   /**
+   * Gera o prompt padrão com instruções para símbolos sonoros e palavras arrastadas
+   */
+  private getDefaultPrompt(userPrompt?: string): string {
+    // Prompt muito curto e direto - apenas contexto, sem instruções explícitas
+    // O Whisper pode transcrever partes do prompt se for muito detalhado
+    const defaultInstructions = userPrompt || '';
+
+    // Retorna apenas o contexto do usuário, sem instruções que possam ser transcritas
+    // As instruções sobre símbolos e hífens serão aplicadas pós-processamento se necessário
+    return defaultInstructions;
+  }
+
+  /**
    * Faz upload e transcreve o áudio usando OpenAI Whisper API
    */
   async transcribeAudio(
@@ -152,12 +165,15 @@ export class LRCGenerator {
         };
       }
 
+      // Combina o prompt padrão com o prompt do usuário (se fornecido)
+      const finalPrompt = this.getDefaultPrompt(options?.prompt);
+
       // Usa a API de transcrição com timestamps detalhados
       const transcription = await this.openai.audio.transcriptions.create({
         file: audioFile,
         model: 'whisper-1',
         language: options?.language,
-        prompt: options?.prompt,
+        prompt: finalPrompt,
         response_format: 'verbose_json', // Retorna timestamps detalhados
         timestamp_granularities: ['segment'], // Timestamps por segmento
       });
@@ -251,7 +267,11 @@ export class LRCGenerator {
         if (!fs.existsSync(outputPath)) {
           fs.mkdirSync(outputPath, { recursive: true });
         }
-        finalOutputPath = path.join(outputPath, `${audioName}.lrc`);
+        // Se for um diretório de música (contém 'music' no caminho), usa 'lyrics.lrc'
+        // Caso contrário, usa o nome do áudio
+        const isMusicDir = outputPath.toLowerCase().includes('music');
+        const fileName = isMusicDir ? 'lyrics.lrc' : `${audioName}.lrc`;
+        finalOutputPath = path.join(outputPath, fileName);
       } else {
         // É um caminho completo de arquivo
         const outputDir = path.dirname(outputPath);
@@ -282,6 +302,32 @@ export class LRCGenerator {
       
       const musicDir = path.join(projectRoot, 'music', audioName);
       finalOutputPath = path.join(musicDir, 'lyrics.lrc');
+    }
+
+    // Se o arquivo já existe, remove-o para garantir substituição
+    if (fs.existsSync(finalOutputPath)) {
+      console.log(`📝 Substituindo arquivo LRC existente: ${finalOutputPath}`);
+      fs.unlinkSync(finalOutputPath);
+    }
+
+    // Se for um diretório de música, também remove arquivos LRC antigos com nomes diferentes
+    const outputDir = path.dirname(finalOutputPath);
+    if (outputDir.toLowerCase().includes('music')) {
+      try {
+        const files = fs.readdirSync(outputDir);
+        const oldLrcFiles = files.filter((f: string) => 
+          f.toLowerCase().endsWith('.lrc') && 
+          f.toLowerCase() !== 'lyrics.lrc' &&
+          path.basename(f, '.lrc') === audioName
+        );
+        oldLrcFiles.forEach((oldFile: string) => {
+          const oldFilePath = path.join(outputDir, oldFile);
+          console.log(`🗑️  Removendo arquivo LRC antigo: ${oldFile}`);
+          fs.unlinkSync(oldFilePath);
+        });
+      } catch (err) {
+        // Ignora erros ao listar/remover arquivos antigos
+      }
     }
 
     // Salva o arquivo LRC

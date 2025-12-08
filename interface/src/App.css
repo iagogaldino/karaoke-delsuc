@@ -336,6 +336,7 @@
 }
 
 .video-btn,
+.lrc-btn,
 .delete-btn {
   background: transparent;
   border: none;
@@ -352,12 +353,14 @@
   transform: scale(0.8);
 }
 
-.video-btn:disabled {
+.video-btn:disabled,
+.lrc-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
 .video-btn i,
+.lrc-btn i,
 .delete-btn i {
   font-size: 0.9rem;
 }
@@ -371,14 +374,22 @@
 }
 
 .song-item:hover .video-btn,
+.song-item:hover .lrc-btn,
 .song-item:hover .delete-btn {
   opacity: 1;
   transform: scale(1);
 }
 
-.video-btn:hover:not(:disabled) {
+.video-btn:hover:not(:disabled),
+.lrc-btn:hover:not(:disabled) {
   background: rgba(74, 144, 226, 0.2);
   color: #4a90e2;
+  transform: scale(1.1);
+}
+
+.lrc-btn:hover:not(:disabled) {
+  background: rgba(40, 167, 69, 0.2);
+  color: #28a745;
   transform: scale(1.1);
 }
 
@@ -388,6 +399,7 @@
   transform: scale(1.1);
 }
 
+.lrc-btn:active:not(:disabled),
 .delete-btn:active {
   transform: scale(0.9);
 }

@@ -1,34 +1,52 @@
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'http';
-import { WebSocketServer } from 'ws';
 import { audioRoutes } from './routes/audio.js';
 import { waveformRoutes } from './routes/waveform.js';
 import { lyricsRoutes } from './routes/lyrics.js';
 import { songsRoutes } from './routes/songs.js';
 import { processingRoutes } from './routes/processing.js';
 import { videoRoutes } from './routes/video.js';
+import { scoresRoutes } from './routes/scores.js';
+import { qrcodeRoutes } from './routes/qrcode.js';
+import { usersRoutes } from './routes/users.js';
+import * as qrcodeController from './controllers/qrcodeController.js';
 import { setupWebSocket } from './websocket/sync.js';
+import { errorHandler } from './middlewares/errorHandler.js';
+import { SERVER_CONFIG, PATHS } from './config/index.js';
+import { join } from 'path';
 
 const app = express();
-const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
+// Servir fotos de usuários estaticamente
+app.use('/music/users-photos', express.static(PATHS.USERS_PHOTOS_DIR));
+
 // Routes
+// Página HTML para QR code (deve vir antes das rotas de API)
+app.get('/qrcode/:qrId', qrcodeController.getNamePage);
+
+// API Routes
 app.use('/api/audio', audioRoutes);
 app.use('/api/waveform', waveformRoutes);
 app.use('/api/lyrics', lyricsRoutes);
 app.use('/api/songs', songsRoutes);
 app.use('/api/processing', processingRoutes);
 app.use('/api/video', videoRoutes);
+app.use('/api/scores', scoresRoutes);
+app.use('/api/qrcode', qrcodeRoutes);
+app.use('/api/users', usersRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
+
+// Error handling middleware (must be last)
+app.use(errorHandler);
 
 // Create HTTP server
 const server = createServer(app);
@@ -37,8 +55,7 @@ const server = createServer(app);
 setupWebSocket(server);
 
 // Start server
-server.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📡 WebSocket server ready on ws://localhost:${PORT}`);
+server.listen(SERVER_CONFIG.PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${SERVER_CONFIG.PORT}`);
+  console.log(`📡 WebSocket server ready on ws://localhost:${SERVER_CONFIG.PORT}`);
 });
-

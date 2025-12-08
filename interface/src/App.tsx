@@ -1,32 +1,20 @@
 import { useState, useEffect } from 'react';
 import AudioPlayer from './components/AudioPlayer';
 import LyricsDisplay from './components/LyricsDisplay';
-import AudioControls, { AudioMode } from './components/AudioControls';
+import AudioControls from './components/AudioControls';
 import MusicProcessor from './components/MusicProcessor';
 import KaraokeView from './components/KaraokeView';
+import ResultsScreen from './components/ResultsScreen.js';
+import HomeScreen from './components/HomeScreen.js';
 import { useSyncWebSocket } from './hooks/useSyncWebSocket';
+import { songsService } from './services/songsService.js';
+import { lyricsService } from './services/lyricsService.js';
+import { processingService } from './services/processingService.js';
+import { Song, AudioMode, PlayerScore } from './types/index.js';
 import './App.css';
 
-interface Song {
-  id: string;
-  name: string;
-  displayName: string;
-  artist: string;
-  duration: number;
-  status: {
-    ready: boolean;
-    vocals: boolean;
-    instrumental: boolean;
-    waveform: boolean;
-    lyrics: boolean;
-  };
-  files?: {
-    video?: string;
-  };
-}
-
 function App() {
-  const [viewMode, setViewMode] = useState<'config' | 'presentation'>('presentation');
+  const [viewMode, setViewMode] = useState<'home' | 'config' | 'presentation' | 'results'>('home');
   const [songs, setSongs] = useState<Song[]>([]);
   const [selectedSong, setSelectedSong] = useState<string | null>(null);
   const [isReady, setIsReady] = useState(false);
@@ -37,8 +25,10 @@ function App() {
   const [showProcessor, setShowProcessor] = useState(false);
   const [isLoadingSongs, setIsLoadingSongs] = useState(true);
   const [processingVideo, setProcessingVideo] = useState<{ [songId: string]: boolean }>({});
+  const [generatingLRC, setGeneratingLRC] = useState<{ [songId: string]: boolean }>({});
   const [editingSongName, setEditingSongName] = useState<string | null>(null);
   const [editedSongName, setEditedSongName] = useState<string>('');
+  const [finalScore, setFinalScore] = useState<{ score: PlayerScore; maxPoints: number } | null>(null);
   const { currentTime, isPlaying, play, pause, seek } = useSyncWebSocket();
 
   // Carregar lista de músicas do banco de dados
@@ -46,12 +36,8 @@ function App() {
     const loadSongs = async () => {
       try {
         setIsLoadingSongs(true);
-        const response = await fetch('/api/songs');
-        if (!response.ok) {
-          throw new Error('Erro ao carregar músicas');
-        }
-        const data = await response.json();
-        setSongs(data.songs || []);
+        const songs = await songsService.getAll();
+        setSongs(songs);
       } catch (error) {
         console.error('Error loading songs:', error);
       } finally {
@@ -63,19 +49,19 @@ function App() {
   }, []);
 
   // Recarregar lista quando uma música for processada
-  const handleProcessComplete = (songId: string) => {
+  const handleProcessComplete = async (songId: string) => {
     setShowProcessor(false);
-    // Recarregar lista de músicas
-    fetch('/api/songs')
-      .then(res => res.json())
-      .then(data => {
-        setSongs(data.songs || []);
-        // Selecionar a música recém-processada
-        if (songId) {
-          setSelectedSong(songId);
-        }
-      })
-      .catch(err => console.error('Error reloading songs:', err));
+    try {
+      // Recarregar lista de músicas
+      const songs = await songsService.getAll();
+      setSongs(songs);
+      // Selecionar a música recém-processada
+      if (songId) {
+        setSelectedSong(songId);
+      }
+    } catch (err) {
+      console.error('Error reloading songs:', err);
+    }
   };
 
   // Função para editar nome da música
@@ -92,26 +78,13 @@ function App() {
     }
 
     try {
-      const response = await fetch(`/api/songs/${songId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          displayName: editedSongName.trim()
-        })
+      await songsService.update(songId, {
+        displayName: editedSongName.trim()
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao atualizar nome');
-      }
-
       // Recarregar lista de músicas
-      fetch('/api/songs')
-        .then(res => res.json())
-        .then(data => setSongs(data.songs || []))
-        .catch(err => console.error('Error reloading songs:', err));
+      const songs = await songsService.getAll();
+      setSongs(songs);
 
       setEditingSongName(null);
       setEditedSongName('');
@@ -126,6 +99,27 @@ function App() {
     setEditedSongName('');
   };
 
+  // Função para salvar audioMode quando alterado
+  const handleAudioModeChange = async (mode: AudioMode) => {
+    setAudioMode(mode);
+    
+    // Salvar no banco de dados se houver música selecionada
+    if (selectedSong) {
+      try {
+        await songsService.update(selectedSong, {
+          audioMode: mode
+        });
+        
+        // Atualizar a lista de músicas para refletir a mudança
+        const songs = await songsService.getAll();
+        setSongs(songs);
+      } catch (error: any) {
+        console.error('Error saving audio mode:', error);
+        // Não mostrar alerta para não interromper a experiência do usuário
+      }
+    }
+  };
+
   // Função para processar vídeo de uma música
   const handleDownloadVideo = async (songId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevenir que o clique selecione a música
@@ -137,24 +131,17 @@ function App() {
     try {
       setProcessingVideo(prev => ({ ...prev, [songId]: true }));
       
-      const response = await fetch(`/api/processing/download-video/${songId}`, {
-        method: 'POST'
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao processar vídeo');
-      }
-
-      const data = await response.json();
+      await processingService.downloadVideo(songId);
       alert('Processamento de vídeo iniciado! Acompanhe o progresso no console do backend.');
       
       // Recarregar lista de músicas após um tempo
-      setTimeout(() => {
-        fetch('/api/songs')
-          .then(res => res.json())
-          .then(data => setSongs(data.songs || []))
-          .catch(err => console.error('Error reloading songs:', err));
+      setTimeout(async () => {
+        try {
+          const songs = await songsService.getAll();
+          setSongs(songs);
+        } catch (err) {
+          console.error('Error reloading songs:', err);
+        }
       }, 5000);
     } catch (error: any) {
       console.error('Error processing video:', error);
@@ -169,6 +156,45 @@ function App() {
   };
 
   // Função para remover uma música
+  const handleGenerateLRC = async (songId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    if (generatingLRC[songId]) {
+      return;
+    }
+
+    if (!confirm('Deseja gerar/regenerar as letras LRC para esta música?')) {
+      return;
+    }
+
+    try {
+      setGeneratingLRC(prev => ({ ...prev, [songId]: true }));
+      
+      const response = await processingService.generateLRC(songId);
+      const processId = response.processId;
+
+      // Polling do status
+      await processingService.pollStatus(processId, (status) => {
+        console.log(`Geração de LRC: ${status.step} (${status.progress}%)`);
+      });
+
+      // Recarregar lista de músicas
+      const songs = await songsService.getAll();
+      setSongs(songs);
+      
+      alert('Letras LRC geradas com sucesso!');
+    } catch (error: any) {
+      console.error('Erro ao gerar LRC:', error);
+      alert('Erro ao gerar LRC: ' + (error.message || 'Erro desconhecido'));
+    } finally {
+      setGeneratingLRC(prev => {
+        const newState = { ...prev };
+        delete newState[songId];
+        return newState;
+      });
+    }
+  };
+
   const handleDeleteSong = async (songId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevenir que o clique selecione a música
     
@@ -177,14 +203,7 @@ function App() {
     }
 
     try {
-      const response = await fetch(`/api/songs/${songId}`, {
-        method: 'DELETE'
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Erro ao remover música');
-      }
+      await songsService.delete(songId);
 
       // Se a música removida estava selecionada, limpar seleção
       if (selectedSong === songId) {
@@ -194,9 +213,8 @@ function App() {
       }
 
       // Recarregar lista de músicas
-      const songsResponse = await fetch('/api/songs');
-      const songsData = await songsResponse.json();
-      setSongs(songsData.songs || []);
+      const songs = await songsService.getAll();
+      setSongs(songs);
 
       alert('Música removida com sucesso!');
     } catch (error: any) {
@@ -210,14 +228,26 @@ function App() {
     if (!selectedSong) {
       setIsReady(false);
       setLyrics([]);
+      setAudioMode('both'); // Reset para padrão quando não há música selecionada
       return;
     }
 
     setIsReady(false);
 
+    // Carregar informações da música incluindo audioMode
+    songsService.getById(selectedSong)
+      .then(song => {
+        // Carregar audioMode salvo ou usar padrão
+        if (song.audioMode) {
+          setAudioMode(song.audioMode);
+        } else {
+          setAudioMode('both');
+        }
+      })
+      .catch(err => console.error('Error loading song:', err));
+
     // Carregar letras
-    fetch(`/api/lyrics/json?song=${selectedSong}`)
-      .then(res => res.json())
+    lyricsService.getJson(selectedSong)
       .then(data => {
         setLyrics(data.lyrics || []);
       })
@@ -231,6 +261,46 @@ function App() {
     }
   }, [lyrics, selectedSong]);
 
+  // Se estiver no modo de resultados, mostrar a tela de resultados
+  if (viewMode === 'results' && finalScore) {
+    return (
+      <ResultsScreen
+        score={finalScore.score}
+        maxPossiblePoints={finalScore.maxPoints}
+        onBack={() => {
+          setViewMode('home');
+          setFinalScore(null);
+          setSelectedSong(null);
+        }}
+      />
+    );
+  }
+
+  // Se estiver no modo home, mostrar a tela inicial
+  if (viewMode === 'home') {
+    return (
+      <HomeScreen
+        onSelectSong={async (songId) => {
+          setSelectedSong(songId);
+          // Carregar audioMode da música antes de ir para apresentação
+          try {
+            const song = await songsService.getById(songId);
+            if (song.audioMode) {
+              setAudioMode(song.audioMode);
+            } else {
+              setAudioMode('both');
+            }
+          } catch (err) {
+            console.error('Error loading song audio mode:', err);
+            setAudioMode('both');
+          }
+          setViewMode('presentation');
+        }}
+        onSettingsClick={() => setViewMode('config')}
+      />
+    );
+  }
+
   // Se estiver no modo de apresentação, mostrar a tela de karaokê
   if (viewMode === 'presentation') {
     return (
@@ -241,6 +311,10 @@ function App() {
         audioMode={audioMode}
         vocalsVolume={vocalsVolume}
         instrumentalVolume={instrumentalVolume}
+        onGameOver={(score, maxPoints) => {
+          setFinalScore({ score, maxPoints });
+          setViewMode('results');
+        }}
       />
     );
   }
@@ -285,11 +359,13 @@ function App() {
               <h3>Músicas</h3>
               <button
                 className="refresh-btn"
-                onClick={() => {
-                  fetch('/api/songs')
-                    .then(res => res.json())
-                    .then(data => setSongs(data.songs || []))
-                    .catch(err => console.error('Error reloading songs:', err));
+                onClick={async () => {
+                  try {
+                    const songs = await songsService.getAll();
+                    setSongs(songs);
+                  } catch (err) {
+                    console.error('Error reloading songs:', err);
+                  }
                 }}
                 title="Atualizar lista"
               >
@@ -389,6 +465,18 @@ function App() {
                       </button>
                     )}
                     <button
+                      className="lrc-btn"
+                      onClick={(e) => handleGenerateLRC(song.id, e)}
+                      title={song.files?.lyrics ? "Regenerar letras LRC" : "Gerar letras LRC"}
+                      disabled={generatingLRC[song.id]}
+                    >
+                      {generatingLRC[song.id] ? (
+                        <i className="fas fa-spinner fa-spin"></i>
+                      ) : (
+                        <i className="fas fa-file-alt"></i>
+                      )}
+                    </button>
+                    <button
                       className="delete-btn"
                       onClick={(e) => handleDeleteSong(song.id, e)}
                       title="Remover música"
@@ -425,7 +513,7 @@ function App() {
               <div className="player-section">
                 <AudioControls
                   mode={audioMode}
-                  onModeChange={setAudioMode}
+                  onModeChange={handleAudioModeChange}
                   vocalsVolume={vocalsVolume}
                   instrumentalVolume={instrumentalVolume}
                   onVocalsVolumeChange={setVocalsVolume}

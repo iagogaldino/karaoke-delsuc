@@ -1,0 +1,21 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2025-12-08T19:18:25.568Z",
+  "users": [
+    {
+      "id": "user-mixgxg46-k9y5m1u",
+      "name": "IagoIag",
+      "phone": "74988420307",
+      "createdAt": "2025-12-08T18:11:50.358Z",
+      "lastPlayedAt": "2025-12-08T18:21:21.339Z"
+    },
+    {
+      "id": "user-mixhbwox-t3acilk",
+      "name": "Iago Delsuc Galdino dos Santos",
+      "phone": "5574988420307",
+      "createdAt": "2025-12-08T18:23:05.025Z",
+      "lastPlayedAt": "2025-12-08T19:18:25.568Z",
+      "photo": "users-photos/photo-5f10691008906ecdab710f89f6dc013b-1765221505536.jpg"
+    }
+  ]
+}

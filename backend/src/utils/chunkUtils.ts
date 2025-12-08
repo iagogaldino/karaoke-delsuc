@@ -1,54 +1,9 @@
-import { readFileSync, existsSync, statSync } from 'fs';
-import { getSongById } from './database.js';
-import { join } from 'path';
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const PROJECT_ROOT = join(__dirname, '..', '..', '..');
-
-// Helper para obter caminho da waveform
-function getWaveformPath(songId?: string): string | null {
-  if (songId) {
-    const song = getSongById(songId);
-    if (song && song.files.waveform) {
-      const waveformPath = join(PROJECT_ROOT, 'music', song.id, song.files.waveform);
-      // Verificar se o arquivo existe e é realmente um arquivo (não um diretório)
-      if (existsSync(waveformPath)) {
-        const stats = statSync(waveformPath);
-        if (stats.isFile()) {
-          console.log(`[Waveform] ✅ Arquivo encontrado para ${songId}: ${waveformPath}`);
-          return waveformPath;
-        } else {
-          console.warn(`[Waveform] ⚠️  Waveform path is a directory, not a file: ${waveformPath}`);
-          return null;
-        }
-      } else {
-        console.warn(`[Waveform] ⚠️  Arquivo não encontrado para ${songId}: ${waveformPath}`);
-      }
-      return null;
-    } else {
-      console.warn(`[Waveform] ⚠️  Música não encontrada no banco ou waveform vazio: ${songId}`);
-    }
-  }
-  // NÃO usar fallback para evitar carregar waveform errado
-  // Se songId não foi fornecido ou não foi encontrado, retornar null
-  console.warn(`[Waveform] ⚠️  Nenhum songId fornecido ou arquivo não encontrado. Não usando fallback.`);
-  return null;
-}
+import { readFileSync } from 'fs';
+import { getWaveformPath } from '../services/songPathService.js';
+import { WaveformData } from '../types/index.js';
+import { PROCESSING_CONFIG } from '../config/index.js';
 
 let currentSongId: string | undefined = undefined;
-
-interface WaveformData {
-  sample_rate: number;
-  duration: number;
-  num_samples: number;
-  waveform: number[];
-}
-
-const CHUNK_SIZE = 100000; // ~10MB por chunk (aproximadamente)
-
 let cachedWaveformData: WaveformData | null = null;
 
 /**
@@ -102,7 +57,7 @@ export function getWaveformMetadata(songId?: string): Omit<WaveformData, 'wavefo
  */
 export function getWaveformChunk(startIndex: number, endIndex?: number, songId?: string): number[] {
   const data = loadWaveformData(songId);
-  const end = endIndex !== undefined ? Math.min(endIndex, data.waveform.length) : Math.min(startIndex + CHUNK_SIZE, data.waveform.length);
+  const end = endIndex !== undefined ? Math.min(endIndex, data.waveform.length) : Math.min(startIndex + PROCESSING_CONFIG.CHUNK_SIZE, data.waveform.length);
   return data.waveform.slice(startIndex, end);
 }
 
@@ -111,7 +66,7 @@ export function getWaveformChunk(startIndex: number, endIndex?: number, songId?:
  */
 export function getTotalChunks(songId?: string): number {
   const data = loadWaveformData(songId);
-  return Math.ceil(data.waveform.length / CHUNK_SIZE);
+  return Math.ceil(data.waveform.length / PROCESSING_CONFIG.CHUNK_SIZE);
 }
 
 /**

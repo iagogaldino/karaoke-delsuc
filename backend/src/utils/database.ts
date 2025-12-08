@@ -1,65 +1,11 @@
 import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join, dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { join } from 'path';
+import { PATHS } from '../config/index.js';
+import { Database, Song, SongFile, SongStatus } from '../types/index.js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-const PROJECT_ROOT = join(__dirname, '..', '..', '..');
-const DATABASE_PATH = join(PROJECT_ROOT, 'music', 'database.json');
+const DATABASE_PATH = PATHS.DATABASE;
 
-export interface SongFile {
-  original?: string;
-  vocals: string;
-  instrumental: string;
-  waveform: string;
-  lyrics: string;
-  video?: string;
-}
-
-export interface SongMetadata {
-  sampleRate: number;
-  format: string;
-  createdAt: string;
-  lastProcessed?: string;
-}
-
-export interface SongStatus {
-  vocals: boolean;
-  instrumental: boolean;
-  waveform: boolean;
-  lyrics: boolean;
-  ready: boolean;
-}
-
-export interface VideoInfo {
-  id?: string;
-  title?: string;
-  url?: string;
-  thumbnail?: string;
-  duration?: number;
-  file?: string;
-  uploader?: string;
-  view_count?: number;
-  file_size?: number;
-}
-
-export interface Song {
-  id: string;
-  name: string;
-  displayName: string;
-  artist: string;
-  duration: number;
-  files: SongFile;
-  metadata: SongMetadata;
-  status: SongStatus;
-  video?: VideoInfo;
-}
-
-export interface Database {
-  version: string;
-  lastUpdated: string;
-  songs: Song[];
-}
+// Types are now imported from types/index.ts
 
 /**
  * Carrega o banco de dados
@@ -185,7 +131,7 @@ export function removeSong(id: string): boolean {
  * Verifica se os arquivos de uma música existem
  */
 function checkSongFiles(songId: string, files: SongFile): SongStatus {
-  const songDir = join(PROJECT_ROOT, 'music', songId);
+  const songDir = join(PATHS.MUSIC_DIR, songId);
   
   const vocalsExists = existsSync(join(songDir, files.vocals));
   const instrumentalExists = existsSync(join(songDir, files.instrumental));

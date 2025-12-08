@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import './AudioControls.css';
-
-export type AudioMode = 'both' | 'vocals-only' | 'instrumental-only';
+import { AudioMode } from '../types/index.js';
 
 interface AudioControlsProps {
   mode: AudioMode;

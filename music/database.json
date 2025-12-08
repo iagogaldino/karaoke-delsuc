@@ -1,98 +1,7 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-06T20:34:42.926Z",
+  "lastUpdated": "2025-12-08T17:18:20.976Z",
   "songs": [
-    {
-      "id": "AlceuValenca",
-      "name": "AlceuValenca",
-      "displayName": "Alceu Valença",
-      "artist": "Alceu Valença",
-      "duration": 268.15,
-      "files": {
-        "vocals": "vocals.wav",
-        "instrumental": "instrumental.wav",
-        "waveform": "waveform.json",
-        "lyrics": "lyrics.lrc"
-      },
-      "metadata": {
-        "sampleRate": 44100,
-        "format": "wav",
-        "createdAt": "2025-12-06T00:00:00.000Z"
-      },
-      "status": {
-        "vocals": true,
-        "instrumental": true,
-        "waveform": true,
-        "lyrics": true,
-        "ready": true
-      }
-    },
-    {
-      "id": "miuku74r-cqb05i",
-      "name": "iago",
-      "displayName": "iago",
-      "artist": "Unknown",
-      "duration": 8.015986394557823,
-      "files": {
-        "original": "original.mp3",
-        "vocals": "vocals.wav",
-        "instrumental": "instrumental.wav",
-        "waveform": "waveform.json",
-        "lyrics": ""
-      },
-      "metadata": {
-        "sampleRate": 44100,
-        "format": "wav",
-        "createdAt": "2025-12-06T17:38:26.529Z",
-        "lastProcessed": "2025-12-06T17:38:26.529Z"
-      },
-      "status": {
-        "vocals": true,
-        "instrumental": true,
-        "waveform": true,
-        "lyrics": true,
-        "ready": true
-      }
-    },
-    {
-      "id": "miukw804-ak7aau",
-      "name": "Matu333mp3160K",
-      "displayName": "Matu 333",
-      "artist": "Unknown",
-      "duration": 321.4929931972789,
-      "files": {
-        "original": "original.mp3",
-        "vocals": "vocals.wav",
-        "instrumental": "instrumental.wav",
-        "waveform": "waveform.json",
-        "lyrics": "MatuÃª - 333(mp3_160K).lrc",
-        "video": "video.mp4"
-      },
-      "metadata": {
-        "sampleRate": 44100,
-        "format": "wav",
-        "createdAt": "2025-12-06T17:45:53.539Z",
-        "lastProcessed": "2025-12-06T19:14:06.374Z"
-      },
-      "status": {
-        "vocals": true,
-        "instrumental": true,
-        "waveform": true,
-        "lyrics": true,
-        "ready": true
-      },
-      "video": {
-        "id": "72nPaQWBHbY",
-        "title": "(VENDIDO) Matuê x Brandão85 x 333 Type Beat - \" Lucros \" || prod.inokkz",
-        "url": "https://www.youtube.com/watch?v=72nPaQWBHbY",
-        "duration": 177,
-        "thumbnail": "https://i.ytimg.com/vi/72nPaQWBHbY/maxresdefault.jpg",
-        "uploader": "prod.inokkz",
-        "view_count": 486,
-        "file": "video.mp4",
-        "file_size": 5354506
-      }
-    },
     {
       "id": "miunnkaj-c6z8aq",
       "name": "14PescadordeIluses",
@@ -130,7 +39,269 @@
         "view_count": 31313412,
         "file": "video.mp4",
         "file_size": 55519130
+      },
+      "audioMode": "both"
+    },
+    {
+      "id": "miurk9ti-c4wnra",
+      "name": "Matuê - 333",
+      "displayName": "Matuê - 333",
+      "artist": "Unknown",
+      "duration": 321.4929931972789,
+      "files": {
+        "original": "original.mp3",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-06T20:55:22.984Z",
+        "lastProcessed": "2025-12-06T20:55:22.984Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "xbbhp44RsPo",
+        "title": "Matuê - 333",
+        "url": "https://www.youtube.com/watch?v=xbbhp44RsPo",
+        "thumbnail": "https://i.ytimg.com/vi_webp/xbbhp44RsPo/maxresdefault.webp",
+        "duration": 340,
+        "uploader": "30PRAUM",
+        "view_count": 8882206,
+        "file": "video.mp4",
+        "file_size": 61061428
+      },
+      "audioMode": "instrumental-only"
+    },
+    {
+      "id": "mivt6z6u-6p8677",
+      "name": "iago",
+      "displayName": "iago",
+      "artist": "Unknown",
+      "duration": 8.015986394557823,
+      "files": {
+        "original": "original.mp3",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-07T14:21:00.392Z",
+        "lastProcessed": "2025-12-07T14:21:00.392Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
       }
+    },
+    {
+      "id": "miw0l4fs-a9vixn",
+      "name": "Vulgo FK, MC PH, Veigh - Ballena",
+      "displayName": "Vulgo FK, MC PH, Veigh - Ballena",
+      "artist": "Unknown",
+      "duration": 205.26439909297054,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-07T17:46:35.326Z",
+        "lastProcessed": "2025-12-07T17:59:54.202Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "0nHHZZRYNf4",
+        "title": "Vulgo FK, MC PH, Veigh - Ballena (Clipe Oficial)",
+        "url": "https://www.youtube.com/watch?v=0nHHZZRYNf4",
+        "thumbnail": "https://i.ytimg.com/vi/0nHHZZRYNf4/maxresdefault.jpg",
+        "duration": 205,
+        "uploader": "Vulgo FK",
+        "view_count": 180272941,
+        "file": "video.mp4"
+      },
+      "audioMode": "instrumental-only"
+    },
+    {
+      "id": "miw1px46-dilphg",
+      "name": "Seu Jorge - Carolina",
+      "displayName": "Seu Jorge - Carolina",
+      "artist": "Unknown",
+      "duration": 281.6580498866213,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-07T18:18:18.728Z",
+        "lastProcessed": "2025-12-07T22:24:50.774Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "VwBIVWX8YtQ",
+        "title": "Seu Jorge - Carolina (Ao Vivo)",
+        "url": "https://www.youtube.com/watch?v=VwBIVWX8YtQ",
+        "thumbnail": "https://i.ytimg.com/vi_webp/VwBIVWX8YtQ/maxresdefault.webp",
+        "duration": 282,
+        "uploader": "anacarolina",
+        "view_count": 33143236,
+        "file": "video.mp4"
+      },
+      "audioMode": "both"
+    },
+    {
+      "id": "miw9mwnc-4km1gi",
+      "name": "Hungria - Chovendo Inimigo",
+      "displayName": "Hungria - Chovendo Inimigo",
+      "artist": "Unknown",
+      "duration": 160.12480725623584,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-07T21:59:55.083Z",
+        "lastProcessed": "2025-12-07T22:03:39.494Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "6xIpNmaid8M",
+        "title": "Hungria - Chovendo Inimigo (Official Music Video) prod. MOJJO",
+        "url": "https://www.youtube.com/watch?v=6xIpNmaid8M",
+        "thumbnail": "https://i.ytimg.com/vi/6xIpNmaid8M/hqdefault.jpg?sqp=-oaymwEmCOADEOgC8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGEQgRyhyMA8=&rs=AOn4CLCUjsWWx1t4osz6mPe66ZkHR7y8DQ",
+        "duration": 160,
+        "uploader": "Hungria",
+        "view_count": 148395201,
+        "file": "video.mp4"
+      },
+      "audioMode": "both"
+    },
+    {
+      "id": "miw9yc2k-a9ui50",
+      "name": "Charlie Brown JR. - Pontes Indestrutí­veis",
+      "displayName": "Charlie Brown JR. - Pontes Indestrutí­veis",
+      "artist": "Unknown",
+      "duration": 204.1962811791383,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-07T22:08:48.287Z",
+        "lastProcessed": "2025-12-07T22:59:33.873Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "bZTwKUJDU1M",
+        "title": "Charlie Brown JR. - Pontes Indestrutí­veis",
+        "url": "https://www.youtube.com/watch?v=bZTwKUJDU1M",
+        "thumbnail": "https://i.ytimg.com/vi/bZTwKUJDU1M/maxresdefault.jpg",
+        "duration": 204,
+        "uploader": "Charlie Brown Jr.",
+        "view_count": 31875902,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "miwaoeoe-gedg9o",
+      "name": "Metamorfose Ambulante",
+      "displayName": "Metamorfose Ambulante",
+      "artist": "Unknown",
+      "duration": 226.99827664399092,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-07T22:29:04.727Z",
+        "lastProcessed": "2025-12-07T22:36:37.225Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "7VE6PNwmr9g",
+        "title": "Raul seixas- Metamorfose ambulante",
+        "url": "https://www.youtube.com/watch?v=7VE6PNwmr9g",
+        "thumbnail": "https://i.ytimg.com/vi/7VE6PNwmr9g/hqdefault.jpg?sqp=-oaymwEmCOADEOgC8quKqQMa8AEB-AHUBoAC4AOKAgwIABABGE4gTihlMA8=&rs=AOn4CLDx6zWwKTZFERjh-f9SBdEcJaBWXw",
+        "duration": 228,
+        "uploader": "Vinil 87",
+        "view_count": 108432005,
+        "file": "video.mp4"
+      },
+      "audioMode": "both"
     }
   ]
 }

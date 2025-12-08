@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import './AudioPlayer.css';
-import { AudioMode } from './AudioControls';
+import { AudioMode } from '../types/index.js';
+import { audioService } from '../services/audioService.js';
+import { formatTime } from '../utils/formatters.js';
+import { AUDIO_CONFIG } from '../config/index.js';
 
 interface AudioPlayerProps {
   isPlaying: boolean;
@@ -12,6 +15,7 @@ interface AudioPlayerProps {
   vocalsVolume: number;
   instrumentalVolume: number;
   songId: string | null;
+  onDurationChange?: (duration: number) => void;
 }
 
 export default function AudioPlayer({
@@ -23,7 +27,8 @@ export default function AudioPlayer({
   audioMode,
   vocalsVolume,
   instrumentalVolume,
-  songId
+  songId,
+  onDurationChange
 }: AudioPlayerProps) {
   const vocalsRef = useRef<HTMLAudioElement>(null);
   const instrumentalRef = useRef<HTMLAudioElement>(null);
@@ -53,6 +58,9 @@ export default function AudioPlayer({
         const maxDuration = Math.max(vocals.duration, instrumental.duration);
         if (maxDuration > 0 && isFinite(maxDuration)) {
           setDuration(maxDuration);
+          if (onDurationChange) {
+            onDurationChange(maxDuration);
+          }
         }
       }
     };
@@ -63,13 +71,16 @@ export default function AudioPlayer({
         const maxDuration = Math.max(vocals.duration, instrumental.duration);
         if (maxDuration > 0 && isFinite(maxDuration)) {
           setDuration(maxDuration);
+          if (onDurationChange) {
+            onDurationChange(maxDuration);
+          }
         }
       }
     };
 
     const checkBuffer = () => {
-      // Verificar se ambos têm buffer suficiente (3-5 segundos)
-      const minBuffer = 3;
+      // Verificar se ambos têm buffer suficiente
+      const minBuffer = AUDIO_CONFIG.MIN_BUFFER;
       
       if (vocals.buffered.length > 0 && instrumental.buffered.length > 0) {
         const vocalsBuffered = vocals.buffered.end(0);
@@ -109,15 +120,15 @@ export default function AudioPlayer({
       } else if (hasBuffer) {
         lastBufferingState = false;
       }
-    }, 500);
+    }, AUDIO_CONFIG.BUFFER_CHECK_INTERVAL);
 
-    // Timeout de segurança: permitir play após 10 segundos mesmo sem buffer completo
+    // Timeout de segurança: permitir play após tempo limite mesmo sem buffer completo
     const bufferTimeout = setTimeout(() => {
       if (vocals.readyState >= 2 && instrumental.readyState >= 2) {
         // HAVE_CURRENT_DATA ou superior
         setIsBuffering(false);
       }
-    }, 10000);
+    }, AUDIO_CONFIG.BUFFER_TIMEOUT);
 
     vocals.addEventListener('loadedmetadata', handleLoadedMetadata);
     instrumental.addEventListener('loadedmetadata', handleLoadedMetadata);
@@ -199,9 +210,9 @@ export default function AudioPlayer({
 
     if (!vocals || !instrumental) return;
 
-    // Só atualizar se a diferença for significativa (> 0.1s)
+    // Só atualizar se a diferença for significativa
     const diff = Math.abs(vocals.currentTime - currentTime);
-    if (diff > 0.1) {
+    if (diff > AUDIO_CONFIG.SEEK_TOLERANCE) {
       vocals.currentTime = currentTime;
       instrumental.currentTime = currentTime;
     }
@@ -238,21 +249,7 @@ export default function AudioPlayer({
     onSeek(newTime);
   };
 
-  const formatTime = (seconds: number) => {
-    if (!isFinite(seconds) || isNaN(seconds) || seconds < 0) {
-      return '0:00';
-    }
-    
-    const totalSeconds = Math.floor(seconds);
-    const hours = Math.floor(totalSeconds / 3600);
-    const mins = Math.floor((totalSeconds % 3600) / 60);
-    const secs = totalSeconds % 60;
-    
-    if (hours > 0) {
-      return `${hours}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    }
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
+  // formatTime is now imported from utils
 
   return (
     <div className="audio-player">

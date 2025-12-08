@@ -1,11 +1,7 @@
 import { Server } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
-
-interface SyncMessage {
-  type: 'play' | 'pause' | 'seek' | 'getTime' | 'timeUpdate' | 'stateChanged';
-  timestamp?: number;
-  state?: 'playing' | 'paused';
-}
+import { SyncMessage } from '../types/index.js';
+import { WEBSOCKET_CONFIG } from '../config/index.js';
 
 let wss: WebSocketServer | null = null;
 const clients = new Set<WebSocket>();
@@ -96,7 +92,7 @@ export function setupWebSocket(server: Server) {
           clearInterval(timeUpdateInterval);
         }
       }
-    }, 100); // Atualiza a cada 100ms
+    }, WEBSOCKET_CONFIG.TIME_UPDATE_INTERVAL);
 
     ws.on('message', (data: Buffer) => {
       try {
@@ -173,5 +169,43 @@ export function setupWebSocket(server: Server) {
   });
 
   console.log('✅ WebSocket server initialized');
+}
+
+/**
+ * Broadcasta notificação quando um nome é submetido via QR code
+ */
+export function broadcastQRCodeName(qrId: string, userName: string) {
+  broadcast({
+    type: 'qrcodeNameSubmitted',
+    qrId,
+    userName
+  });
+  console.log(`📝 QR Code name submitted: ${userName} (qrId: ${qrId})`);
+}
+
+/**
+ * Broadcasta notificação quando uma música é selecionada via QR code
+ */
+export function broadcastQRCodeSong(qrId: string, songId: string, userName: string) {
+  broadcast({
+    type: 'qrcodeSongSelected',
+    qrId,
+    songId,
+    userName
+  });
+  console.log(`🎵 QR Code song selected: ${songId} by ${userName} (qrId: ${qrId})`);
+}
+
+/**
+ * Broadcasta notificação quando um usuário desiste da música via QR code
+ */
+export function broadcastQRCodeGiveUp(qrId: string, songId: string, userName: string) {
+  broadcast({
+    type: 'qrcodeGiveUp',
+    qrId,
+    songId,
+    userName
+  });
+  console.log(`🚫 QR Code give up: ${userName} gave up song ${songId} (qrId: ${qrId})`);
 }
 

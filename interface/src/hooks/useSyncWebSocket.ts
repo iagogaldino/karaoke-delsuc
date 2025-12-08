@@ -1,11 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-
-interface SyncMessage {
-  type: 'play' | 'pause' | 'seek' | 'getTime' | 'timeUpdate' | 'stateChanged' | 'error';
-  timestamp?: number;
-  state?: 'playing' | 'paused';
-  message?: string;
-}
+import { SyncMessage } from '../types/index.js';
+import { WEBSOCKET_CONFIG } from '../config/index.js';
 
 export function useSyncWebSocket() {
   const [isConnected, setIsConnected] = useState(false);
@@ -16,7 +11,7 @@ export function useSyncWebSocket() {
 
   const connect = useCallback(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws/sync`;
+    const wsUrl = `${protocol}//${window.location.host}${WEBSOCKET_CONFIG.PATH}`;
     
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
@@ -66,10 +61,10 @@ export function useSyncWebSocket() {
       console.log('🔌 WebSocket disconnected');
       setIsConnected(false);
       
-      // Tentar reconectar após 3 segundos
+      // Try to reconnect after delay
       reconnectTimeoutRef.current = setTimeout(() => {
         connect();
-      }, 3000);
+      }, WEBSOCKET_CONFIG.RECONNECT_DELAY);
     };
   }, []);
 
@@ -115,4 +110,3 @@ export function useSyncWebSocket() {
     seek
   };
 }
-

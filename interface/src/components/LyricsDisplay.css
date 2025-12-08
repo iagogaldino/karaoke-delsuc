@@ -5,12 +5,50 @@
   height: 100%;
 }
 
-.lyrics-display h3 {
+.lyrics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 1.5rem;
+}
+
+.lyrics-display h3 {
+  margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.95);
   letter-spacing: 0.5px;
+}
+
+.add-line-btn {
+  background: rgba(74, 144, 226, 0.3);
+  border: 2px solid rgba(74, 144, 226, 0.5);
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.add-line-btn:hover:not(:disabled) {
+  background: rgba(74, 144, 226, 0.5);
+  border-color: rgba(74, 144, 226, 0.7);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(74, 144, 226, 0.3);
+}
+
+.add-line-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.add-line-btn i {
+  font-size: 0.85rem;
 }
 
 .no-lyrics {
@@ -78,7 +116,7 @@
   font-size: 1.4rem;
   font-weight: 600;
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.15);
   transform: scale(1.01);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
   padding: 1.25rem 1.5rem;
@@ -99,37 +137,90 @@
   justify-content: space-between;
 }
 
+.lyric-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.lyric-timestamp {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
+  font-family: 'Courier New', monospace;
+  min-width: 70px;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: all 0.2s;
+}
+
+.lyric-line.active .lyric-timestamp {
+  color: rgba(255, 255, 255, 0.8);
+  opacity: 1;
+  font-weight: 600;
+}
+
+.lyric-line:hover .lyric-timestamp {
+  opacity: 1;
+  color: rgba(255, 255, 255, 0.7);
+}
+
 .lyric-text {
   flex: 1;
 }
 
-.lyric-edit-btn {
+.lyric-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.lyric-line:hover .lyric-actions {
+  opacity: 1;
+}
+
+.lyric-edit-btn,
+.lyric-delete-btn {
   background: rgba(255, 255, 255, 0.1);
   border: none;
   border-radius: 4px;
   padding: 0.4rem 0.6rem;
   cursor: pointer;
-  opacity: 0;
   transition: all 0.2s;
   font-size: 0.9rem;
-  margin-left: 0.5rem;
   color: rgba(255, 255, 255, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
+  min-width: 32px;
 }
 
-.lyric-edit-btn i {
+.lyric-edit-btn i,
+.lyric-delete-btn i {
   font-size: 0.85rem;
 }
 
-.lyric-line:hover .lyric-edit-btn {
-  opacity: 1;
+.lyric-edit-btn:hover {
+  background: rgba(74, 144, 226, 0.3);
+  color: rgba(255, 255, 255, 0.9);
 }
 
-.lyric-edit-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+.lyric-delete-btn {
+  background: rgba(239, 68, 68, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.lyric-delete-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.4);
   color: rgba(255, 255, 255, 0.9);
+}
+
+.lyric-delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .lyric-line.editing {
@@ -140,11 +231,17 @@
 .lyric-edit-container {
   width: 100%;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
-.lyric-edit-input {
+.lyric-edit-inputs {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.lyric-edit-text-input {
   flex: 1;
   background: rgba(255, 255, 255, 0.1);
   border: 2px solid rgba(74, 144, 226, 0.5);
@@ -158,12 +255,48 @@
   transition: border-color 0.2s;
 }
 
-.lyric-edit-input:focus {
+.lyric-edit-text-input:focus {
   border-color: #4a90e2;
   background: rgba(255, 255, 255, 0.15);
 }
 
-.lyric-edit-input:disabled {
+.lyric-edit-text-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.lyric-edit-time-input {
+  width: 150px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(74, 144, 226, 0.5);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font-size: 1.1rem;
+  font-family: 'Courier New', monospace;
+  outline: none;
+  transition: border-color 0.2s;
+  text-align: center;
+}
+
+.lyric-edit-time-input:focus {
+  border-color: #4a90e2;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.lyric-edit-time-input.duplicate-time {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+  animation: shake 0.3s ease-in-out;
+}
+
+.lyric-edit-time-input.duplicate-time:focus {
+  border-color: #dc2626 !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.lyric-edit-time-input:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -212,5 +345,199 @@
 .lyric-cancel-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Estilo para palavras acertadas durante a gravação */
+.word-matched {
+  color: #4ade80;
+  font-weight: 700;
+  background: rgba(74, 222, 128, 0.2);
+  padding: 0.15rem 0.25rem;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  text-shadow: 0 0 10px rgba(74, 222, 128, 0.6);
+  display: inline-block;
+  animation: word-highlight 0.5s ease-out;
+}
+
+@keyframes word-highlight {
+  0% {
+    background: rgba(74, 222, 128, 0);
+    transform: scale(1);
+  }
+  50% {
+    background: rgba(74, 222, 128, 0.3);
+    transform: scale(1.05);
+  }
+  100% {
+    background: rgba(74, 222, 128, 0.2);
+    transform: scale(1);
+  }
+}
+
+/* Estilo especial para palavras acertadas na linha ativa */
+.lyric-line.active .word-matched {
+  color: #22c55e;
+  background: rgba(34, 197, 94, 0.25);
+  text-shadow: 0 0 12px rgba(34, 197, 94, 0.7);
+  font-weight: 800;
+}
+
+/* Estilos para modo karaoke tradicional - letras destacadas progressivamente */
+.karaoke-highlighted {
+  color: #ffd700;
+  font-weight: 700;
+  transition: all 0.15s ease-out;
+  display: inline;
+  position: relative;
+}
+
+.karaoke-pending {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 400;
+  transition: color 0.2s ease-out;
+  display: inline;
+}
+
+/* Estilo especial para linha ativa no modo karaoke */
+.lyric-line.active .karaoke-highlighted {
+  color: #ffd700;
+  font-weight: 800;
+}
+
+.lyric-line.active .karaoke-pending {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+/* Estilos para adicionar nova linha */
+.lyric-line.adding {
+  background: rgba(74, 144, 226, 0.15) !important;
+  border: 2px dashed rgba(74, 144, 226, 0.5) !important;
+  opacity: 1 !important;
+}
+
+.lyric-add-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lyric-add-inputs {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.lyric-add-text-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(74, 144, 226, 0.5);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font-size: 1.1rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.lyric-add-text-input:focus {
+  border-color: #4a90e2;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.lyric-add-text-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.lyric-time-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lyric-add-time-input {
+  width: 150px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(74, 144, 226, 0.5);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  color: #fff;
+  font-size: 1.1rem;
+  font-family: 'Courier New', monospace;
+  outline: none;
+  transition: border-color 0.2s;
+  text-align: center;
+}
+
+.lyric-add-time-input:focus {
+  border-color: #4a90e2;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.lyric-add-time-input.duplicate-time {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+  animation: shake 0.3s ease-in-out;
+}
+
+.lyric-add-time-input.duplicate-time:focus {
+  border-color: #dc2626 !important;
+  background: rgba(239, 68, 68, 0.15) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+}
+
+.lyric-add-time-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+
+.sync-time-btn {
+  background: rgba(74, 144, 226, 0.3);
+  border: 2px solid rgba(74, 144, 226, 0.5);
+  border-radius: 6px;
+  padding: 0.75rem;
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 100%;
+}
+
+.sync-time-btn:hover:not(:disabled) {
+  background: rgba(74, 144, 226, 0.5);
+  border-color: rgba(74, 144, 226, 0.7);
+  transform: scale(1.05);
+}
+
+.sync-time-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sync-time-btn i {
+  font-size: 0.85rem;
+}
+
+.lyric-add-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
 }
 
