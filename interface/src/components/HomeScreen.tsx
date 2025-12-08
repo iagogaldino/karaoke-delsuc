@@ -80,48 +80,13 @@ export default function HomeScreen({ onSelectSong, onSettingsClick }: HomeScreen
           console.error('Erro ao carregar usuários:', error);
         }
 
-        // Dados mockados para teste (sempre adicionar alguns para preencher o grid)
-        const mockUsers: User[] = [
-          { name: 'Ana Silva', phone: 'mock-11111111111', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Carlos Santos', phone: 'mock-22222222222', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Maria Oliveira', phone: 'mock-33333333333', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'João Pereira', phone: 'mock-44444444444', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Julia Costa', phone: 'mock-55555555555', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Pedro Alves', phone: 'mock-66666666666', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Lucas Ferreira', phone: 'mock-77777777777', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Beatriz Lima', phone: 'mock-88888888888', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Rafael Souza', phone: 'mock-99999999999', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Fernanda Costa', phone: 'mock-10101010101', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Gabriel Martins', phone: 'mock-12121212121', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Camila Rodrigues', phone: 'mock-13131313131', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Rodrigo Almeida', phone: 'mock-14141414141', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Isabella Santos', phone: 'mock-15151515151', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Thiago Silva', phone: 'mock-16161616161', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Mariana Costa', phone: 'mock-17171717171', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Bruno Oliveira', phone: 'mock-18181818181', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Larissa Santos', phone: 'mock-19191919191', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Diego Pereira', phone: 'mock-20202020202', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Patricia Alves', phone: 'mock-21212121212', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'André Ferreira', phone: 'mock-23232323232', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Vanessa Lima', phone: 'mock-24242424242', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Ricardo Souza', phone: 'mock-25252525252', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Tatiana Costa', phone: 'mock-26262626262', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Felipe Martins', phone: 'mock-27272727272', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Juliana Rodrigues', phone: 'mock-28282828282', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Gustavo Almeida', phone: 'mock-29292929292', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Carolina Santos', phone: 'mock-30303030303', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Vinícius Silva', phone: 'mock-31313131313', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-          { name: 'Amanda Costa', phone: 'mock-32323232323', photo: null, createdAt: new Date().toISOString(), lastPlayedAt: new Date().toISOString() },
-        ];
-
-        // Combinar usuários reais com mockados (sempre incluir mocks para preencher)
-        const allUsers = [...usersData, ...mockUsers];
-        setUsers(allUsers);
+        // Usar apenas dados reais dos usuários que já jogaram
+        setUsers(usersData);
         
         // Animar fotos aparecendo uma por vez de forma aleatória automaticamente
         // Resetar e começar animação do zero
         setTimeout(() => {
-          const shuffled = [...allUsers].sort(() => Math.random() - 0.5);
+          const shuffled = [...usersData].sort(() => Math.random() - 0.5);
           shuffled.forEach((user, index) => {
             setTimeout(() => {
               setVisiblePhotos(prev => {
@@ -240,7 +205,8 @@ export default function HomeScreen({ onSelectSong, onSettingsClick }: HomeScreen
     if (!photo) return null;
     // Se já começar com http, retornar como está
     if (photo.startsWith('http')) return photo;
-    // Caso contrário, adicionar o caminho base
+    // O backend salva como "users-photos/photo-xxx.jpg" e serve em /music/users-photos
+    // Então o caminho completo é /music/users-photos/photo-xxx.jpg
     return `/music/${photo}`;
   };
 
@@ -341,13 +307,19 @@ export default function HomeScreen({ onSelectSong, onSettingsClick }: HomeScreen
                           src={photoUrl} 
                           alt={user.name}
                           className="player-photo"
+                          loading="lazy"
                           onError={(e) => {
                             // Fallback para ícone se foto não carregar
                             const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
                             const parent = target.parentElement;
                             if (parent) {
-                              parent.innerHTML = `<div class="player-icon"><i class="fas fa-user"></i></div>`;
+                              target.style.display = 'none';
+                              if (!parent.querySelector('.player-icon')) {
+                                const iconDiv = document.createElement('div');
+                                iconDiv.className = 'player-icon';
+                                iconDiv.innerHTML = '<i class="fas fa-user"></i>';
+                                parent.appendChild(iconDiv);
+                              }
                             }
                           }}
                         />

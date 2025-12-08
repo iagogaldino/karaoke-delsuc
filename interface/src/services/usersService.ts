@@ -1,6 +1,7 @@
 import { apiService } from './api.js';
 
 export interface User {
+  id: string;
   name: string;
   phone: string;
   photo?: string;
