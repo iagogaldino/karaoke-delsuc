@@ -28,7 +28,7 @@ function App() {
   const [generatingLRC, setGeneratingLRC] = useState<{ [songId: string]: boolean }>({});
   const [editingSongName, setEditingSongName] = useState<string | null>(null);
   const [editedSongName, setEditedSongName] = useState<string>('');
-  const [finalScore, setFinalScore] = useState<{ score: PlayerScore; maxPoints: number } | null>(null);
+  const [finalScore, setFinalScore] = useState<{ score: PlayerScore; maxPoints: number; userName?: string; userPhoto?: string } | null>(null);
   const { currentTime, isPlaying, play, pause, seek } = useSyncWebSocket();
 
   // Carregar lista de músicas do banco de dados
@@ -267,6 +267,8 @@ function App() {
       <ResultsScreen
         score={finalScore.score}
         maxPossiblePoints={finalScore.maxPoints}
+        userName={finalScore.userName}
+        userPhoto={finalScore.userPhoto}
         onBack={() => {
           setViewMode('home');
           setFinalScore(null);
@@ -311,8 +313,8 @@ function App() {
         audioMode={audioMode}
         vocalsVolume={vocalsVolume}
         instrumentalVolume={instrumentalVolume}
-        onGameOver={(score, maxPoints) => {
-          setFinalScore({ score, maxPoints });
+        onGameOver={(score, maxPoints, userName, userPhoto) => {
+          setFinalScore({ score, maxPoints, userName, userPhoto });
           setViewMode('results');
         }}
       />

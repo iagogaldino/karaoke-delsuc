@@ -35,9 +35,12 @@ interface QRCodeData {
   nameSubmitted: boolean;
   songId?: string;
   songSelected: boolean;
+  sessionId?: string; // Associar sessionId quando o jogo começar
 }
 
 const qrCodes = new Map<string, QRCodeData>();
+// Mapeamento sessionId -> qrId para busca rápida
+const sessionToQrMap = new Map<string, string>();
 
 // Limpar códigos expirados a cada 5 minutos
 const QR_CODE_EXPIRY = 10 * 60 * 1000; // 10 minutos
@@ -45,6 +48,10 @@ setInterval(() => {
   const now = Date.now();
   for (const [id, data] of qrCodes.entries()) {
     if (now - data.createdAt > QR_CODE_EXPIRY) {
+      // Limpar mapeamento de sessionId também
+      if (data.sessionId) {
+        sessionToQrMap.delete(data.sessionId);
+      }
       qrCodes.delete(id);
     }
   }
@@ -1741,6 +1748,61 @@ export const selectSong = asyncHandler(async (req: Request, res: Response) => {
     songId,
     songName: song.displayName || song.name
   });
+});
+
+/**
+ * GET /api/qrcode/user/:sessionId
+ * Get user information by sessionId (if playing via QR code)
+ */
+export const getUserBySessionId = asyncHandler(async (req: Request, res: Response) => {
+  const { sessionId } = req.params;
+  
+  if (!sessionId) {
+    return res.status(400).json({ error: 'sessionId is required' });
+  }
+
+  // Primeiro, tentar buscar através do mapeamento sessionId -> qrId
+  const qrId = sessionToQrMap.get(sessionId);
+  if (qrId) {
+    const qrData = qrCodes.get(qrId);
+    if (qrData && qrData.userName && qrData.userPhoto && qrData.nameSubmitted) {
+      // Verificar se não expirou
+      if (Date.now() - qrData.createdAt <= QR_CODE_EXPIRY) {
+        return res.json({
+          userName: qrData.userName,
+          userPhoto: qrData.userPhoto,
+          found: true
+        });
+      } else {
+        // Limpar mapeamento expirado
+        sessionToQrMap.delete(sessionId);
+      }
+    }
+  }
+
+  // Se não encontrou pelo mapeamento, buscar em todos os QR codes ativos
+  // que têm usuário e que estão jogando (songSelected = true)
+  for (const [currentQrId, qrData] of qrCodes.entries()) {
+    // Verificar se expirou
+    if (Date.now() - qrData.createdAt > QR_CODE_EXPIRY) {
+      continue;
+    }
+    
+    // Se o QR code tem um usuário associado e está com música selecionada
+    if (qrData.userName && qrData.userPhoto && qrData.nameSubmitted && qrData.songSelected) {
+      // Associar este sessionId ao QR code para futuras buscas
+      sessionToQrMap.set(sessionId, currentQrId);
+      qrData.sessionId = sessionId;
+      
+      return res.json({
+        userName: qrData.userName,
+        userPhoto: qrData.userPhoto,
+        found: true
+      });
+    }
+  }
+
+  res.status(404).json({ error: 'User not found' });
 });
 
 /**

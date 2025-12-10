@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-08T18:34:20.500Z",
+  "lastUpdated": "2025-12-10T15:59:09.998Z",
   "scores": [
     {
       "songId": "miurk9ti-c4wnra",
@@ -1164,6 +1164,426 @@
       "maxPossiblePoints": 36400,
       "createdAt": "2025-12-08T18:34:20.500Z",
       "updatedAt": "2025-12-08T18:34:20.500Z"
+    },
+    {
+      "songId": "mj045lmy-bsy3yi",
+      "sessionId": "1765377984303-sn4rx94ce",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 26500,
+      "createdAt": "2025-12-10T14:46:24.327Z",
+      "updatedAt": "2025-12-10T14:46:24.327Z"
+    },
+    {
+      "songId": "mj045lmy-bsy3yi",
+      "sessionId": "1765378070733-qgrnmv73z",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 26500,
+      "createdAt": "2025-12-10T14:47:50.746Z",
+      "updatedAt": "2025-12-10T14:47:50.746Z"
+    },
+    {
+      "songId": "mj045lmy-bsy3yi",
+      "sessionId": "1765378096997-rkngu5c6t",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 26500,
+      "createdAt": "2025-12-10T14:48:17.014Z",
+      "updatedAt": "2025-12-10T14:48:17.014Z"
+    },
+    {
+      "songId": "mj045lmy-bsy3yi",
+      "sessionId": "1765378228655-9elvniutr",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 26500,
+      "createdAt": "2025-12-10T14:50:28.661Z",
+      "updatedAt": "2025-12-10T14:50:28.661Z"
+    },
+    {
+      "songId": "mj045lmy-bsy3yi",
+      "sessionId": "1765378352565-2o5ipmehl",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 26500,
+      "createdAt": "2025-12-10T14:52:32.594Z",
+      "updatedAt": "2025-12-10T14:52:32.594Z"
+    },
+    {
+      "songId": "mj045lmy-bsy3yi",
+      "sessionId": "1765378361094-khhv04l99",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 26500,
+      "createdAt": "2025-12-10T14:52:41.126Z",
+      "updatedAt": "2025-12-10T14:52:41.126Z"
+    },
+    {
+      "songId": "miunnkaj-c6z8aq",
+      "sessionId": "1765378527120-hvl30tyjw",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 20800,
+      "createdAt": "2025-12-10T14:55:27.145Z",
+      "updatedAt": "2025-12-10T14:55:27.145Z"
+    },
+    {
+      "songId": "mj04o5gz-255so2",
+      "sessionId": "1765378781175-n6slaylxu",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 16000,
+      "createdAt": "2025-12-10T14:59:41.205Z",
+      "updatedAt": "2025-12-10T14:59:41.205Z"
+    },
+    {
+      "songId": "mj04o5gz-255so2",
+      "sessionId": "1765379328833-ka0oefkrw",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 16000,
+      "createdAt": "2025-12-10T15:08:48.842Z",
+      "updatedAt": "2025-12-10T15:08:48.842Z"
+    },
+    {
+      "songId": "miw1px46-dilphg",
+      "sessionId": "1765379348727-bolao2cp7",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 40800,
+      "createdAt": "2025-12-10T15:09:08.745Z",
+      "updatedAt": "2025-12-10T15:09:08.745Z"
+    },
+    {
+      "songId": "miw1px46-dilphg",
+      "sessionId": "1765379538430-cwcdp4mve",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 40800,
+      "createdAt": "2025-12-10T15:12:18.455Z",
+      "updatedAt": "2025-12-10T15:12:18.455Z"
+    },
+    {
+      "songId": "miw1px46-dilphg",
+      "sessionId": "1765379546926-fyoprjfbc",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 40800,
+      "createdAt": "2025-12-10T15:12:27.040Z",
+      "updatedAt": "2025-12-10T15:12:27.040Z"
+    },
+    {
+      "songId": "miw1px46-dilphg",
+      "sessionId": "1765379554266-m9d47j3hr",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 40800,
+      "createdAt": "2025-12-10T15:12:34.331Z",
+      "updatedAt": "2025-12-10T15:12:34.331Z"
+    },
+    {
+      "songId": "miw1px46-dilphg",
+      "sessionId": "1765379634869-52e4hqmu6",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 40800,
+      "createdAt": "2025-12-10T15:13:54.904Z",
+      "updatedAt": "2025-12-10T15:13:54.904Z"
+    },
+    {
+      "songId": "miw1px46-dilphg",
+      "sessionId": "1765379766183-9q4dj3op6",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 40800,
+      "createdAt": "2025-12-10T15:16:06.189Z",
+      "updatedAt": "2025-12-10T15:16:06.189Z"
+    },
+    {
+      "songId": "miw1px46-dilphg",
+      "sessionId": "1765380038613-paabppf2c",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 40800,
+      "createdAt": "2025-12-10T15:20:38.622Z",
+      "updatedAt": "2025-12-10T15:20:38.622Z"
+    },
+    {
+      "songId": "miw1px46-dilphg",
+      "sessionId": "1765380403388-zejfptx53",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 40800,
+      "createdAt": "2025-12-10T15:26:43.405Z",
+      "updatedAt": "2025-12-10T15:26:43.405Z"
+    },
+    {
+      "songId": "miw0l4fs-a9vixn",
+      "sessionId": "1765380857262-hmeyo0oj1",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 36400,
+      "createdAt": "2025-12-10T15:34:17.283Z",
+      "updatedAt": "2025-12-10T15:34:17.283Z"
+    },
+    {
+      "songId": "miw0l4fs-a9vixn",
+      "sessionId": "1765380879087-cpyu9n9k0",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 36400,
+      "createdAt": "2025-12-10T15:34:39.107Z",
+      "updatedAt": "2025-12-10T15:34:39.107Z"
+    },
+    {
+      "songId": "miw9yc2k-a9ui50",
+      "sessionId": "1765381156394-v1oo9q8l2",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 42600,
+      "createdAt": "2025-12-10T15:39:16.411Z",
+      "updatedAt": "2025-12-10T15:39:16.411Z"
+    },
+    {
+      "songId": "mj045lmy-bsy3yi",
+      "sessionId": "1765381305884-dax4criom",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 26500,
+      "createdAt": "2025-12-10T15:41:45.893Z",
+      "updatedAt": "2025-12-10T15:41:45.893Z"
+    },
+    {
+      "songId": "mj045lmy-bsy3yi",
+      "sessionId": "1765381351886-zytbduf7v",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 26500,
+      "createdAt": "2025-12-10T15:42:31.900Z",
+      "updatedAt": "2025-12-10T15:42:31.900Z"
+    },
+    {
+      "songId": "mj045lmy-bsy3yi",
+      "sessionId": "1765381360119-vs9xtvjhm",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 26500,
+      "createdAt": "2025-12-10T15:42:40.129Z",
+      "updatedAt": "2025-12-10T15:42:40.129Z"
+    },
+    {
+      "songId": "mj045lmy-bsy3yi",
+      "sessionId": "1765381420512-5m54g5kk8",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 26500,
+      "createdAt": "2025-12-10T15:43:40.527Z",
+      "updatedAt": "2025-12-10T15:43:40.527Z"
+    },
+    {
+      "songId": "mj045lmy-bsy3yi",
+      "sessionId": "1765381442219-pnvaak9un",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 26500,
+      "createdAt": "2025-12-10T15:44:02.234Z",
+      "updatedAt": "2025-12-10T15:44:02.234Z"
+    },
+    {
+      "songId": "miw1px46-dilphg",
+      "sessionId": "1765381736986-tmgkc5mz2",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 40800,
+      "createdAt": "2025-12-10T15:48:57.001Z",
+      "updatedAt": "2025-12-10T15:48:57.001Z"
+    },
+    {
+      "songId": "mj06kfe5-d5qwtl",
+      "sessionId": "1765382051134-je12bqzs4",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 14400,
+      "createdAt": "2025-12-10T15:54:11.203Z",
+      "updatedAt": "2025-12-10T15:54:11.203Z"
+    },
+    {
+      "songId": "mivt6z6u-6p8677",
+      "sessionId": "1765382131847-bhgubugko",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 900,
+      "createdAt": "2025-12-10T15:55:31.868Z",
+      "updatedAt": "2025-12-10T15:55:31.868Z"
+    },
+    {
+      "songId": "mivt6z6u-6p8677",
+      "sessionId": "1765382202599-vy247if3m",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 900,
+      "createdAt": "2025-12-10T15:56:42.628Z",
+      "updatedAt": "2025-12-10T15:56:42.628Z"
+    },
+    {
+      "songId": "mivt6z6u-6p8677",
+      "sessionId": "1765382349952-kp2q8wb3j",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 900,
+      "createdAt": "2025-12-10T15:59:09.997Z",
+      "updatedAt": "2025-12-10T15:59:09.997Z"
     }
   ]
 }

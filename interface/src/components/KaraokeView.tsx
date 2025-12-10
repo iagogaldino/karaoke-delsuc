@@ -21,7 +21,7 @@ interface KaraokeViewProps {
   audioMode: AudioMode;
   vocalsVolume: number;
   instrumentalVolume: number;
-  onGameOver?: (score: PlayerScore, maxPoints: number) => void;
+  onGameOver?: (score: PlayerScore, maxPoints: number, userName?: string, userPhoto?: string) => void;
 }
 
 export default function KaraokeView({
@@ -103,10 +103,25 @@ export default function KaraokeView({
           // Parar música e chamar onGameOver com pontuação atual
           pauseRef.current();
           if (onGameOverRef.current) {
-            // Usar valores atuais via refs
-            setTimeout(() => {
-              onGameOverRef.current?.(playerScoreRef.current, maxPossiblePointsRef.current);
-            }, 300);
+            // Buscar informações do usuário
+            (async () => {
+              let userName: string | undefined;
+              let userPhoto: string | undefined;
+              try {
+                const userInfo = await scoresService.getUserInfo(sessionIdRef.current);
+                if (userInfo) {
+                  userName = userInfo.userName;
+                  userPhoto = userInfo.userPhoto;
+                }
+              } catch (error) {
+                // Ignorar erros ao buscar informações do usuário
+              }
+              
+              // Usar valores atuais via refs
+              setTimeout(() => {
+                onGameOverRef.current?.(playerScoreRef.current, maxPossiblePointsRef.current, userName, userPhoto);
+              }, 300);
+            })();
           }
         }
       } catch (error) {
@@ -241,31 +256,81 @@ export default function KaraokeView({
       
       // Parar gravação se estiver gravando (antes de pausar)
       if (isRecording) {
-        stopRecording().then(() => {
+        stopRecording().then(async () => {
           // Após parar gravação, pausar música e redirecionar
           pause();
+          
+          // Buscar informações do usuário
+          let userName: string | undefined;
+          let userPhoto: string | undefined;
+          try {
+            console.log('Buscando informações do usuário para sessionId:', sessionIdRef.current);
+            const userInfo = await scoresService.getUserInfo(sessionIdRef.current);
+            console.log('Informações do usuário recebidas:', userInfo);
+            if (userInfo) {
+              userName = userInfo.userName;
+              userPhoto = userInfo.userPhoto;
+              console.log('userName:', userName, 'userPhoto:', userPhoto);
+            }
+          } catch (error) {
+            console.error('Erro ao buscar informações do usuário:', error);
+          }
+          
           setTimeout(() => {
             if (onGameOver) {
-              onGameOver(playerScore, maxPossiblePoints);
+              onGameOver(playerScore, maxPossiblePoints, userName, userPhoto);
             }
           }, 500);
-        }).catch(() => {
+        }).catch(async () => {
           // Se houver erro ao parar gravação, continuar mesmo assim
           pause();
+          
+          // Buscar informações do usuário
+          let userName: string | undefined;
+          let userPhoto: string | undefined;
+          try {
+            console.log('Buscando informações do usuário para sessionId:', sessionIdRef.current);
+            const userInfo = await scoresService.getUserInfo(sessionIdRef.current);
+            console.log('Informações do usuário recebidas:', userInfo);
+            if (userInfo) {
+              userName = userInfo.userName;
+              userPhoto = userInfo.userPhoto;
+              console.log('userName:', userName, 'userPhoto:', userPhoto);
+            }
+          } catch (error) {
+            console.error('Erro ao buscar informações do usuário:', error);
+          }
+          
           setTimeout(() => {
             if (onGameOver) {
-              onGameOver(playerScore, maxPossiblePoints);
+              onGameOver(playerScore, maxPossiblePoints, userName, userPhoto);
             }
           }, 500);
         });
       } else {
         // Se não estiver gravando, apenas pausar e redirecionar
         pause();
-        setTimeout(() => {
-          if (onGameOver) {
-            onGameOver(playerScore, maxPossiblePoints);
+        
+        // Buscar informações do usuário
+        (async () => {
+          let userName: string | undefined;
+          let userPhoto: string | undefined;
+          try {
+            const userInfo = await scoresService.getUserInfo(sessionIdRef.current);
+            if (userInfo) {
+              userName = userInfo.userName;
+              userPhoto = userInfo.userPhoto;
+            }
+          } catch (error) {
+            // Ignorar erros ao buscar informações do usuário
           }
-        }, 500);
+          
+          setTimeout(() => {
+            if (onGameOver) {
+              onGameOver(playerScore, maxPossiblePoints, userName, userPhoto);
+            }
+          }, 500);
+        })();
       }
     }
   }, [currentTime, songDuration, isPlaying, isRecording, pause, playerScore, maxPossiblePoints, onGameOver]);

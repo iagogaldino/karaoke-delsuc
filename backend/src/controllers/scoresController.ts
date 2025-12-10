@@ -80,6 +80,40 @@ export const getAllScores = asyncHandler(async (req: Request, res: Response) => 
 });
 
 /**
+ * GET /api/scores/user/:sessionId
+ * Get user information from the last score by sessionId
+ */
+export const getUserInfo = asyncHandler(async (req: Request, res: Response) => {
+  const { sessionId } = req.params;
+  
+  if (!sessionId) {
+    return res.status(400).json({ error: 'sessionId is required' });
+  }
+
+  // Buscar todos os scores e encontrar o último do sessionId
+  const allScores = getAllScoresFromDb();
+  const userScores = allScores
+    .filter(score => score.sessionId === sessionId)
+    .sort((a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bTime - aTime; // Mais recente primeiro
+    });
+
+  if (userScores.length === 0) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  // Tentar encontrar informações do usuário pelo telefone no QR code
+  // Por enquanto, retornar apenas sessionId
+  // TODO: Melhorar para buscar informações reais do usuário
+  res.json({
+    sessionId,
+    // Se houver associação com QR code, incluir userName e userPhoto aqui
+  });
+});
+
+/**
  * DELETE /api/scores/:songId
  * Delete all scores for a song
  */

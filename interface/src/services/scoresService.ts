@@ -69,4 +69,16 @@ export const scoresService = {
   async deleteScores(songId: string): Promise<void> {
     await apiService.delete(`${API_CONFIG.ENDPOINTS.SCORES}/${songId}`);
   },
+
+  /**
+   * Get user information by sessionId
+   */
+  async getUserInfo(sessionId: string): Promise<{ userName?: string; userPhoto?: string } | null> {
+    try {
+      return await apiService.get<{ userName: string; userPhoto: string }>(`/api/qrcode/user/${sessionId}`);
+    } catch (error: any) {
+      // Se não encontrar, retornar null (usuário pode não estar jogando via QR code)
+      return null;
+    }
+  },
 };

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-08T17:18:20.976Z",
+  "lastUpdated": "2025-12-10T16:18:12.051Z",
   "songs": [
     {
       "id": "miunnkaj-c6z8aq",
@@ -146,7 +146,7 @@
         "view_count": 180272941,
         "file": "video.mp4"
       },
-      "audioMode": "instrumental-only"
+      "audioMode": "both"
     },
     {
       "id": "miw1px46-dilphg",
@@ -302,6 +302,196 @@
         "file": "video.mp4"
       },
       "audioMode": "both"
+    },
+    {
+      "id": "mj045lmy-bsy3yi",
+      "name": "Red Hot Chili Peppers - Scar Tissue",
+      "displayName": "Red Hot Chili Peppers - Scar Tissue",
+      "artist": "Unknown",
+      "duration": 220.93786848072563,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-10T14:37:34.291Z",
+        "lastProcessed": "2025-12-10T14:42:54.779Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "mzJj5-lubeM",
+        "title": "Red Hot Chili Peppers - Scar Tissue [Official Music Video] [HD UPGRADE]",
+        "url": "https://www.youtube.com/watch?v=mzJj5-lubeM",
+        "thumbnail": "https://i.ytimg.com/vi_webp/mzJj5-lubeM/maxresdefault.webp",
+        "duration": 221,
+        "uploader": "Red Hot Chili Peppers",
+        "view_count": 590970617,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "mj04o5gz-255so2",
+      "name": "Radiohead - Creep",
+      "displayName": "Radiohead - Creep",
+      "artist": "Unknown",
+      "duration": 236.56489795918367,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-10T14:51:59.804Z",
+        "lastProcessed": "2025-12-10T14:58:04.267Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "XFkzRNyygfk",
+        "title": "Radiohead - Creep",
+        "url": "https://www.youtube.com/watch?v=XFkzRNyygfk",
+        "thumbnail": "https://i.ytimg.com/vi_webp/XFkzRNyygfk/maxresdefault.webp",
+        "duration": 237,
+        "uploader": "Radiohead",
+        "view_count": 1333855482,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "mj0572jk-8wu4bb",
+      "name": "Audioslave - Like a Stone",
+      "displayName": "Audioslave - Like a Stone",
+      "artist": "Unknown",
+      "duration": 301.65043083900224,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-10T15:06:42.471Z",
+        "lastProcessed": "2025-12-10T15:15:46.241Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "7QU1nvuxaMA",
+        "title": "Audioslave - Like a Stone (Official Video)",
+        "url": "https://www.youtube.com/watch?v=7QU1nvuxaMA",
+        "thumbnail": "https://i.ytimg.com/vi_webp/7QU1nvuxaMA/maxresdefault.webp",
+        "duration": 302,
+        "uploader": "Audioslave",
+        "view_count": 1441628759,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "mj06kfe5-d5qwtl",
+      "name": "Limp Bizkit - My Way",
+      "displayName": "Limp Bizkit - My Way",
+      "artist": "Unknown",
+      "duration": 293.1287074829932,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-10T15:45:05.265Z",
+        "lastProcessed": "2025-12-10T15:52:38.965Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "Dn8vzTsnPps",
+        "title": "Limp Bizkit - My Way",
+        "url": "https://www.youtube.com/watch?v=Dn8vzTsnPps",
+        "thumbnail": "https://i.ytimg.com/vi_webp/Dn8vzTsnPps/maxresdefault.webp",
+        "duration": 293,
+        "uploader": "limpbizkit",
+        "view_count": 250616653,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "mj07h6s0-afr43s",
+      "name": "Amy Winehouse - Back To Black",
+      "displayName": "Amy Winehouse - Back To Black",
+      "artist": "Unknown",
+      "duration": 240.04789115646258,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-10T16:10:33.751Z",
+        "lastProcessed": "2025-12-10T16:18:12.030Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "TJAfLE39ZZ8",
+        "title": "Amy Winehouse - Back To Black",
+        "url": "https://www.youtube.com/watch?v=TJAfLE39ZZ8",
+        "thumbnail": "https://i.ytimg.com/vi_webp/TJAfLE39ZZ8/maxresdefault.webp",
+        "duration": 240,
+        "uploader": "Amy Winehouse",
+        "view_count": 1370700134,
+        "file": "video.mp4"
+      }
     }
   ]
 }
