@@ -806,6 +806,31 @@ export default function KaraokeView({
 
   return (
     <div className="karaoke-view">
+      {/* Vídeo como background */}
+      {hasVideo && songId && (
+        <video
+          ref={videoRef}
+          src={`/api/video?song=${songId}`}
+          className="karaoke-video-background"
+          onTimeUpdate={handleVideoSeek}
+          onLoadedMetadata={() => {
+            const video = videoRef.current;
+            if (video) {
+              video.muted = true; // Garantir que está muted
+              video.currentTime = currentTime;
+            }
+          }}
+          playsInline
+          muted={true}
+        />
+      )}
+      
+      {/* Holofotes no topo disparando luzes */}
+      <StageLights isPlaying={isPlaying} variant="top" />
+      
+      {/* Holofotes sobre o vídeo */}
+      <StageLights isPlaying={isPlaying} variant="video" />
+
       {/* Contagem regressiva */}
       {countdown !== null && (
         <div className="countdown-overlay">
@@ -889,33 +914,6 @@ export default function KaraokeView({
         >
           <i className="fas fa-cog"></i>
         </button>
-      </div>
-
-      {/* Área de vídeo/imagem */}
-      <div className="karaoke-media-area">
-        <StageLights isPlaying={isPlaying} variant="video" />
-        {hasVideo && songId ? (
-          <video
-            ref={videoRef}
-            src={`/api/video?song=${songId}`}
-            className="karaoke-video"
-            onTimeUpdate={handleVideoSeek}
-            onLoadedMetadata={() => {
-              const video = videoRef.current;
-              if (video) {
-                video.muted = true; // Garantir que está muted
-                video.currentTime = currentTime;
-              }
-            }}
-            playsInline
-            muted={true}
-          />
-        ) : (
-          <div className="media-placeholder">
-            <i className="fas fa-image"></i>
-            <p>Área de vídeo da música ou imagem</p>
-          </div>
-        )}
       </div>
 
       {/* Área de letras */}
