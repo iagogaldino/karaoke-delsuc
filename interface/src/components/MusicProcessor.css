@@ -149,6 +149,121 @@
   background: #3a3a3a;
 }
 
+.band-selection {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.band-selection label {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.band-select-wrapper {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.band-select {
+  flex: 1;
+  padding: 0.75rem;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.band-select:focus {
+  border-color: #4a90e2;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.band-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.band-select option {
+  background: #2a2a2a;
+  color: white;
+}
+
+.create-band-btn-small {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+
+.create-band-btn-small:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: #4a90e2;
+}
+
+.create-band-btn-small:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.create-band-inline {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  align-items: center;
+}
+
+.create-band-inline input {
+  flex: 1;
+}
+
+.create-band-confirm-btn,
+.create-band-cancel-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+}
+
+.create-band-confirm-btn {
+  background: #10b981;
+  color: white;
+}
+
+.create-band-confirm-btn:hover {
+  background: #059669;
+}
+
+.create-band-cancel-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.create-band-cancel-btn:hover {
+  background: #dc2626;
+}
+
 .processing-status {
   margin-top: 1rem;
   padding: 1rem;

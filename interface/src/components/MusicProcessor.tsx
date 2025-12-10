@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './MusicProcessor.css';
 import { processingService } from '../services/processingService.js';
+import { bandsService } from '../services/bandsService.js';
 import { isValidAudioFile, isValidMusicName, isValidYouTubeUrl } from '../utils/validators.js';
 import { getFileNameWithoutExtension } from '../utils/textUtils.js';
 import { formatFileSize } from '../utils/formatters.js';
+import { Band } from '../types/index.js';
 
 interface MusicProcessorProps {
   onProcessComplete?: (songId: string) => void;
@@ -19,6 +21,24 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
   const [progress, setProgress] = useState(0);
   const [mode, setMode] = useState<ProcessingMode>('upload');
   const [youtubeUrl, setYoutubeUrl] = useState<string>('');
+  const [bands, setBands] = useState<Band[]>([]);
+  const [selectedBandId, setSelectedBandId] = useState<string>('');
+  const [showCreateBand, setShowCreateBand] = useState(false);
+  const [newBandName, setNewBandName] = useState<string>('');
+  const [newBandDesc, setNewBandDesc] = useState<string>('');
+
+  // Carregar bandas
+  useEffect(() => {
+    const loadBands = async () => {
+      try {
+        const bandsData = await bandsService.getAll();
+        setBands(bandsData);
+      } catch (error) {
+        console.error('Error loading bands:', error);
+      }
+    };
+    loadBands();
+  }, []);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -35,6 +55,25 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
     // Preencher nome da música automaticamente com o nome do arquivo (sem extensão)
     const fileName = getFileNameWithoutExtension(file.name);
     setMusicName(fileName);
+  };
+
+  const handleCreateBand = async () => {
+    if (!newBandName.trim()) {
+      alert('Nome da banda é obrigatório');
+      return;
+    }
+
+    try {
+      const newBand = await bandsService.create(newBandName.trim(), newBandDesc.trim() || undefined);
+      setBands([...bands, newBand]);
+      setSelectedBandId(newBand.id);
+      setShowCreateBand(false);
+      setNewBandName('');
+      setNewBandDesc('');
+    } catch (error: any) {
+      console.error('Error creating band:', error);
+      alert(error.message || 'Erro ao criar banda');
+    }
   };
 
   const handleProcess = async () => {
@@ -66,6 +105,7 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
           displayName: musicName.trim(),
           songId: songId,
           tempPath: uploadData.tempPath,
+          bandId: selectedBandId || undefined,
         });
 
         // Polling do status usando o serviço
@@ -124,6 +164,7 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
           youtubeUrl: youtubeUrl.trim(),
           musicName: musicName.trim(),
           displayName: musicName.trim(),
+          bandId: selectedBandId || undefined,
         });
 
         const fileId = response.fileId;
@@ -265,6 +306,70 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
             <p className="input-hint">
               Cole o link completo do vídeo do YouTube
             </p>
+          </div>
+
+          <div className="band-selection">
+            <label htmlFor="band-select-youtube">Banda/Artista:</label>
+            <div className="band-select-wrapper">
+              <select
+                id="band-select-youtube"
+                value={selectedBandId}
+                onChange={(e) => setSelectedBandId(e.target.value)}
+                disabled={isProcessing}
+                className="band-select"
+              >
+                <option value="">Selecionar banda...</option>
+                {bands.map(band => (
+                  <option key={band.id} value={band.id}>{band.name}</option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="create-band-btn-small"
+                onClick={() => setShowCreateBand(!showCreateBand)}
+                disabled={isProcessing}
+                title="Criar nova banda"
+              >
+                <i className="fas fa-plus"></i>
+              </button>
+            </div>
+            {showCreateBand && (
+              <div className="create-band-inline">
+                <input
+                  type="text"
+                  placeholder="Nome da banda"
+                  value={newBandName}
+                  onChange={(e) => setNewBandName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleCreateBand();
+                    } else if (e.key === 'Escape') {
+                      setShowCreateBand(false);
+                    }
+                  }}
+                  className="name-input"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={handleCreateBand}
+                  className="create-band-confirm-btn"
+                >
+                  <i className="fas fa-check"></i>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateBand(false);
+                    setNewBandName('');
+                    setNewBandDesc('');
+                  }}
+                  className="create-band-cancel-btn"
+                >
+                  <i className="fas fa-times"></i>
+                </button>
+              </div>
+            )}
           </div>
 
           <div className="music-name-input">

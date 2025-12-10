@@ -1,0 +1,129 @@
+.create-band-container {
+  margin-bottom: 1rem;
+}
+
+.create-band-inline {
+  display: inline-block;
+}
+
+.create-band-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+}
+
+.create-band-icon-btn i {
+  margin: 0;
+}
+
+.create-band-btn {
+  background: linear-gradient(135deg, #f7b733 0%, #fc4a1a 100%);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s;
+}
+
+.create-band-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(252, 74, 26, 0.4);
+}
+
+.create-band-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.create-band-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+}
+
+.create-band-form input {
+  padding: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.create-band-form input:focus {
+  outline: none;
+  border-color: rgba(252, 74, 26, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.create-band-form input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.create-band-form input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.create-band-submit-btn,
+.create-band-cancel-btn {
+  padding: 10px;
+  border: none;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+}
+
+.create-band-submit-btn {
+  background: linear-gradient(135deg, #f7b733 0%, #fc4a1a 100%);
+}
+
+.create-band-submit-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(252, 74, 26, 0.4);
+}
+
+.create-band-cancel-btn {
+  background: rgba(239, 68, 68, 0.8);
+}
+
+.create-band-cancel-btn:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 1);
+}
+
+.create-band-submit-btn:disabled,
+.create-band-cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.create-band-form-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.create-band-form-actions .create-band-submit-btn,
+.create-band-form-actions .create-band-cancel-btn {
+  flex: 1;
+}

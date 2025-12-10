@@ -17,12 +17,14 @@ export interface StartProcessingRequest {
   displayName: string;
   songId: string;
   tempPath: string;
+  bandId?: string;
 }
 
 export interface StartYouTubeRequest {
   youtubeUrl: string;
   musicName: string;
   displayName?: string;
+  bandId?: string;
 }
 
 /**

@@ -49,12 +49,33 @@ export interface Song {
   status: SongStatus;
   video?: VideoInfo;
   audioMode?: AudioMode;
+  category?: string; // Categoria/pasta para organização
+  band?: string; // Banda/artista principal para organização hierárquica
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Band {
+  id: string;
+  name: string;
+  description?: string;
+  category?: string; // Categoria padrão da banda (quando não tem músicas)
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Database {
   version: string;
   lastUpdated: string;
   songs: Song[];
+  categories?: Category[]; // Lista de categorias/pastas
+  bands?: Band[]; // Lista de bandas/artistas
 }
 
 export interface WaveformData {

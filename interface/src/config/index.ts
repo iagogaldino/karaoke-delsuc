@@ -4,6 +4,8 @@ export const API_CONFIG = {
   BASE_URL: '', // Empty for same origin
   ENDPOINTS: {
     SONGS: '/api/songs',
+    CATEGORIES: '/api/categories',
+    BANDS: '/api/bands',
     LYRICS: '/api/lyrics',
     AUDIO: '/api/audio',
     WAVEFORM: '/api/waveform',

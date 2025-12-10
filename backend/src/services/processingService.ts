@@ -215,7 +215,8 @@ export async function processMusic(
   musicDir: string,
   songId: string,
   musicName: string,
-  displayName: string
+  displayName: string,
+  bandId?: string
 ) {
   const status = processingStatus.get(fileId);
   if (!status) return;
@@ -250,7 +251,8 @@ export async function processMusic(
           format: 'wav',
           createdAt: new Date().toISOString(),
           lastProcessed: new Date().toISOString()
-        }
+        },
+        band: bandId || undefined
       };
       addSong(initialSongData);
       console.log(`[${fileId}] ✅ Entrada criada no banco de dados: ${songId}`);
@@ -773,7 +775,8 @@ export async function processMusic(
           format: 'wav',
           createdAt: existingSong?.metadata?.createdAt || new Date().toISOString(),
           lastProcessed: new Date().toISOString()
-        }
+        },
+        band: bandId || existingSong?.band || undefined
       };
       
       if (existingSong) {
@@ -964,7 +967,8 @@ export async function processYouTubeMusic(
           format: 'wav',
           createdAt: new Date().toISOString(),
           lastProcessed: new Date().toISOString()
-        }
+        },
+        band: bandId || undefined
       };
       addSong(initialSongData);
       console.log(`[${fileId}] ✅ Entrada criada no banco de dados: ${songId}`);
@@ -1138,7 +1142,10 @@ export async function processYouTubeMusic(
     status.progress = 30;
 
     // Processar música usando o pipeline existente
-    await processMusic(fileId, audioPath, musicDir, songId, musicName, displayName);
+    // Recuperar bandId da música existente se disponível
+    const existingSong = getSongById(songId);
+    const songBandId = existingSong?.band;
+    await processMusic(fileId, audioPath, musicDir, songId, musicName, displayName, songBandId);
 
     // Atualizar banco de dados com informações do vídeo se disponível
     if (downloadInfo && existsSync(videoPath)) {

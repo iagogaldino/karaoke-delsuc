@@ -88,7 +88,7 @@ export const uploadFile = asyncHandler(async (req: Request, res: Response) => {
  * Start processing a song
  */
 export const startProcessing = asyncHandler(async (req: Request, res: Response) => {
-  const { fileId, musicName, displayName, tempPath, songId } = req.body;
+  const { fileId, musicName, displayName, tempPath, songId, bandId } = req.body;
 
   if (!fileId || !musicName || !tempPath || !songId) {
     return res.status(400).json({ error: 'Dados incompletos' });
@@ -116,11 +116,12 @@ export const startProcessing = asyncHandler(async (req: Request, res: Response) 
   console.log(`📥 Nova solicitação de processamento recebida`);
   console.log(`📋 ID: ${fileId}`);
   console.log(`🎵 Música: ${musicName}`);
+  console.log(`🎸 Banda: ${bandId || 'Não especificada'}`);
   console.log(`📁 Diretório: ${musicDir}`);
   console.log(`${'='.repeat(60)}\n`);
 
   // Start processing in background
-  processMusic(fileId, tempPath, musicDir, songId, musicName, displayName || musicName).catch(err => {
+  processMusic(fileId, tempPath, musicDir, songId, musicName, displayName || musicName, bandId).catch(err => {
     console.error(`[${fileId}] ❌ Erro fatal no processamento:`, err);
     const status = processingStatus.get(fileId);
     if (status) {
@@ -156,7 +157,7 @@ export const getStatus = asyncHandler(async (req: Request, res: Response) => {
  * Start processing a song from YouTube URL
  */
 export const startYouTubeProcessing = asyncHandler(async (req: Request, res: Response) => {
-  const { youtubeUrl, musicName, displayName } = req.body;
+  const { youtubeUrl, musicName, displayName, bandId } = req.body;
 
   if (!youtubeUrl || !musicName) {
     return res.status(400).json({ error: 'URL do YouTube e nome da música são obrigatórios' });
@@ -191,12 +192,13 @@ export const startYouTubeProcessing = asyncHandler(async (req: Request, res: Res
   console.log(`📥 Nova solicitação de processamento do YouTube`);
   console.log(`📋 ID: ${fileId}`);
   console.log(`🎵 Música: ${musicName}`);
+  console.log(`🎸 Banda: ${bandId || 'Não especificada'}`);
   console.log(`🔗 URL: ${youtubeUrl}`);
   console.log(`📁 Diretório: ${musicDir}`);
   console.log(`${'='.repeat(60)}\n`);
 
   // Iniciar processamento em background
-  processYouTubeMusic(fileId, youtubeUrl, musicDir, songId, musicName, displayName || musicName).catch(err => {
+  processYouTubeMusic(fileId, youtubeUrl, musicDir, songId, musicName, displayName || musicName, bandId).catch(err => {
     console.error(`[${fileId}] ❌ Erro fatal no processamento do YouTube:`, err);
     const status = processingStatus.get(fileId);
     if (status) {

@@ -23,6 +23,8 @@ export interface Song {
   };
   video?: VideoInfo;
   audioMode?: AudioMode;
+  category?: string; // ID da categoria/pasta
+  band?: string; // ID da banda/artista
 }
 
 export interface SongStatus {
@@ -165,6 +167,23 @@ export interface PlayerScore {
   average: number;
   count: number;
   points: number;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Band {
+  id: string;
+  name: string;
+  description?: string;
+  category?: string; // Categoria padrão da banda (quando não tem músicas)
+  createdAt: string;
+  updatedAt: string;
 }
 
 declare global {

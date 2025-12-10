@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-10T16:18:12.051Z",
+  "lastUpdated": "2025-12-10T18:42:33.174Z",
   "songs": [
     {
       "id": "miunnkaj-c6z8aq",
@@ -40,7 +40,9 @@
         "file": "video.mp4",
         "file_size": 55519130
       },
-      "audioMode": "both"
+      "audioMode": "both",
+      "category": "cat-rock-001",
+      "band": "band-1765387875346-esq6n35wl"
     },
     {
       "id": "miurk9ti-c4wnra",
@@ -80,7 +82,8 @@
         "file": "video.mp4",
         "file_size": 61061428
       },
-      "audioMode": "instrumental-only"
+      "audioMode": "both",
+      "category": "cat-rock-001"
     },
     {
       "id": "mivt6z6u-6p8677",
@@ -107,7 +110,8 @@
         "waveform": true,
         "lyrics": true,
         "ready": true
-      }
+      },
+      "category": "cat-hiphop-001"
     },
     {
       "id": "miw0l4fs-a9vixn",
@@ -146,7 +150,8 @@
         "view_count": 180272941,
         "file": "video.mp4"
       },
-      "audioMode": "both"
+      "audioMode": "both",
+      "category": "cat-funk-001"
     },
     {
       "id": "miw1px46-dilphg",
@@ -224,7 +229,8 @@
         "view_count": 148395201,
         "file": "video.mp4"
       },
-      "audioMode": "both"
+      "audioMode": "both",
+      "category": "cat-hiphop-001"
     },
     {
       "id": "miw9yc2k-a9ui50",
@@ -262,7 +268,8 @@
         "uploader": "Charlie Brown Jr.",
         "view_count": 31875902,
         "file": "video.mp4"
-      }
+      },
+      "category": "cat-rock-001"
     },
     {
       "id": "miwaoeoe-gedg9o",
@@ -301,7 +308,8 @@
         "view_count": 108432005,
         "file": "video.mp4"
       },
-      "audioMode": "both"
+      "audioMode": "both",
+      "category": "cat-rock-001"
     },
     {
       "id": "mj045lmy-bsy3yi",
@@ -339,7 +347,8 @@
         "uploader": "Red Hot Chili Peppers",
         "view_count": 590970617,
         "file": "video.mp4"
-      }
+      },
+      "category": "cat-rock-001"
     },
     {
       "id": "mj04o5gz-255so2",
@@ -377,7 +386,8 @@
         "uploader": "Radiohead",
         "view_count": 1333855482,
         "file": "video.mp4"
-      }
+      },
+      "category": "cat-rock-001"
     },
     {
       "id": "mj0572jk-8wu4bb",
@@ -415,7 +425,8 @@
         "uploader": "Audioslave",
         "view_count": 1441628759,
         "file": "video.mp4"
-      }
+      },
+      "category": "cat-rock-001"
     },
     {
       "id": "mj06kfe5-d5qwtl",
@@ -453,7 +464,8 @@
         "uploader": "limpbizkit",
         "view_count": 250616653,
         "file": "video.mp4"
-      }
+      },
+      "category": "cat-rock-001"
     },
     {
       "id": "mj07h6s0-afr43s",
@@ -491,7 +503,68 @@
         "uploader": "Amy Winehouse",
         "view_count": 1370700134,
         "file": "video.mp4"
-      }
+      },
+      "category": "cat-rock-001"
+    }
+  ],
+  "categories": [
+    {
+      "id": "cat-rock-001",
+      "name": "Rock",
+      "description": "Músicas de rock",
+      "createdAt": "2025-01-10T00:00:00.000Z",
+      "updatedAt": "2025-01-10T00:00:00.000Z"
+    },
+    {
+      "id": "cat-sertanejo-001",
+      "name": "Sertanejo",
+      "description": "Músicas sertanejas",
+      "createdAt": "2025-01-10T00:00:00.000Z",
+      "updatedAt": "2025-01-10T00:00:00.000Z"
+    },
+    {
+      "id": "cat-hiphop-001",
+      "name": "Hip Hop",
+      "description": "Músicas de hip hop",
+      "createdAt": "2025-01-10T00:00:00.000Z",
+      "updatedAt": "2025-01-10T00:00:00.000Z"
+    },
+    {
+      "id": "cat-trap-001",
+      "name": "Trap",
+      "description": "Músicas de trap",
+      "createdAt": "2025-01-10T00:00:00.000Z",
+      "updatedAt": "2025-01-10T00:00:00.000Z"
+    },
+    {
+      "id": "cat-funk-001",
+      "name": "Funk",
+      "description": "Músicas de funk",
+      "createdAt": "2025-01-10T00:00:00.000Z",
+      "updatedAt": "2025-01-10T00:00:00.000Z"
+    }
+  ],
+  "bands": [
+    {
+      "id": "band-1765385326587-6yup2hc7z",
+      "name": "Hed Hot",
+      "createdAt": "2025-12-10T16:48:46.587Z",
+      "updatedAt": "2025-12-10T18:42:31.505Z",
+      "category": "cat-rock-001"
+    },
+    {
+      "id": "band-1765387655192-y1kuhcl2x",
+      "name": "Mattue",
+      "createdAt": "2025-12-10T17:27:35.192Z",
+      "updatedAt": "2025-12-10T18:31:48.233Z",
+      "category": "cat-trap-001"
+    },
+    {
+      "id": "band-1765387875346-esq6n35wl",
+      "name": "O Rappa",
+      "createdAt": "2025-12-10T17:31:15.346Z",
+      "updatedAt": "2025-12-10T18:42:33.174Z",
+      "category": "cat-rock-001"
     }
   ]
 }
