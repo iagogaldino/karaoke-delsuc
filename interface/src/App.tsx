@@ -8,6 +8,7 @@ import ResultsScreen from './components/ResultsScreen.js';
 import HomeScreen from './components/HomeScreen.js';
 import SongTree from './components/SongTree.js';
 import { useSyncWebSocket } from './hooks/useSyncWebSocket';
+import { useAlert } from './hooks/useAlert';
 import { songsService } from './services/songsService.js';
 import { lyricsService } from './services/lyricsService.js';
 import { processingService } from './services/processingService.js';
@@ -35,6 +36,7 @@ function App() {
   const [editedSongName, setEditedSongName] = useState<string>('');
   const [finalScore, setFinalScore] = useState<{ score: PlayerScore; maxPoints: number; userName?: string; userPhoto?: string } | null>(null);
   const { currentTime, isPlaying, play, pause, seek } = useSyncWebSocket();
+  const { alert, confirm, AlertComponent, ConfirmComponent } = useAlert();
 
   // Carregar lista de músicas, categorias e bandas do banco de dados
   useEffect(() => {
@@ -185,7 +187,7 @@ function App() {
 
   const handleSaveSongName = async (songId: string) => {
     if (!editedSongName || editedSongName.trim() === '') {
-      alert('Nome não pode estar vazio');
+      await alert('Nome não pode estar vazio', { type: 'warning', title: 'Atenção' });
       return;
     }
 
@@ -202,7 +204,7 @@ function App() {
       setEditedSongName('');
     } catch (error: any) {
       console.error('Error updating song name:', error);
-      alert('Erro ao atualizar nome: ' + error.message);
+      await alert('Erro ao atualizar nome: ' + error.message, { type: 'error', title: 'Erro' });
     }
   };
 
@@ -244,7 +246,10 @@ function App() {
       setProcessingVideo(prev => ({ ...prev, [songId]: true }));
       
       await processingService.downloadVideo(songId);
-      alert('Processamento de vídeo iniciado! Acompanhe o progresso no console do backend.');
+      await alert('Processamento de vídeo iniciado! Acompanhe o progresso no console do backend.', { 
+        type: 'success', 
+        title: 'Sucesso' 
+      });
       
       // Recarregar lista de músicas após um tempo
       setTimeout(async () => {
@@ -257,7 +262,7 @@ function App() {
       }, 5000);
     } catch (error: any) {
       console.error('Error processing video:', error);
-      alert('Erro ao processar vídeo: ' + error.message);
+      await alert('Erro ao processar vídeo: ' + error.message, { type: 'error', title: 'Erro' });
     } finally {
       setProcessingVideo(prev => {
         const newState = { ...prev };
@@ -275,7 +280,14 @@ function App() {
       return;
     }
 
-    if (!confirm('Deseja gerar/regenerar as letras LRC para esta música?')) {
+    const confirmed = await confirm('Deseja gerar/regenerar as letras LRC para esta música?', {
+      title: 'Confirmar ação',
+      type: 'info',
+      confirmText: 'Sim',
+      cancelText: 'Não'
+    });
+    
+    if (!confirmed) {
       return;
     }
 
@@ -294,10 +306,10 @@ function App() {
       const songs = await songsService.getAll();
       setSongs(songs);
       
-      alert('Letras LRC geradas com sucesso!');
+      await alert('Letras LRC geradas com sucesso!', { type: 'success', title: 'Sucesso' });
     } catch (error: any) {
       console.error('Erro ao gerar LRC:', error);
-      alert('Erro ao gerar LRC: ' + (error.message || 'Erro desconhecido'));
+      await alert('Erro ao gerar LRC: ' + (error.message || 'Erro desconhecido'), { type: 'error', title: 'Erro' });
     } finally {
       setGeneratingLRC(prev => {
         const newState = { ...prev };
@@ -310,7 +322,18 @@ function App() {
   const handleDeleteSong = async (songId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevenir que o clique selecione a música
     
-    if (!window.confirm(`Tem certeza que deseja remover esta música?\n\nEsta ação não pode ser desfeita.`)) {
+    const confirmed = await confirm(
+      'Tem certeza que deseja remover esta música?\n\nEsta ação não pode ser desfeita.',
+      {
+        title: 'Confirmar exclusão',
+        type: 'danger',
+        confirmText: 'Remover',
+        cancelText: 'Cancelar',
+        isDestructive: true
+      }
+    );
+    
+    if (!confirmed) {
       return;
     }
 
@@ -328,10 +351,10 @@ function App() {
       const songs = await songsService.getAll();
       setSongs(songs);
 
-      alert('Música removida com sucesso!');
+      await alert('Música removida com sucesso!', { type: 'success', title: 'Sucesso' });
     } catch (error: any) {
       console.error('Error deleting song:', error);
-      alert('Erro ao remover música: ' + error.message);
+      await alert('Erro ao remover música: ' + error.message, { type: 'error', title: 'Erro' });
     }
   };
 
@@ -566,6 +589,8 @@ function App() {
           )}
         </main>
       </div>
+      {AlertComponent}
+      {ConfirmComponent}
     </div>
   );
 }

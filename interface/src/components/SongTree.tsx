@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { Song, Category, Band } from '../types/index.js';
 import CreateBandButton from './CreateBandButton.js';
 import CreateCategoryButton from './CreateCategoryButton.js';
+import { useAlert } from '../hooks/useAlert';
 import './SongTree.css';
 
 interface SongTreeProps {
@@ -58,6 +59,7 @@ export default function SongTree({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedBands, setExpandedBands] = useState<Set<string>>(new Set());
   const [expandedAll, setExpandedAll] = useState(false);
+  const { alert, confirm, AlertComponent, ConfirmComponent } = useAlert();
 
   // Separar músicas sem banda e agrupar as restantes por categoria e banda
   const { songsWithoutBand, songsByCategoryAndBand } = useMemo(() => {
@@ -207,7 +209,7 @@ export default function SongTree({
 
   const handleSaveBand = async (bandId: string) => {
     if (!editedBandName.trim()) {
-      alert('Nome da banda é obrigatório');
+      await alert('Nome da banda é obrigatório', { type: 'warning', title: 'Atenção' });
       return;
     }
     try {
@@ -224,15 +226,27 @@ export default function SongTree({
       }
     } catch (error: any) {
       console.error('Error updating band:', error);
-      alert(error.message || 'Erro ao atualizar banda');
+      await alert(error.message || 'Erro ao atualizar banda', { type: 'error', title: 'Erro' });
     }
   };
 
   const handleDeleteBand = async (bandId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!window.confirm('Tem certeza que deseja deletar esta banda? As músicas serão movidas para "Sem banda".')) {
+    const confirmed = await confirm(
+      'Tem certeza que deseja deletar esta banda? As músicas serão movidas para "Sem banda".',
+      {
+        title: 'Confirmar exclusão',
+        type: 'danger',
+        confirmText: 'Deletar',
+        cancelText: 'Cancelar',
+        isDestructive: true
+      }
+    );
+    
+    if (!confirmed) {
       return;
     }
+    
     try {
       const { bandsService } = await import('../services/bandsService.js');
       await bandsService.delete(bandId);
@@ -242,7 +256,7 @@ export default function SongTree({
       }
     } catch (error: any) {
       console.error('Error deleting band:', error);
-      alert(error.message || 'Erro ao deletar banda');
+      await alert(error.message || 'Erro ao deletar banda', { type: 'error', title: 'Erro' });
     }
   };
 
@@ -255,7 +269,7 @@ export default function SongTree({
 
   const handleSaveCategory = async (categoryId: string) => {
     if (!editedCategoryName.trim()) {
-      alert('Nome da categoria é obrigatório');
+      await alert('Nome da categoria é obrigatório', { type: 'warning', title: 'Atenção' });
       return;
     }
     try {
@@ -272,15 +286,27 @@ export default function SongTree({
       }
     } catch (error: any) {
       console.error('Error updating category:', error);
-      alert(error.message || 'Erro ao atualizar categoria');
+      await alert(error.message || 'Erro ao atualizar categoria', { type: 'error', title: 'Erro' });
     }
   };
 
   const handleDeleteCategory = async (categoryId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!window.confirm('Tem certeza que deseja deletar esta categoria? As músicas serão movidas para "Sem categoria".')) {
+    const confirmed = await confirm(
+      'Tem certeza que deseja deletar esta categoria? As músicas serão movidas para "Sem categoria".',
+      {
+        title: 'Confirmar exclusão',
+        type: 'danger',
+        confirmText: 'Deletar',
+        cancelText: 'Cancelar',
+        isDestructive: true
+      }
+    );
+    
+    if (!confirmed) {
       return;
     }
+    
     try {
       const { categoriesService } = await import('../services/categoriesService.js');
       await categoriesService.delete(categoryId);
@@ -290,7 +316,7 @@ export default function SongTree({
       }
     } catch (error: any) {
       console.error('Error deleting category:', error);
-      alert(error.message || 'Erro ao deletar categoria');
+      await alert(error.message || 'Erro ao deletar categoria', { type: 'error', title: 'Erro' });
     }
   };
 
@@ -412,7 +438,7 @@ export default function SongTree({
             }
           } catch (error) {
             console.error('Erro ao atualizar categoria da banda:', error);
-            alert('Erro ao atualizar categoria da banda: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
+            await alert('Erro ao atualizar categoria da banda: ' + (error instanceof Error ? error.message : 'Erro desconhecido'), { type: 'error', title: 'Erro' });
           }
           return;
         }
@@ -470,7 +496,7 @@ export default function SongTree({
       }
     } catch (error) {
       console.error('Error moving item:', error);
-      alert('Erro ao mover item: ' + (error instanceof Error ? error.message : 'Erro desconhecido'));
+      await alert('Erro ao mover item: ' + (error instanceof Error ? error.message : 'Erro desconhecido'), { type: 'error', title: 'Erro' });
     }
   };
 
@@ -990,6 +1016,8 @@ export default function SongTree({
           </div>
         )}
       </div>
+      {AlertComponent}
+      {ConfirmComponent}
     </div>
   );
 }
