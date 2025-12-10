@@ -289,12 +289,13 @@
   justify-content: space-between;
   padding: 0.5rem 0.75rem;
   position: relative;
-  color: white;
+  color: var(--text-primary);
   cursor: grab;
   transition: all 0.3s;
   border-radius: 0.375rem;
   margin-left: 0.25rem;
   user-select: none;
+  min-width: 0;
 }
 
 .song-tree-item:active {
@@ -343,7 +344,7 @@
   gap: 0.4rem;
   flex: 1;
   min-width: 150px;
-  max-width: calc(100% - 180px);
+  max-width: calc(100% - 120px);
   position: relative;
   z-index: 1;
 }
@@ -351,13 +352,15 @@
 .song-tree-item .song-name {
   font-size: 0.9rem;
   font-weight: 400;
-  color: #ffffff !important;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: var(--text-primary) !important;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-wrap: break-word;
+  word-break: break-word;
   flex: 1;
   min-width: 100px;
-  display: inline-block !important;
+  display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
   line-height: 1.4;
