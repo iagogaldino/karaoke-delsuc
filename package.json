@@ -1,0 +1,64 @@
+{
+  "name": "karaoke-v4",
+  "version": "1.0.0",
+  "description": "Sistema de Karaokê com interface Electron",
+  "main": "electron/main.js",
+  "scripts": {
+    "electron:dev": "cross-env NODE_ENV=development electron .",
+    "electron:build": "npm run build:all && electron-builder",
+    "build:all": "npm run build:backend && npm run build:interface",
+    "build:backend": "cd backend && npm run build",
+    "build:interface": "cd interface && npm run build",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:interface\" \"wait-on http://localhost:3000 && npm run electron:dev\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:interface": "cd interface && npm run dev",
+    "start": "npm run build:all && electron .",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "keywords": [
+    "karaoke",
+    "electron",
+    "react"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^10.1.0",
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3",
+    "wait-on": "^9.0.3"
+  },
+  "build": {
+    "appId": "com.karaoke.app",
+    "productName": "Karaoke",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/**/*",
+      "backend/dist/**/*",
+      "backend/node_modules/**/*",
+      "backend/package.json",
+      "interface/dist/**/*",
+      "interface/node_modules/**/*",
+      "interface/package.json",
+      "music/**/*",
+      "!music/**/*.wav",
+      "!music/**/*.mp3",
+      "!music/**/*.mp4"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "assets/icon.icns"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    }
+  }
+}
