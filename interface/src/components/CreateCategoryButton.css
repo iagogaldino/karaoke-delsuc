@@ -30,19 +30,20 @@
 }
 
 .create-category-form {
-  background: #333;
+  background: rgba(255, 255, 255, 0.02);
   padding: 1rem;
   border-radius: 8px;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .create-category-input,
 .create-category-textarea {
   padding: 0.75rem;
-  background: #2a2a2a;
-  border: 1px solid #444;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 6px;
   color: white;
   font-size: 0.9rem;
@@ -92,12 +93,12 @@
 }
 
 .create-category-cancel {
-  background: #555;
+  background: rgba(255, 255, 255, 0.05);
   color: white;
 }
 
 .create-category-cancel:hover:not(:disabled) {
-  background: #666;
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .create-category-form-modal {
@@ -121,8 +122,8 @@
 .create-category-form-modal .form-input,
 .create-category-form-modal .form-textarea {
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 6px;
   color: white;
   font-size: 0.9rem;
@@ -134,7 +135,7 @@
 .create-category-form-modal .form-textarea:focus {
   outline: none;
   border-color: #4a90e2;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
   box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
 }
 
@@ -192,12 +193,12 @@
 }
 
 .create-category-form-modal .modal-btn-cancel {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   color: rgba(255, 255, 255, 0.8);
 }
 
 .create-category-form-modal .modal-btn-cancel:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
   color: white;
 }
 
@@ -241,8 +242,8 @@
 
 .create-category-input-inline {
   padding: 0.4rem 0.6rem;
-  background: #2a2a2a;
-  border: 1px solid #444;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 4px;
   color: white;
   font-size: 0.85rem;
@@ -290,10 +291,10 @@
 }
 
 .create-category-cancel-inline {
-  background: #555;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .create-category-cancel-inline:hover:not(:disabled) {
-  background: #666;
+  background: rgba(255, 255, 255, 0.08);
 }
 

@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: #1a1a1a;
+  background: #0d0d0d;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -23,7 +23,7 @@
   right: 0;
   bottom: 0;
   background-image: 
-    radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    radial-gradient(circle, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 20px 20px;
   pointer-events: none;
   z-index: 0;

@@ -51,15 +51,16 @@
   gap: 10px;
   margin-top: 10px;
   padding: 15px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.01);
   border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .create-band-form input {
   padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 4px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
   color: white;
   font-size: 0.9rem;
   font-family: inherit;
@@ -68,7 +69,7 @@
 .create-band-form input:focus {
   outline: none;
   border-color: rgba(252, 74, 26, 0.5);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .create-band-form input::placeholder {
@@ -102,8 +103,8 @@
 .form-select,
 .form-textarea {
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 6px;
   color: white;
   font-size: 0.9rem;
@@ -116,7 +117,7 @@
 .form-textarea:focus {
   outline: none;
   border-color: #f7b733;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
   box-shadow: 0 0 0 3px rgba(247, 183, 51, 0.1);
 }
 
@@ -137,7 +138,7 @@
 }
 
 .form-select option {
-  background: #2a2a2a;
+  background: #0d0d0d;
   color: white;
 }
 
@@ -184,12 +185,12 @@
 }
 
 .modal-btn-cancel {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   color: rgba(255, 255, 255, 0.8);
 }
 
 .modal-btn-cancel:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.08);
   color: white;
 }
 

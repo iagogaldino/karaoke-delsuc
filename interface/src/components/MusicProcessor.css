@@ -1,8 +1,9 @@
 .music-processor {
   padding: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
   border-radius: 0.5rem;
   margin-bottom: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .processor-header {
@@ -30,17 +31,17 @@
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
-  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border: 2px dashed rgba(255, 255, 255, 0.15);
   border-radius: 0.5rem;
   cursor: pointer;
   transition: all 0.3s;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
   min-height: 120px;
 }
 
 .upload-label:hover {
-  border-color: rgba(255, 255, 255, 0.5);
-  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .upload-label:active {
@@ -76,9 +77,9 @@
 .name-input {
   width: 100%;
   padding: 0.75rem;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
   color: #fff;
   font-size: 1rem;
   font-family: inherit;
@@ -88,7 +89,7 @@
 
 .name-input:focus {
   border-color: #4a90e2;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .name-input:disabled {
@@ -103,8 +104,9 @@
 .file-info {
   margin-bottom: 1rem;
   padding: 0.75rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
   border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .file-name {
@@ -146,7 +148,7 @@
 .process-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  background: #3a3a3a;
+  background: #1a1a1a;
 }
 
 .band-selection {
@@ -171,9 +173,9 @@
 .band-select {
   flex: 1;
   padding: 0.75rem;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
   color: #fff;
   font-size: 1rem;
   font-family: inherit;
@@ -183,7 +185,7 @@
 
 .band-select:focus {
   border-color: #4a90e2;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .band-select:disabled {
@@ -192,7 +194,7 @@
 }
 
 .band-select option {
-  background: #2a2a2a;
+  background: #0d0d0d;
   color: white;
 }
 
@@ -200,8 +202,8 @@
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.03);
   color: white;
   cursor: pointer;
   display: flex;
@@ -212,7 +214,7 @@
 }
 
 .create-band-btn-small:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
   border-color: #4a90e2;
 }
 
@@ -267,11 +269,12 @@
 .processing-status {
   margin-top: 1rem;
   padding: 1rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
   border-radius: 0.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .processing-info {
@@ -284,7 +287,7 @@
 .progress-bar-container {
   width: 100%;
   height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -328,9 +331,10 @@
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1rem;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.02);
   padding: 0.25rem;
   border-radius: 0.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .mode-btn {
@@ -347,7 +351,7 @@
 }
 
 .mode-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
   color: rgba(255, 255, 255, 0.8);
 }
 
