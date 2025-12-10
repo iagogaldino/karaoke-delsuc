@@ -62,12 +62,31 @@ export default function KaraokeView({
   const sessionIdRef = useRef<string>(Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9));
   const [songDuration, setSongDuration] = useState<number>(0);
   const hasShownGameOverRef = useRef<boolean>(false);
+  const wsRef = useRef<WebSocket | null>(null);
+  const onGameOverRef = useRef(onGameOver);
+  const pauseRef = useRef(pause);
+  const playerScoreRef = useRef<PlayerScore>(playerScore);
+  const maxPossiblePointsRef = useRef<number>(maxPossiblePoints);
 
-  // Escutar mensagens de desistência via WebSocket
+  // Atualizar refs quando as funções e valores mudarem
   useEffect(() => {
+    onGameOverRef.current = onGameOver;
+    pauseRef.current = pause;
+    playerScoreRef.current = playerScore;
+    maxPossiblePointsRef.current = maxPossiblePoints;
+  }, [onGameOver, pause, playerScore, maxPossiblePoints]);
+
+  // Escutar mensagens de desistência via WebSocket (apenas uma vez ao montar)
+  useEffect(() => {
+    // Se já existe uma conexão WebSocket, não criar outra
+    if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
+      return;
+    }
+
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}${WEBSOCKET_CONFIG.PATH}`;
     const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
 
     ws.onopen = () => {
       console.log('✅ WebSocket connected for QR code give up notifications');
@@ -82,10 +101,11 @@ export default function KaraokeView({
           console.log('🚫 QR code give up received:', message.userName);
           
           // Parar música e chamar onGameOver com pontuação atual
-          pause();
-          if (onGameOver) {
+          pauseRef.current();
+          if (onGameOverRef.current) {
+            // Usar valores atuais via refs
             setTimeout(() => {
-              onGameOver(playerScore, maxPossiblePoints);
+              onGameOverRef.current?.(playerScoreRef.current, maxPossiblePointsRef.current);
             }, 300);
           }
         }
@@ -100,15 +120,16 @@ export default function KaraokeView({
 
     ws.onclose = () => {
       console.log('🔌 WebSocket disconnected for QR code give up');
+      wsRef.current = null;
     };
 
     return () => {
-      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-        ws.close();
+      if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
+        wsRef.current.close();
+        wsRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onGameOver, pause, playerScore, maxPossiblePoints]);
+  }, []); // Sem dependências - executa apenas uma vez ao montar
 
   // Carregar letras e verificar vídeo quando a música mudar
   useEffect(() => {
