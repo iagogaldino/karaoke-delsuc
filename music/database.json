@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-10T20:25:42.204Z",
+  "lastUpdated": "2025-12-10T20:41:44.813Z",
   "songs": [
     {
       "id": "miunnkaj-c6z8aq",
@@ -570,13 +570,13 @@
         "vocals": "vocals.wav",
         "instrumental": "instrumental.wav",
         "waveform": "",
-        "lyrics": ""
+        "lyrics": "lyrics.lrc"
       },
       "metadata": {
         "sampleRate": 44100,
         "format": "wav",
         "createdAt": "2025-12-10T20:08:15.621Z",
-        "lastProcessed": "2025-12-10T20:22:39.897Z"
+        "lastProcessed": "2025-12-10T20:27:51.545Z"
       },
       "status": {
         "vocals": true,
@@ -584,7 +584,49 @@
         "waveform": true,
         "lyrics": true,
         "ready": true
-      }
+      },
+      "category": "cat-hiphop-001",
+      "band": "band-1765397268607-p1u1bnjv8"
+    },
+    {
+      "id": "mj0grn86-cu29ig",
+      "name": "Malandragem",
+      "displayName": "Malandragem",
+      "artist": "Unknown",
+      "duration": 300.18757369614514,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-10T20:30:51.790Z",
+        "lastProcessed": "2025-12-10T20:38:57.182Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "G_c8P5wjA94",
+        "title": "Frejat - Malandragem (Ao Vivo no Rock in Rio)",
+        "url": "https://www.youtube.com/watch?v=G_c8P5wjA94",
+        "thumbnail": "https://i.ytimg.com/vi_webp/G_c8P5wjA94/sddefault.webp",
+        "duration": 300,
+        "uploader": "Nas Nuvens Music Group",
+        "view_count": 2909971,
+        "file": "video.mp4"
+      },
+      "band": "band-1765398630839-m15yaa1gm",
+      "category": "cat-rock-001"
     }
   ],
   "categories": [
@@ -726,7 +768,15 @@
       "id": "band-1765397268607-p1u1bnjv8",
       "name": "Teddy Swims",
       "createdAt": "2025-12-10T20:07:48.607Z",
-      "updatedAt": "2025-12-10T20:07:48.607Z"
+      "updatedAt": "2025-12-10T20:25:48.183Z",
+      "category": "cat-hiphop-001"
+    },
+    {
+      "id": "band-1765398630839-m15yaa1gm",
+      "name": "Frejat",
+      "createdAt": "2025-12-10T20:30:30.839Z",
+      "updatedAt": "2025-12-10T20:41:44.813Z",
+      "category": "cat-rock-001"
     }
   ]
 }

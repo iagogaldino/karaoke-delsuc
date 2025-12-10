@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import AudioPlayer from './components/AudioPlayer';
 import LyricsDisplay from './components/LyricsDisplay';
 import AudioControls from './components/AudioControls';
@@ -65,7 +65,7 @@ function App() {
   }, []);
 
   // Recarregar lista quando uma música for processada
-  const handleProcessComplete = async (songId: string) => {
+  const handleProcessComplete = useCallback(async (songId: string) => {
     setShowProcessor(false);
     try {
       // Recarregar lista de músicas, categorias e bandas
@@ -84,10 +84,10 @@ function App() {
     } catch (err) {
       console.error('Error reloading data:', err);
     }
-  };
+  }, []);
 
   // Função para recarregar todas as músicas, categorias e bandas
-  const reloadAllData = async () => {
+  const reloadAllData = useCallback(async () => {
     try {
       setIsLoadingSongs(true);
       const [songsData, categoriesData, bandsData] = await Promise.all([
@@ -103,10 +103,10 @@ function App() {
     } finally {
       setIsLoadingSongs(false);
     }
-  };
+  }, []);
 
   // Atualização granular: atualiza apenas uma música específica
-  const updateSongInList = async (songId: string) => {
+  const updateSongInList = useCallback(async (songId: string) => {
     try {
       const updatedSong = await songsService.getById(songId);
       if (updatedSong) {
@@ -117,10 +117,10 @@ function App() {
       // Se falhar, recarrega tudo como fallback
       reloadAllData();
     }
-  };
+  }, [reloadAllData]);
 
   // Atualização granular: atualiza apenas uma banda específica
-  const updateBandInList = async (bandId: string) => {
+  const updateBandInList = useCallback(async (bandId: string) => {
     try {
       const updatedBand = await bandsService.getById(bandId);
       if (updatedBand) {
@@ -131,10 +131,10 @@ function App() {
       // Se falhar, recarrega tudo como fallback
       reloadAllData();
     }
-  };
+  }, [reloadAllData]);
 
   // Atualização granular: atualiza músicas que mudaram de categoria/banda
-  const updateSongsAfterMove = async (songIds: string[]) => {
+  const updateSongsAfterMove = useCallback(async (songIds: string[]) => {
     try {
       // Buscar apenas as músicas que mudaram
       const updatedSongs = await Promise.all(
@@ -176,16 +176,16 @@ function App() {
       // Se falhar, recarrega tudo como fallback
       reloadAllData();
     }
-  };
+  }, [reloadAllData]);
 
   // Função para editar nome da música
-  const handleEditSongName = (song: Song, e: React.MouseEvent) => {
+  const handleEditSongName = useCallback((song: Song, e: React.MouseEvent) => {
     e.stopPropagation();
     setEditingSongName(song.id);
     setEditedSongName(song.displayName || song.name);
-  };
+  }, []);
 
-  const handleSaveSongName = async (songId: string) => {
+  const handleSaveSongName = useCallback(async (songId: string) => {
     if (!editedSongName || editedSongName.trim() === '') {
       await alert('Nome não pode estar vazio', { type: 'warning', title: 'Atenção' });
       return;
@@ -196,9 +196,8 @@ function App() {
         displayName: editedSongName.trim()
       });
 
-      // Recarregar lista de músicas
-      const songs = await songsService.getAll();
-      setSongs(songs);
+      // Atualização granular em vez de reload completo
+      await updateSongInList(songId);
 
       setEditingSongName(null);
       setEditedSongName('');
@@ -206,15 +205,15 @@ function App() {
       console.error('Error updating song name:', error);
       await alert('Erro ao atualizar nome: ' + error.message, { type: 'error', title: 'Erro' });
     }
-  };
+  }, [editedSongName, updateSongInList, alert]);
 
-  const handleCancelEditSongName = () => {
+  const handleCancelEditSongName = useCallback(() => {
     setEditingSongName(null);
     setEditedSongName('');
-  };
+  }, []);
 
   // Função para salvar audioMode quando alterado
-  const handleAudioModeChange = async (mode: AudioMode) => {
+  const handleAudioModeChange = useCallback(async (mode: AudioMode) => {
     setAudioMode(mode);
     
     // Salvar no banco de dados se houver música selecionada
@@ -224,18 +223,17 @@ function App() {
           audioMode: mode
         });
         
-        // Atualizar a lista de músicas para refletir a mudança
-        const songs = await songsService.getAll();
-        setSongs(songs);
+        // Atualização granular em vez de reload completo
+        await updateSongInList(selectedSong);
       } catch (error: any) {
         console.error('Error saving audio mode:', error);
         // Não mostrar alerta para não interromper a experiência do usuário
       }
     }
-  };
+  }, [selectedSong, updateSongInList]);
 
   // Função para processar vídeo de uma música
-  const handleDownloadVideo = async (songId: string, e: React.MouseEvent) => {
+  const handleDownloadVideo = useCallback(async (songId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevenir que o clique selecione a música
     
     if (processingVideo[songId]) {
@@ -251,11 +249,10 @@ function App() {
         title: 'Sucesso' 
       });
       
-      // Recarregar lista de músicas após um tempo
+      // Atualização granular após um tempo
       setTimeout(async () => {
         try {
-          const songs = await songsService.getAll();
-          setSongs(songs);
+          await updateSongInList(songId);
         } catch (err) {
           console.error('Error reloading songs:', err);
         }
@@ -270,10 +267,10 @@ function App() {
         return newState;
       });
     }
-  };
+  }, [alert, updateSongInList]);
 
   // Função para remover uma música
-  const handleGenerateLRC = async (songId: string, e: React.MouseEvent) => {
+  const handleGenerateLRC = useCallback(async (songId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     
     if (generatingLRC[songId]) {
@@ -302,9 +299,8 @@ function App() {
         console.log(`Geração de LRC: ${status.step} (${status.progress}%)`);
       });
 
-      // Recarregar lista de músicas
-      const songs = await songsService.getAll();
-      setSongs(songs);
+      // Atualização granular em vez de reload completo
+      await updateSongInList(songId);
       
       await alert('Letras LRC geradas com sucesso!', { type: 'success', title: 'Sucesso' });
     } catch (error: any) {
@@ -317,9 +313,9 @@ function App() {
         return newState;
       });
     }
-  };
+  }, [confirm, alert, updateSongInList]);
 
-  const handleDeleteSong = async (songId: string, e: React.MouseEvent) => {
+  const handleDeleteSong = useCallback(async (songId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevenir que o clique selecione a música
     
     const confirmed = await confirm(
@@ -347,16 +343,15 @@ function App() {
         setLyrics([]);
       }
 
-      // Recarregar lista de músicas
-      const songs = await songsService.getAll();
-      setSongs(songs);
+      // Remover da lista local em vez de reload completo
+      setSongs(prev => prev.filter(s => s.id !== songId));
 
       await alert('Música removida com sucesso!', { type: 'success', title: 'Sucesso' });
     } catch (error: any) {
       console.error('Error deleting song:', error);
       await alert('Erro ao remover música: ' + error.message, { type: 'error', title: 'Erro' });
     }
-  };
+  }, [confirm, alert, selectedSong]);
 
   // Carregar dados quando uma música for selecionada
   useEffect(() => {

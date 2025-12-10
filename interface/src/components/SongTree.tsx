@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, memo } from 'react';
 import { Song, Category, Band } from '../types/index.js';
 import CreateBandButton from './CreateBandButton.js';
 import CreateCategoryButton from './CreateCategoryButton.js';
@@ -27,7 +27,7 @@ interface SongTreeProps {
   onBandUpdated?: (bandId: string) => void;
 }
 
-export default function SongTree({
+function SongTree({
   songs,
   categories,
   bands,
@@ -1022,3 +1022,4 @@ export default function SongTree({
   );
 }
 
+export default memo(SongTree);
