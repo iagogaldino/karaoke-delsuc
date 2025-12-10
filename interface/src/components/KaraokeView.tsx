@@ -918,7 +918,22 @@ export default function KaraokeView({
         )}
       </div>
 
-      {/* Barra de progresso */}
+      {/* Área de letras */}
+      <div className="karaoke-lyrics-area">
+        <StageLights isPlaying={isPlaying} variant="lyrics" />
+        <LyricsDisplay
+          lyrics={lyrics}
+          currentTime={currentTime}
+          songId={songId}
+          capturedText={recordedText}
+          isRecording={isRecording}
+          onLyricsUpdate={(updatedLyrics) => {
+            setLyrics(updatedLyrics);
+          }}
+        />
+      </div>
+
+      {/* Barra de progresso no bottom */}
       {songDuration > 0 && (
         <div className="karaoke-progress-container">
           <div className="karaoke-progress-bar">
@@ -941,21 +956,6 @@ export default function KaraokeView({
           />
         </div>
       )}
-
-      {/* Área de letras */}
-      <div className="karaoke-lyrics-area">
-        <StageLights isPlaying={isPlaying} variant="lyrics" />
-        <LyricsDisplay
-          lyrics={lyrics}
-          currentTime={currentTime}
-          songId={songId}
-          capturedText={recordedText}
-          isRecording={isRecording}
-          onLyricsUpdate={(updatedLyrics) => {
-            setLyrics(updatedLyrics);
-          }}
-        />
-      </div>
 
       {/* Player de áudio oculto (para controle) */}
       <div className="karaoke-audio-hidden">

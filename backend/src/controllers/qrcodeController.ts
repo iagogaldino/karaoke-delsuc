@@ -5,6 +5,7 @@ import { SERVER_CONFIG } from '../config/index.js';
 import { broadcastQRCodeName, broadcastQRCodeSong, broadcastQRCodeGiveUp } from '../websocket/sync.js';
 import { getSongById, getAllSongs } from '../utils/database.js';
 import { createOrUpdateUser, getUserByPhone } from '../utils/usersDatabase.js';
+import { getLocalIP } from '../utils/networkUtils.js';
 
 // Importação dinâmica do módulo qrcode (CommonJS)
 let QRCode: any = null;
@@ -30,6 +31,7 @@ interface QRCodeData {
   isValid: boolean;
   userName?: string;
   userPhone?: string;
+  userPhoto?: string;
   nameSubmitted: boolean;
   songId?: string;
   songSelected: boolean;
@@ -71,10 +73,13 @@ export const generate = asyncHandler(async (req: Request, res: Response) => {
   // Gerar ID único para o QR code
   const qrId = randomBytes(16).toString('hex');
   
-  // Gerar URL que o usuário acessará (usando IP fixo para acesso local na rede)
+  // Gerar URL que o usuário acessará (usando IP detectado automaticamente)
   const protocol = 'http';
-  const host = `192.168.1.23:${SERVER_CONFIG.PORT}`;
+  const localIP = getLocalIP();
+  const host = `${localIP}:${SERVER_CONFIG.PORT}`;
   const url = `${protocol}://${host}/qrcode/${qrId}`;
+  
+  console.log(`📱 QR Code gerado com URL: ${url}`);
 
   // Gerar QR code como SVG com a URL
   const qrSvg = await qrcode.toString(url, {

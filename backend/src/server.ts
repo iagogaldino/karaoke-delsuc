@@ -14,6 +14,7 @@ import * as qrcodeController from './controllers/qrcodeController.js';
 import { setupWebSocket } from './websocket/sync.js';
 import { errorHandler } from './middlewares/errorHandler.js';
 import { SERVER_CONFIG, PATHS } from './config/index.js';
+import { getLocalIP } from './utils/networkUtils.js';
 import { join } from 'path';
 
 const app = express();
@@ -56,6 +57,9 @@ setupWebSocket(server);
 
 // Start server
 server.listen(SERVER_CONFIG.PORT, () => {
+  const localIP = getLocalIP();
   console.log(`🚀 Server running on http://localhost:${SERVER_CONFIG.PORT}`);
+  console.log(`🌐 Server accessible on network: http://${localIP}:${SERVER_CONFIG.PORT}`);
   console.log(`📡 WebSocket server ready on ws://localhost:${SERVER_CONFIG.PORT}`);
+  console.log(`📱 QR Codes will use: http://${localIP}:${SERVER_CONFIG.PORT}`);
 });
