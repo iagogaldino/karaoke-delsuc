@@ -96,6 +96,7 @@ export const remove = asyncHandler(async (req: Request, res: Response) => {
   }
 
   // Remove song directory and all files
+  // Remove song directory and all files
   const musicDir = join(PROJECT_ROOT, 'music', songId);
   if (existsSync(musicDir)) {
     try {

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-10T18:42:33.174Z",
+  "lastUpdated": "2025-12-10T19:09:40.981Z",
   "songs": [
     {
       "id": "miunnkaj-c6z8aq",
@@ -83,7 +83,8 @@
         "file_size": 61061428
       },
       "audioMode": "both",
-      "category": "cat-rock-001"
+      "category": "cat-trap-001",
+      "band": "band-1765387655192-y1kuhcl2x"
     },
     {
       "id": "mivt6z6u-6p8677",
@@ -151,7 +152,8 @@
         "file": "video.mp4"
       },
       "audioMode": "both",
-      "category": "cat-funk-001"
+      "category": "cat-funk-001",
+      "band": "band-1765392271467-j4r8pdpie"
     },
     {
       "id": "miw1px46-dilphg",
@@ -190,7 +192,9 @@
         "view_count": 33143236,
         "file": "video.mp4"
       },
-      "audioMode": "both"
+      "audioMode": "both",
+      "band": "band-1765392755908-wznu326iw",
+      "category": "cat-1765392930731-2qaxe7spb"
     },
     {
       "id": "miw9mwnc-4km1gi",
@@ -230,7 +234,8 @@
         "file": "video.mp4"
       },
       "audioMode": "both",
-      "category": "cat-hiphop-001"
+      "category": "cat-hiphop-001",
+      "band": "band-1765392232437-9u0y5e15v"
     },
     {
       "id": "miw9yc2k-a9ui50",
@@ -269,6 +274,7 @@
         "view_count": 31875902,
         "file": "video.mp4"
       },
+      "band": "band-1765393060964-4cve88vev",
       "category": "cat-rock-001"
     },
     {
@@ -309,7 +315,8 @@
         "file": "video.mp4"
       },
       "audioMode": "both",
-      "category": "cat-rock-001"
+      "category": "cat-rock-001",
+      "band": "band-1765393605487-gt9r9i8je"
     },
     {
       "id": "mj045lmy-bsy3yi",
@@ -348,7 +355,9 @@
         "view_count": 590970617,
         "file": "video.mp4"
       },
-      "category": "cat-rock-001"
+      "category": "cat-rock-001",
+      "band": "band-1765385326587-6yup2hc7z",
+      "audioMode": "both"
     },
     {
       "id": "mj04o5gz-255so2",
@@ -387,7 +396,8 @@
         "view_count": 1333855482,
         "file": "video.mp4"
       },
-      "category": "cat-rock-001"
+      "category": "cat-rock-001",
+      "band": "band-1765393636022-q2in3s2or"
     },
     {
       "id": "mj0572jk-8wu4bb",
@@ -426,7 +436,8 @@
         "view_count": 1441628759,
         "file": "video.mp4"
       },
-      "category": "cat-rock-001"
+      "category": "cat-rock-001",
+      "band": "band-1765393579119-ygwtyz4u3"
     },
     {
       "id": "mj06kfe5-d5qwtl",
@@ -465,6 +476,7 @@
         "view_count": 250616653,
         "file": "video.mp4"
       },
+      "band": "band-1765392997285-kj58wxfzj",
       "category": "cat-rock-001"
     },
     {
@@ -504,6 +516,7 @@
         "view_count": 1370700134,
         "file": "video.mp4"
       },
+      "band": "band-1765392697855-hdz2sbf4k",
       "category": "cat-rock-001"
     }
   ],
@@ -542,6 +555,12 @@
       "description": "Músicas de funk",
       "createdAt": "2025-01-10T00:00:00.000Z",
       "updatedAt": "2025-01-10T00:00:00.000Z"
+    },
+    {
+      "id": "cat-1765392930731-2qaxe7spb",
+      "name": "MPB",
+      "createdAt": "2025-12-10T18:55:30.731Z",
+      "updatedAt": "2025-12-10T18:55:30.731Z"
     }
   ],
   "bands": [
@@ -564,6 +583,69 @@
       "name": "O Rappa",
       "createdAt": "2025-12-10T17:31:15.346Z",
       "updatedAt": "2025-12-10T18:42:33.174Z",
+      "category": "cat-rock-001"
+    },
+    {
+      "id": "band-1765392232437-9u0y5e15v",
+      "name": "Hungria",
+      "createdAt": "2025-12-10T18:43:52.437Z",
+      "updatedAt": "2025-12-10T18:44:04.313Z",
+      "category": "cat-hiphop-001"
+    },
+    {
+      "id": "band-1765392271467-j4r8pdpie",
+      "name": "Vulgo",
+      "createdAt": "2025-12-10T18:44:31.467Z",
+      "updatedAt": "2025-12-10T18:44:43.851Z",
+      "category": "cat-funk-001"
+    },
+    {
+      "id": "band-1765392697855-hdz2sbf4k",
+      "name": "Amy Winehouse",
+      "createdAt": "2025-12-10T18:51:37.855Z",
+      "updatedAt": "2025-12-10T18:52:01.600Z",
+      "category": "cat-rock-001"
+    },
+    {
+      "id": "band-1765392755908-wznu326iw",
+      "name": "Seu Jorge",
+      "createdAt": "2025-12-10T18:52:35.908Z",
+      "updatedAt": "2025-12-10T18:58:22.496Z",
+      "category": "cat-1765392930731-2qaxe7spb"
+    },
+    {
+      "id": "band-1765392997285-kj58wxfzj",
+      "name": "Limp Bizkit",
+      "createdAt": "2025-12-10T18:56:37.285Z",
+      "updatedAt": "2025-12-10T18:57:19.747Z",
+      "category": "cat-rock-001"
+    },
+    {
+      "id": "band-1765393060964-4cve88vev",
+      "name": "Charlie Brown JR",
+      "createdAt": "2025-12-10T18:57:40.964Z",
+      "updatedAt": "2025-12-10T18:58:27.654Z",
+      "category": "cat-rock-001"
+    },
+    {
+      "id": "band-1765393579119-ygwtyz4u3",
+      "name": "Audioslave",
+      "createdAt": "2025-12-10T19:06:19.119Z",
+      "updatedAt": "2025-12-10T19:06:19.133Z",
+      "category": "cat-rock-001"
+    },
+    {
+      "id": "band-1765393605487-gt9r9i8je",
+      "name": "Raul Seixas",
+      "createdAt": "2025-12-10T19:06:45.487Z",
+      "updatedAt": "2025-12-10T19:06:45.495Z",
+      "category": "cat-rock-001"
+    },
+    {
+      "id": "band-1765393636022-q2in3s2or",
+      "name": "Radiohead",
+      "createdAt": "2025-12-10T19:07:16.022Z",
+      "updatedAt": "2025-12-10T19:07:16.040Z",
       "category": "cat-rock-001"
     }
   ]

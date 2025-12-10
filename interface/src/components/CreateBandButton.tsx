@@ -1,21 +1,26 @@
 import { useState } from 'react';
 import { bandsService } from '../services/bandsService.js';
+import { Category } from '../types/index.js';
+import Modal from './Modal.js';
 import './CreateBandButton.css';
 
 interface CreateBandButtonProps {
   onBandCreated?: () => void;
   buttonText?: string;
   variant?: 'button' | 'inline';
+  categories?: Category[];
 }
 
 export default function CreateBandButton({ 
   onBandCreated, 
   buttonText = 'Nova Banda',
-  variant = 'button'
+  variant = 'button',
+  categories = []
 }: CreateBandButtonProps) {
   const [showForm, setShowForm] = useState(false);
   const [bandName, setBandName] = useState('');
   const [bandDesc, setBandDesc] = useState('');
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>('');
   const [isCreating, setIsCreating] = useState(false);
 
   const handleCreate = async () => {
@@ -24,11 +29,19 @@ export default function CreateBandButton({
       return;
     }
 
+    if (!selectedCategoryId) {
+      alert('Selecione uma categoria');
+      return;
+    }
+
     try {
       setIsCreating(true);
-      await bandsService.create(bandName.trim(), bandDesc.trim() || undefined);
+      const newBand = await bandsService.create(bandName.trim(), bandDesc.trim() || undefined);
+      // Atualizar a categoria da banda
+      await bandsService.update(newBand.id, { category: selectedCategoryId });
       setBandName('');
       setBandDesc('');
+      setSelectedCategoryId('');
       setShowForm(false);
       if (onBandCreated) {
         onBandCreated();
@@ -45,70 +58,97 @@ export default function CreateBandButton({
     setShowForm(false);
     setBandName('');
     setBandDesc('');
+    setSelectedCategoryId('');
   };
 
   if (variant === 'inline') {
     return (
-      <div className="create-band-inline">
-        {!showForm ? (
-          <button
-            className="create-band-btn create-band-icon-btn"
-            onClick={() => setShowForm(true)}
-            disabled={isCreating}
-            title={buttonText}
-          >
-            <i className="fas fa-users"></i>
-          </button>
-        ) : (
-          <div className="create-band-form">
-            <input
-              type="text"
-              placeholder="Nome da banda (ex: Queen, Metallica)"
-              value={bandName}
-              onChange={(e) => setBandName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleCreate();
-                } else if (e.key === 'Escape') {
-                  handleCancel();
-                }
-              }}
-              disabled={isCreating}
-              autoFocus
-            />
-            <input
-              type="text"
-              placeholder="Descrição (opcional)"
-              value={bandDesc}
-              onChange={(e) => setBandDesc(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  handleCreate();
-                } else if (e.key === 'Escape') {
-                  handleCancel();
-                }
-              }}
-              disabled={isCreating}
-            />
-            <div className="create-band-form-actions">
-              <button 
-                onClick={handleCreate} 
-                disabled={isCreating || !bandName.trim()}
-                className="create-band-submit-btn"
+      <>
+        <button
+          className="create-band-btn create-band-icon-btn"
+          onClick={() => setShowForm(true)}
+          disabled={isCreating}
+          title={buttonText || 'Nova Banda'}
+        >
+          <i className="fas fa-users"></i>
+        </button>
+        <Modal
+          isOpen={showForm}
+          onClose={handleCancel}
+          title="Criar Nova Banda"
+        >
+          <div className="create-band-form-modal">
+            <div className="form-group">
+              <label className="form-label">Nome da Banda *</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Ex: Queen, Metallica, The Beatles"
+                value={bandName}
+                onChange={(e) => setBandName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && bandName.trim() && selectedCategoryId) {
+                    handleCreate();
+                  }
+                }}
+                disabled={isCreating}
+                autoFocus
+              />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Categoria *</label>
+              <select
+                className="form-select"
+                value={selectedCategoryId}
+                onChange={(e) => setSelectedCategoryId(e.target.value)}
+                disabled={isCreating}
               >
-                <i className="fas fa-check"></i> Criar
-              </button>
+                <option value="">Selecione uma categoria</option>
+                {categories.map(category => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Descrição</label>
+              <textarea
+                className="form-textarea"
+                placeholder="Descrição opcional da banda"
+                value={bandDesc}
+                onChange={(e) => setBandDesc(e.target.value)}
+                disabled={isCreating}
+                rows={3}
+              />
+            </div>
+            <div className="modal-actions">
               <button 
                 onClick={handleCancel} 
                 disabled={isCreating}
-                className="create-band-cancel-btn"
+                className="modal-btn modal-btn-cancel"
               >
-                <i className="fas fa-times"></i> Cancelar
+                Cancelar
+              </button>
+              <button 
+                onClick={handleCreate} 
+                disabled={isCreating || !bandName.trim() || !selectedCategoryId}
+                className="modal-btn modal-btn-submit"
+              >
+                {isCreating ? (
+                  <>
+                    <i className="fas fa-spinner fa-spin"></i> Criando...
+                  </>
+                ) : (
+                  <>
+                    <i className="fas fa-check"></i> Criar Banda
+                  </>
+                )}
               </button>
             </div>
           </div>
-        )}
-      </div>
+        </Modal>
+      </>
     );
   }
 
@@ -116,51 +156,89 @@ export default function CreateBandButton({
     <div className="create-band-container">
       <button
         className="create-band-btn"
-        onClick={() => setShowForm(!showForm)}
+        onClick={() => setShowForm(true)}
         disabled={isCreating}
       >
         <i className="fas fa-users"></i>
-        {showForm ? 'Cancelar Banda' : buttonText}
+        {buttonText}
       </button>
 
-      {showForm && (
-        <div className="create-band-form">
-          <input
-            type="text"
-            placeholder="Nome da banda (ex: Queen, Metallica)"
-            value={bandName}
-            onChange={(e) => setBandName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleCreate();
-              } else if (e.key === 'Escape') {
-                handleCancel();
-              }
-            }}
-            disabled={isCreating}
-            autoFocus
-          />
-          <input
-            type="text"
-            placeholder="Descrição (opcional)"
-            value={bandDesc}
-            onChange={(e) => setBandDesc(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                handleCreate();
-              }
-            }}
-            disabled={isCreating}
-          />
-          <button 
-            onClick={handleCreate} 
-            disabled={isCreating || !bandName.trim()}
-            className="create-band-submit-btn"
-          >
-            <i className="fas fa-check"></i> Criar Banda
-          </button>
+      <Modal
+        isOpen={showForm}
+        onClose={handleCancel}
+        title="Criar Nova Banda"
+      >
+        <div className="create-band-form-modal">
+          <div className="form-group">
+            <label className="form-label">Nome da Banda *</label>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Ex: Queen, Metallica, The Beatles"
+              value={bandName}
+              onChange={(e) => setBandName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && bandName.trim() && selectedCategoryId) {
+                  handleCreate();
+                }
+              }}
+              disabled={isCreating}
+              autoFocus
+            />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Categoria *</label>
+            <select
+              className="form-select"
+              value={selectedCategoryId}
+              onChange={(e) => setSelectedCategoryId(e.target.value)}
+              disabled={isCreating}
+            >
+              <option value="">Selecione uma categoria</option>
+              {categories.map(category => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Descrição</label>
+            <textarea
+              className="form-textarea"
+              placeholder="Descrição opcional da banda"
+              value={bandDesc}
+              onChange={(e) => setBandDesc(e.target.value)}
+              disabled={isCreating}
+              rows={3}
+            />
+          </div>
+          <div className="modal-actions">
+            <button 
+              onClick={handleCancel} 
+              disabled={isCreating}
+              className="modal-btn modal-btn-cancel"
+            >
+              Cancelar
+            </button>
+            <button 
+              onClick={handleCreate} 
+              disabled={isCreating || !bandName.trim() || !selectedCategoryId}
+              className="modal-btn modal-btn-submit"
+            >
+              {isCreating ? (
+                <>
+                  <i className="fas fa-spinner fa-spin"></i> Criando...
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-check"></i> Criar Banda
+                </>
+              )}
+            </button>
+          </div>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

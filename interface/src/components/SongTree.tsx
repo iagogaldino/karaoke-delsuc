@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Song, Category, Band } from '../types/index.js';
 import CreateBandButton from './CreateBandButton.js';
+import CreateCategoryButton from './CreateCategoryButton.js';
 import './SongTree.css';
 
 interface SongTreeProps {
@@ -590,14 +591,35 @@ export default function SongTree({
     <div className="song-tree">
       <div className="song-tree-header">
         <h3>Músicas</h3>
-        <button
-          className="expand-all-btn"
-          onClick={toggleExpandAll}
-          title={expandedAll ? "Recolher todas" : "Expandir todas"}
-        >
-          <i className={`fas ${expandedAll ? 'fa-chevron-down' : 'fa-chevron-right'}`}></i>
-          {expandedAll ? 'Recolher' : 'Expandir'}
-        </button>
+        <div className="song-tree-header-actions">
+          <CreateCategoryButton
+            variant="inline"
+            buttonText=""
+            onCategoryCreated={() => {
+              if (onCategoriesUpdate) {
+                onCategoriesUpdate();
+              }
+            }}
+          />
+          <CreateBandButton
+            variant="inline"
+            buttonText=""
+            categories={categories}
+            onBandCreated={() => {
+              if (onBandsUpdate) {
+                onBandsUpdate();
+              }
+            }}
+          />
+          <button
+            className="expand-all-btn"
+            onClick={toggleExpandAll}
+            title={expandedAll ? "Recolher todas" : "Expandir todas"}
+          >
+            <i className={`fas ${expandedAll ? 'fa-chevron-down' : 'fa-chevron-right'}`}></i>
+            {expandedAll ? 'Recolher' : 'Expandir'}
+          </button>
+        </div>
       </div>
 
       <div className="song-tree-content">
@@ -612,7 +634,6 @@ export default function SongTree({
               className="song-tree-band-header"
               onClick={() => toggleBand('all', 'noband')}
             >
-              <i className={`fas fa-chevron-${expandedBands.has('all-noband') ? 'down' : 'right'}`}></i>
               <i className="fas fa-music"></i>
               <span className="band-name">Sem banda</span>
               <span className="song-count">({songsWithoutBand.length})</span>
@@ -652,29 +673,12 @@ export default function SongTree({
                 className="song-tree-category-header"
                 onClick={() => toggleCategory('uncategorized')}
               >
-                <i className={`fas fa-chevron-${isExpanded ? 'down' : 'right'}`}></i>
                 <i className="fas fa-folder-open"></i>
                 <span className="category-name">{getCategoryName('uncategorized')}</span>
                 <span className="song-count">({totalSongs})</span>
               </div>
               {isExpanded && (
                 <div className="song-tree-category-content">
-                  {/* Botão para adicionar banda */}
-                  <div className="category-add-band">
-                    <CreateBandButton
-                      variant="inline"
-                      buttonText="Nova Banda"
-                      onBandCreated={() => {
-                        if (onBandsUpdate) {
-                          onBandsUpdate();
-                        }
-                        // Recarregar dados após deletar banda (pode ter afetado músicas)
-      if (onBandsUpdate) {
-        onBandsUpdate();
-      }
-                      }}
-                    />
-                  </div>
 
                   {/* Bandas dentro desta categoria (incluindo bandas sem músicas ou sem categoria) */}
                   {bands.map(band => {
@@ -701,7 +705,6 @@ export default function SongTree({
                           onDragEnd={handleDragEnd}
                           onClick={() => toggleBand('uncategorized', band.id)}
                         >
-                          <i className={`fas fa-chevron-${expandedBands.has(bandKey) ? 'down' : 'right'}`}></i>
                           <i className="fas fa-users"></i>
                           {editingBand === band.id ? (
                             <div className="edit-form" onClick={(e) => e.stopPropagation()}>
@@ -808,7 +811,6 @@ export default function SongTree({
                 onClick={() => toggleCategory(category.id)}
                 onDrop={(e) => e.stopPropagation()}
               >
-                <i className={`fas fa-chevron-${isExpanded ? 'down' : 'right'}`}></i>
                 <i className="fas fa-folder"></i>
                 {editingCategory === category.id ? (
                   <div className="edit-form" onClick={(e) => e.stopPropagation()}>
@@ -875,22 +877,6 @@ export default function SongTree({
               </div>
               {isExpanded && (
                 <div className="song-tree-category-content">
-                  {/* Botão para adicionar banda */}
-                  <div className="category-add-band">
-                    <CreateBandButton
-                      variant="inline"
-                      buttonText="Nova Banda"
-                      onBandCreated={() => {
-                        if (onBandsUpdate) {
-                          onBandsUpdate();
-                        }
-                        // Recarregar dados após deletar banda (pode ter afetado músicas)
-      if (onBandsUpdate) {
-        onBandsUpdate();
-      }
-                      }}
-                    />
-                  </div>
 
                   {/* Bandas dentro desta categoria (bandas com músicas ou categoria padrão) */}
                   {bands.map(band => {
@@ -916,7 +902,6 @@ export default function SongTree({
                           onDragEnd={handleDragEnd}
                           onClick={() => toggleBand(category.id, band.id)}
                         >
-                          <i className={`fas fa-chevron-${expandedBands.has(bandKey) ? 'down' : 'right'}`}></i>
                           <i className="fas fa-users"></i>
                           {editingBand === band.id ? (
                             <div className="edit-form" onClick={(e) => e.stopPropagation()}>
