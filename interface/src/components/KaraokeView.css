@@ -523,7 +523,7 @@
 /* Barra de progresso - posicionada no bottom */
 .karaoke-progress-container {
   width: 100%;
-  padding: 0 2rem;
+  padding: 0;
   height: 8px;
   background: rgba(74, 144, 226, 0.3);
   z-index: 100;
@@ -616,8 +616,8 @@
   z-index: 101;
   position: absolute;
   top: 0;
-  left: 2rem;
-  right: 2rem;
+  left: 0;
+  right: 0;
   margin: 0;
   padding: 0;
 }
@@ -685,6 +685,20 @@
   margin-top: auto; /* Empurra para o bottom */
 }
 
+/* Remover scrollbar na área de letras do modo jogador */
+.karaoke-lyrics-area::-webkit-scrollbar,
+.karaoke-lyrics-area *::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.karaoke-lyrics-area,
+.karaoke-lyrics-area * {
+  -ms-overflow-style: none; /* IE e Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
 /* Player de áudio oculto */
 .karaoke-audio-hidden {
   position: absolute;
@@ -718,6 +732,20 @@
   flex: 1;
   position: relative;
   z-index: 2;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Remover scrollbar do container de letras também */
+.karaoke-lyrics-area .lyrics-container::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.karaoke-lyrics-area .lyrics-container {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 .karaoke-lyrics-area .lyric-line {
@@ -732,6 +760,9 @@
   padding: 2rem 1.5rem;
   margin: 1rem 0;
   font-weight: 700;
+  border: none;
+  background: transparent;
+  box-shadow: none;
 }
 
 .karaoke-lyrics-area .lyric-line.past {

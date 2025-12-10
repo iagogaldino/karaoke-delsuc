@@ -943,6 +943,7 @@ export default function KaraokeView({
           songId={songId}
           capturedText={recordedText}
           isRecording={isRecording}
+          allowEdit={false}
           onLyricsUpdate={(updatedLyrics) => {
             setLyrics(updatedLyrics);
           }}

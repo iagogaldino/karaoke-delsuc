@@ -10,9 +10,10 @@ interface LyricsDisplayProps {
   onLyricsUpdate?: (updatedLyrics: LyricsLine[]) => void;
   capturedText?: string; // Texto capturado em tempo real durante a gravação
   isRecording?: boolean; // Indica se está gravando
+  allowEdit?: boolean; // Permite edição de letras (padrão: true)
 }
 
-export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpdate, capturedText = '', isRecording = false }: LyricsDisplayProps) {
+export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpdate, capturedText = '', isRecording = false, allowEdit = true }: LyricsDisplayProps) {
   const [activeIndex, setActiveIndex] = useState(-1);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState('');
@@ -85,6 +86,7 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
   }, [editingIndex]);
 
   const handleEdit = (index: number) => {
+    if (!allowEdit) return; // Não permitir edição se allowEdit for false
     setEditingIndex(index);
     setEditText(localLyrics[index].text);
     setEditTime(formatTime(localLyrics[index].time));
@@ -164,6 +166,7 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
   };
 
   const handleAddLine = () => {
+    if (!allowEdit) return; // Não permitir adicionar se allowEdit for false
     setAddingLine(true);
     setNewLineText('');
     setTimeManuallyEdited(false);
@@ -478,15 +481,17 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
       <div className="lyrics-display">
         <div className="lyrics-header">
           <h3>Letras</h3>
-          <button
-            className="add-line-btn"
-            onClick={handleAddLine}
-            title="Adicionar nova linha"
-            disabled={!songId}
-          >
-            <i className="fas fa-plus"></i>
-            <span>Adicionar</span>
-          </button>
+          {allowEdit && (
+            <button
+              className="add-line-btn"
+              onClick={handleAddLine}
+              title="Adicionar nova linha"
+              disabled={!songId}
+            >
+              <i className="fas fa-plus"></i>
+              <span>Adicionar</span>
+            </button>
+          )}
         </div>
         <div className="lyrics-container">
           <p className="no-lyrics">Nenhuma letra disponível</p>
@@ -499,7 +504,7 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
     <div className="lyrics-display">
       <div className="lyrics-header">
         <h3>Letras</h3>
-        {!addingLine && (
+        {allowEdit && !addingLine && (
           <button
             className="add-line-btn"
             onClick={handleAddLine}
@@ -512,7 +517,7 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
         )}
       </div>
       <div className="lyrics-container" ref={lyricsRef}>
-        {addingLine && (
+        {addingLine && allowEdit && (
           <div className="lyric-line adding">
             <div className="lyric-add-container">
               <div className="lyric-add-inputs">
@@ -604,7 +609,7 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
               ref={isActive ? activeRef : null}
               className={`lyric-line ${isActive ? 'active' : ''} ${isPast ? 'past' : ''} ${isFuture ? 'future' : ''} ${isEditing ? 'editing' : ''}`}
             >
-              {isEditing ? (
+              {isEditing && allowEdit ? (
                 <div className="lyric-edit-container">
                   <div className="lyric-edit-inputs">
                     <input
@@ -664,7 +669,7 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
               ) : (
                 <>
                   <div className="lyric-content">
-                    <span className="lyric-timestamp">{formatTime(lyric.time)}</span>
+                    {allowEdit && <span className="lyric-timestamp">{formatTime(lyric.time)}</span>}
                     <span className="lyric-text">
                       {isActive && isRecording && capturedText ? (
                         // Modo jogador: destacar palavras acertadas
@@ -677,27 +682,29 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
                       )}
                     </span>
                   </div>
-                  <div className="lyric-actions">
-                    <button
-                      className="lyric-edit-btn"
-                      onClick={() => handleEdit(index)}
-                      title="Editar linha"
-                    >
-                      <i className="fas fa-edit"></i>
-                    </button>
-                    <button
-                      className="lyric-delete-btn"
-                      onClick={() => handleDeleteLine(index)}
-                      title="Remover linha"
-                      disabled={isDeleting === index}
-                    >
-                      {isDeleting === index ? (
-                        <i className="fas fa-spinner fa-spin"></i>
-                      ) : (
-                        <i className="fas fa-trash-alt"></i>
-                      )}
-                    </button>
-                  </div>
+                  {allowEdit && (
+                    <div className="lyric-actions">
+                      <button
+                        className="lyric-edit-btn"
+                        onClick={() => handleEdit(index)}
+                        title="Editar linha"
+                      >
+                        <i className="fas fa-edit"></i>
+                      </button>
+                      <button
+                        className="lyric-delete-btn"
+                        onClick={() => handleDeleteLine(index)}
+                        title="Remover linha"
+                        disabled={isDeleting === index}
+                      >
+                        {isDeleting === index ? (
+                          <i className="fas fa-spinner fa-spin"></i>
+                        ) : (
+                          <i className="fas fa-trash-alt"></i>
+                        )}
+                      </button>
+                    </div>
+                  )}
                 </>
               )}
             </div>
