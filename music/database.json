@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-10T20:41:44.813Z",
+  "lastUpdated": "2025-12-10T22:00:42.848Z",
   "songs": [
     {
       "id": "miunnkaj-c6z8aq",
@@ -627,6 +627,44 @@
       },
       "band": "band-1765398630839-m15yaa1gm",
       "category": "cat-rock-001"
+    },
+    {
+      "id": "mj0jrysz-a5xojh",
+      "name": "Bé Bé Bé do Bode",
+      "displayName": "Bé Bé Bé do Bode",
+      "artist": "Unknown",
+      "duration": 171.3168253968254,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-10T21:55:05.787Z",
+        "lastProcessed": "2025-12-10T22:00:42.840Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "vCHoc6w_-e0",
+        "title": "Bé Bé Bé do Bode - Sergio do forró 55 Anos de Carreira",
+        "url": "https://www.youtube.com/watch?v=vCHoc6w_-e0",
+        "thumbnail": "https://i.ytimg.com/vi_webp/vCHoc6w_-e0/maxresdefault.webp",
+        "duration": 171,
+        "uploader": "Sérgio Do Forró",
+        "view_count": 47591,
+        "file": "video.mp4"
+      }
     }
   ],
   "categories": [
