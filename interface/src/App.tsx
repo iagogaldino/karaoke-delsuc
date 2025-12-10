@@ -373,6 +373,17 @@ function App() {
     }
   }, [lyrics, selectedSong]);
 
+  // Resetar tempo quando trocar de música
+  useEffect(() => {
+    if (selectedSong) {
+      // Resetar tempo para 0 e pausar quando trocar de música
+      seek(0);
+      if (isPlaying) {
+        pause();
+      }
+    }
+  }, [selectedSong]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Se estiver no modo de resultados, mostrar a tela de resultados
   if (viewMode === 'results' && finalScore) {
     return (

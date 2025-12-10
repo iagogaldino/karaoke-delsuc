@@ -141,6 +141,10 @@ export default function AudioPlayer({
     vocals.addEventListener('loadeddata', handleLoadedData);
     instrumental.addEventListener('loadeddata', handleLoadedData);
 
+    // Resetar o tempo dos elementos de áudio quando a música mudar
+    vocals.currentTime = 0;
+    instrumental.currentTime = 0;
+
     return () => {
       clearInterval(bufferCheckInterval);
       clearTimeout(bufferTimeout);
