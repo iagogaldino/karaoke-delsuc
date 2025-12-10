@@ -831,6 +831,24 @@ export default function KaraokeView({
       {/* Holofotes sobre o vídeo */}
       <StageLights isPlaying={isPlaying} variant="video" />
 
+      {/* Caixas de som nas extremidades */}
+      <div className="speaker speaker-left">
+        <div className="speaker-body">
+          <div className={`speaker-cone ${isPlaying ? 'speaker-cone-active' : ''}`}>
+            {isPlaying && <div className="speaker-cone-center"></div>}
+          </div>
+          <div className={`speaker-cone speaker-cone-small ${isPlaying ? 'speaker-cone-active' : ''}`}></div>
+        </div>
+      </div>
+      <div className="speaker speaker-right">
+        <div className="speaker-body">
+          <div className={`speaker-cone ${isPlaying ? 'speaker-cone-active' : ''}`}>
+            {isPlaying && <div className="speaker-cone-center"></div>}
+          </div>
+          <div className={`speaker-cone speaker-cone-small ${isPlaying ? 'speaker-cone-active' : ''}`}></div>
+        </div>
+      </div>
+
       {/* Contagem regressiva */}
       {countdown !== null && (
         <div className="countdown-overlay">

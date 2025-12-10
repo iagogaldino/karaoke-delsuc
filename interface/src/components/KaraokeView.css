@@ -802,3 +802,168 @@
   }
 }
 
+/* Caixas de som nas extremidades */
+.speaker {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 6; /* Acima da área de letras (z-index 5) */
+  pointer-events: none;
+}
+
+.speaker-left {
+  left: 20px;
+}
+
+.speaker-right {
+  right: 20px;
+}
+
+.speaker-body {
+  width: 120px;
+  height: 200px;
+  background: linear-gradient(
+    to bottom,
+    rgba(30, 30, 35, 0.95) 0%,
+    rgba(20, 20, 25, 0.98) 30%,
+    rgba(15, 15, 20, 1) 60%,
+    rgba(10, 10, 15, 1) 100%
+  );
+  border-radius: 15px 15px 8px 8px;
+  box-shadow: 
+    0 0 20px rgba(0, 0, 0, 0.8),
+    inset 0 0 30px rgba(0, 0, 0, 0.5),
+    inset 0 5px 10px rgba(255, 255, 255, 0.1);
+  position: relative;
+  border: 2px solid rgba(60, 60, 70, 0.8);
+  overflow: visible;
+}
+
+/* Cone do alto-falante principal */
+.speaker-cone {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 80px;
+  background: radial-gradient(
+    circle,
+    rgba(50, 50, 55, 1) 0%,
+    rgba(30, 30, 35, 0.9) 40%,
+    rgba(15, 15, 20, 0.8) 70%,
+    rgba(10, 10, 15, 1) 100%
+  );
+  border-radius: 50%;
+  box-shadow: 
+    inset 0 0 20px rgba(0, 0, 0, 0.8),
+    inset 0 5px 15px rgba(255, 255, 255, 0.1),
+    0 0 10px rgba(0, 0, 0, 0.5);
+  border: 3px solid rgba(40, 40, 45, 0.9);
+  transition: all 0.1s ease-out;
+}
+
+/* Efeito quando o alto-falante está tocando - movimento do cone */
+.speaker-cone-active {
+  animation: speaker-vibrate 0.15s ease-in-out infinite;
+  box-shadow: 
+    inset 0 0 25px rgba(74, 144, 226, 0.3),
+    inset 0 5px 15px rgba(255, 255, 255, 0.15),
+    0 0 15px rgba(74, 144, 226, 0.4),
+    0 0 25px rgba(74, 144, 226, 0.2);
+}
+
+@keyframes speaker-vibrate {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  25% {
+    transform: translateX(-50%) translateY(-2px) scale(1.02);
+  }
+  50% {
+    transform: translateX(-50%) translateY(0) scale(1.05);
+  }
+  75% {
+    transform: translateX(-50%) translateY(2px) scale(1.02);
+  }
+}
+
+/* Centro do cone que pulsa quando está tocando */
+.speaker-cone-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  background: radial-gradient(
+    circle,
+    rgba(74, 144, 226, 0.8) 0%,
+    rgba(74, 144, 226, 0.4) 50%,
+    transparent 100%
+  );
+  border-radius: 50%;
+  animation: cone-pulse 0.2s ease-in-out infinite alternate;
+  box-shadow: 0 0 10px rgba(74, 144, 226, 0.6);
+}
+
+@keyframes cone-pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.3);
+    opacity: 1;
+  }
+}
+
+/* Cone pequeno (tweeter) */
+.speaker-cone-small {
+  top: 25px;
+  width: 30px;
+  height: 30px;
+  background: radial-gradient(
+    circle,
+    rgba(40, 40, 45, 1) 0%,
+    rgba(25, 25, 30, 0.9) 50%,
+    rgba(15, 15, 20, 1) 100%
+  );
+  border: 2px solid rgba(35, 35, 40, 0.9);
+}
+
+.speaker-cone-small.speaker-cone-active {
+  animation: speaker-tweeter-vibrate 0.1s ease-in-out infinite;
+  box-shadow: 
+    inset 0 0 15px rgba(74, 144, 226, 0.3),
+    0 0 10px rgba(74, 144, 226, 0.3);
+}
+
+@keyframes speaker-tweeter-vibrate {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+  50% {
+    transform: translateX(-50%) translateY(-1px) scale(1.05);
+  }
+}
+
+/* Grades protetoras */
+.speaker-body::before {
+  content: '';
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 80px;
+  background-image: 
+    radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.4) 30%, rgba(0, 0, 0, 0.4) 35%, transparent 35%),
+    radial-gradient(circle, transparent 25%, rgba(0, 0, 0, 0.3) 25%, rgba(0, 0, 0, 0.3) 30%, transparent 30%);
+  background-size: 100% 100%;
+  border-radius: 50%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+

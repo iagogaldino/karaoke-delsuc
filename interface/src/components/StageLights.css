@@ -16,28 +16,28 @@
 
 /* Variante para área de vídeo - cores diferentes */
 .stage-lights-video .light-spot-1 {
-  background: radial-gradient(circle, rgba(255, 100, 0, 1) 0%, rgba(255, 100, 0, 0.8) 25%, rgba(255, 100, 0, 0.5) 50%, rgba(255, 100, 0, 0.2) 75%, transparent 90%);
+  background: radial-gradient(circle, rgba(255, 240, 200, 0.9) 0%, rgba(255, 230, 180, 0.7) 25%, rgba(255, 220, 160, 0.5) 50%, rgba(255, 210, 140, 0.3) 75%, transparent 90%);
   top: 15%;
   left: 8%;
   animation: move-light-1 10s infinite ease-in-out;
 }
 
 .stage-lights-video .light-spot-2 {
-  background: radial-gradient(circle, rgba(0, 255, 150, 1) 0%, rgba(0, 255, 150, 0.8) 25%, rgba(0, 255, 150, 0.5) 50%, rgba(0, 255, 150, 0.2) 75%, transparent 90%);
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.9) 0%, rgba(255, 250, 240, 0.7) 25%, rgba(255, 245, 230, 0.5) 50%, rgba(255, 240, 220, 0.3) 75%, transparent 90%);
   top: 20%;
   right: 12%;
   animation: move-light-2 11s infinite ease-in-out;
 }
 
 .stage-lights-video .light-spot-3 {
-  background: radial-gradient(circle, rgba(255, 0, 255, 1) 0%, rgba(255, 0, 255, 0.8) 25%, rgba(255, 0, 255, 0.5) 50%, rgba(255, 0, 255, 0.2) 75%, transparent 90%);
+  background: radial-gradient(circle, rgba(255, 245, 220, 0.9) 0%, rgba(255, 235, 200, 0.7) 25%, rgba(255, 225, 180, 0.5) 50%, rgba(255, 215, 160, 0.3) 75%, transparent 90%);
   bottom: 15%;
   left: 15%;
   animation: move-light-3 13s infinite ease-in-out;
 }
 
 .stage-lights-video .light-spot-4 {
-  background: radial-gradient(circle, rgba(0, 150, 255, 1) 0%, rgba(0, 150, 255, 0.8) 25%, rgba(0, 150, 255, 0.5) 50%, rgba(0, 150, 255, 0.2) 75%, transparent 90%);
+  background: radial-gradient(circle, rgba(255, 240, 200, 0.9) 0%, rgba(255, 230, 180, 0.7) 25%, rgba(255, 220, 160, 0.5) 50%, rgba(255, 210, 140, 0.3) 75%, transparent 90%);
   bottom: 20%;
   right: 10%;
   animation: move-light-4 9s infinite ease-in-out;
@@ -372,10 +372,10 @@
 .top-spotlight-1::after {
   background: linear-gradient(
     to bottom,
-    rgba(255, 215, 0, 1) 0%,
-    rgba(255, 215, 0, 0.8) 20%,
-    rgba(255, 215, 0, 0.5) 50%,
-    rgba(255, 215, 0, 0.2) 80%,
+    rgba(255, 240, 200, 0.9) 0%,
+    rgba(255, 230, 180, 0.7) 20%,
+    rgba(255, 220, 160, 0.5) 50%,
+    rgba(255, 210, 140, 0.3) 80%,
     transparent 100%
   );
 }
@@ -388,10 +388,10 @@
 .top-spotlight-2::after {
   background: linear-gradient(
     to bottom,
-    rgba(255, 0, 150, 1) 0%,
-    rgba(255, 0, 150, 0.8) 20%,
-    rgba(255, 0, 150, 0.5) 50%,
-    rgba(255, 0, 150, 0.2) 80%,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 250, 240, 0.7) 20%,
+    rgba(255, 245, 230, 0.5) 50%,
+    rgba(255, 240, 220, 0.3) 80%,
     transparent 100%
   );
 }
@@ -404,10 +404,10 @@
 .top-spotlight-3::after {
   background: linear-gradient(
     to bottom,
-    rgba(0, 255, 255, 1) 0%,
-    rgba(0, 255, 255, 0.8) 20%,
-    rgba(0, 255, 255, 0.5) 50%,
-    rgba(0, 255, 255, 0.2) 80%,
+    rgba(255, 245, 220, 0.9) 0%,
+    rgba(255, 235, 200, 0.7) 20%,
+    rgba(255, 225, 180, 0.5) 50%,
+    rgba(255, 215, 160, 0.3) 80%,
     transparent 100%
   );
 }
@@ -420,10 +420,10 @@
 .top-spotlight-4::after {
   background: linear-gradient(
     to bottom,
-    rgba(255, 0, 150, 1) 0%,
-    rgba(255, 0, 150, 0.8) 20%,
-    rgba(255, 0, 150, 0.5) 50%,
-    rgba(255, 0, 150, 0.2) 80%,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 250, 240, 0.7) 20%,
+    rgba(255, 245, 230, 0.5) 50%,
+    rgba(255, 240, 220, 0.3) 80%,
     transparent 100%
   );
 }
@@ -436,10 +436,10 @@
 .top-spotlight-5::after {
   background: linear-gradient(
     to bottom,
-    rgba(255, 215, 0, 1) 0%,
-    rgba(255, 215, 0, 0.8) 20%,
-    rgba(255, 215, 0, 0.5) 50%,
-    rgba(255, 215, 0, 0.2) 80%,
+    rgba(255, 240, 200, 0.9) 0%,
+    rgba(255, 230, 180, 0.7) 20%,
+    rgba(255, 220, 160, 0.5) 50%,
+    rgba(255, 210, 140, 0.3) 80%,
     transparent 100%
   );
 }
@@ -452,10 +452,10 @@
 .top-spotlight-6::after {
   background: linear-gradient(
     to bottom,
-    rgba(255, 215, 0, 1) 0%,
-    rgba(255, 215, 0, 0.8) 20%,
-    rgba(255, 215, 0, 0.5) 50%,
-    rgba(255, 215, 0, 0.2) 80%,
+    rgba(255, 245, 220, 0.9) 0%,
+    rgba(255, 235, 200, 0.7) 20%,
+    rgba(255, 225, 180, 0.5) 50%,
+    rgba(255, 215, 160, 0.3) 80%,
     transparent 100%
   );
 }
