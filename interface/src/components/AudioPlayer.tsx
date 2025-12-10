@@ -195,8 +195,18 @@ export default function AudioPlayer({
 
     if (isPlaying) {
       // Sempre tocar ambos para manter sincronização, mas o mute controla o que é ouvido
-      vocals.play().catch(console.error);
-      instrumental.play().catch(console.error);
+      const playVocals = vocals.play().catch(err => {
+        // Ignorar erros de interrupção (AbortError)
+        if (err.name !== 'AbortError' && err.name !== 'NotAllowedError') {
+          console.error('Error playing vocals:', err);
+        }
+      });
+      const playInstrumental = instrumental.play().catch(err => {
+        // Ignorar erros de interrupção (AbortError)
+        if (err.name !== 'AbortError' && err.name !== 'NotAllowedError') {
+          console.error('Error playing instrumental:', err);
+        }
+      });
     } else {
       vocals.pause();
       instrumental.pause();
