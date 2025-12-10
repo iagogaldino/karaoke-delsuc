@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-10T19:55:47.566Z",
+  "lastUpdated": "2025-12-10T20:01:20.468Z",
   "songs": [
     {
       "id": "miunnkaj-c6z8aq",
@@ -524,19 +524,20 @@
       "name": "Colors",
       "displayName": "Colors",
       "artist": "Unknown",
-      "duration": 0,
+      "duration": 386.1710657596372,
       "files": {
-        "original": "",
+        "original": "original.wav",
         "vocals": "vocals.wav",
-        "instrumental": "",
-        "waveform": "",
-        "lyrics": ""
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
       },
       "metadata": {
         "sampleRate": 44100,
         "format": "wav",
         "createdAt": "2025-12-10T19:51:37.624Z",
-        "lastProcessed": "2025-12-10T19:55:47.566Z"
+        "lastProcessed": "2025-12-10T20:00:55.815Z"
       },
       "status": {
         "vocals": true,
@@ -544,7 +545,18 @@
         "waveform": true,
         "lyrics": true,
         "ready": true
-      }
+      },
+      "video": {
+        "id": "pbyyRCr60Q8",
+        "title": "Black Pumas - Colors (Live at Abbey Road Studios)",
+        "url": "https://www.youtube.com/watch?v=pbyyRCr60Q8",
+        "thumbnail": "https://i.ytimg.com/vi/pbyyRCr60Q8/maxresdefault.jpg",
+        "duration": 386,
+        "uploader": "Black Pumas",
+        "view_count": 69990793,
+        "file": "video.mp4"
+      },
+      "band": "band-1765396276328-kw17yda22"
     }
   ],
   "categories": [
