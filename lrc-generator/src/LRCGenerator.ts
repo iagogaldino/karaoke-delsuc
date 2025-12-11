@@ -8,7 +8,7 @@ import * as path from 'path';
  */
 export class LRCGenerator {
   private openai: OpenAI;
-  private supportedFormats = ['.mp3', '.wav', '.mp4', '.m4a', '.flac', '.ogg'];
+  private supportedFormats = ['.mp3', '.wav', '.mp4', '.m4a', '.flac', '.ogg', '.webm'];
 
   constructor(apiKey: string) {
     if (!apiKey) {
@@ -230,6 +230,7 @@ export class LRCGenerator {
       '.m4a': 'audio/mp4',
       '.flac': 'audio/flac',
       '.ogg': 'audio/ogg',
+      '.webm': 'audio/webm',
     };
     return mimeTypes[ext] || 'audio/mpeg';
   }

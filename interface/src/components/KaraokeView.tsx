@@ -5,10 +5,9 @@ import AudioPlayer from './AudioPlayer';
 import SongSelectorModal from './SongSelectorModal';
 import MusicAnimation from './MusicAnimation';
 import StageLights from './StageLights';
-import { AudioMode, SpeechRecognition, SpeechRecognitionEvent, LyricsLine, WordMatchResult, LyricResult, PlayerScore, SongScore, SyncMessage } from '../types/index.js';
+import { AudioMode, SpeechRecognition, SpeechRecognitionEvent, LyricsLine, WordMatchResult, LyricResult, SyncMessage } from '../types/index.js';
 import { songsService } from '../services/songsService.js';
 import { lyricsService } from '../services/lyricsService.js';
-import { scoresService } from '../services/scoresService.js';
 import { normalizeText, countCorrectWords } from '../utils/textUtils.js';
 import { formatNumber, formatTime } from '../utils/formatters.js';
 import { WEBSOCKET_CONFIG, API_CONFIG } from '../config/index.js';
@@ -30,8 +29,7 @@ export default function KaraokeView({
   onSelectSong,
   audioMode,
   vocalsVolume,
-  instrumentalVolume,
-  onGameOver
+  instrumentalVolume
 }: KaraokeViewProps) {
   const [lyrics, setLyrics] = useState<LyricsLine[]>([]);
   const [isReady, setIsReady] = useState(false);
@@ -52,29 +50,18 @@ export default function KaraokeView({
   const previousActiveIndexRef = useRef<number>(-1);
   const previousLyricTextRef = useRef<string>('');
   const resultsHistoryRef = useRef<LyricResult[]>([]);
-  const [playerScore, setPlayerScore] = useState<PlayerScore>({ total: 0, average: 0, count: 0, points: 0 });
-  const [maxPossiblePoints, setMaxPossiblePoints] = useState<number>(0);
-  const [scoreAnimation, setScoreAnimation] = useState<'none' | 'increase' | 'celebration'>('none');
-  const previousAverageRef = useRef<number>(0);
-  const previousPointsRef = useRef<number>(0);
   const [countdown, setCountdown] = useState<number | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const sessionIdRef = useRef<string>(Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9));
   const [songDuration, setSongDuration] = useState<number>(0);
   const hasShownGameOverRef = useRef<boolean>(false);
   const wsRef = useRef<WebSocket | null>(null);
-  const onGameOverRef = useRef(onGameOver);
   const pauseRef = useRef(pause);
-  const playerScoreRef = useRef<PlayerScore>(playerScore);
-  const maxPossiblePointsRef = useRef<number>(maxPossiblePoints);
 
-  // Atualizar refs quando as funções e valores mudarem
+  // Atualizar refs quando as funções mudarem
   useEffect(() => {
-    onGameOverRef.current = onGameOver;
     pauseRef.current = pause;
-    playerScoreRef.current = playerScore;
-    maxPossiblePointsRef.current = maxPossiblePoints;
-  }, [onGameOver, pause, playerScore, maxPossiblePoints]);
+  }, [pause]);
 
   // Escutar mensagens de desistência via WebSocket (apenas uma vez ao montar)
   useEffect(() => {
@@ -100,29 +87,8 @@ export default function KaraokeView({
         if (message.type === 'qrcodeGiveUp') {
           console.log('🚫 QR code give up received:', message.userName);
           
-          // Parar música e chamar onGameOver com pontuação atual
+          // Parar música
           pauseRef.current();
-          if (onGameOverRef.current) {
-            // Buscar informações do usuário
-            (async () => {
-              let userName: string | undefined;
-              let userPhoto: string | undefined;
-              try {
-                const userInfo = await scoresService.getUserInfo(sessionIdRef.current);
-                if (userInfo) {
-                  userName = userInfo.userName;
-                  userPhoto = userInfo.userPhoto;
-                }
-              } catch (error) {
-                // Ignorar erros ao buscar informações do usuário
-              }
-              
-              // Usar valores atuais via refs
-              setTimeout(() => {
-                onGameOverRef.current?.(playerScoreRef.current, maxPossiblePointsRef.current, userName, userPhoto);
-              }, 300);
-            })();
-          }
         }
       } catch (error) {
         console.error('Error parsing WebSocket message:', error);
@@ -187,16 +153,6 @@ export default function KaraokeView({
     if (songId && lyrics.length > 0) {
       setIsReady(true);
       
-      // Calcular pontuação máxima possível (todas as palavras de todos os trechos)
-      const totalWords = lyrics.reduce((sum, lyric) => {
-        const words = normalizeText(lyric.text).split(/\s+/).filter(w => w.length > 0);
-        return sum + words.length;
-      }, 0);
-      
-      // Cada palavra vale 100 pontos
-      const maxPoints = totalWords * 100;
-      setMaxPossiblePoints(maxPoints);
-      
       // Se não tiver duração da música, estimar pela última letra (será sobrescrita pela duração real do áudio quando disponível)
       if (songDuration === 0 && lyrics.length > 0) {
         const lastLyric = lyrics[lyrics.length - 1];
@@ -206,38 +162,9 @@ export default function KaraokeView({
       
       // Resetar flag de game over quando mudar de música
       hasShownGameOverRef.current = false;
-      
-      // Carregar pontuação salva do backend
-      loadScoreFromBackend();
     }
   }, [lyrics, songId]);
   
-  // Função para carregar pontuação do backend
-  const loadScoreFromBackend = async () => {
-    if (!songId) return;
-    
-    try {
-      const savedScore = await scoresService.getScore(songId, sessionIdRef.current);
-      if (savedScore) {
-        resultsHistoryRef.current = savedScore.results;
-        setPlayerScore(savedScore.score);
-        setMaxPossiblePoints(savedScore.maxPossiblePoints);
-        previousAverageRef.current = savedScore.score.average;
-        previousPointsRef.current = savedScore.score.points;
-      } else {
-        // Resetar se não houver pontuação salva
-        resultsHistoryRef.current = [];
-        setPlayerScore({ total: 0, average: 0, count: 0, points: 0 });
-        previousAverageRef.current = 0;
-        previousPointsRef.current = 0;
-      }
-    } catch (error) {
-      console.error('Error loading score from backend:', error);
-      // Continuar sem pontuação salva
-      resultsHistoryRef.current = [];
-      setPlayerScore({ total: 0, average: 0, count: 0, points: 0 });
-    }
-  };
 
   // Limitar currentTime para não ultrapassar a duração
   useEffect(() => {
@@ -254,86 +181,10 @@ export default function KaraokeView({
       // Música terminou
       hasShownGameOverRef.current = true;
       
-      // Parar gravação se estiver gravando (antes de pausar)
-      if (isRecording) {
-        stopRecording().then(async () => {
-          // Após parar gravação, pausar música e redirecionar
-          pause();
-          
-          // Buscar informações do usuário
-          let userName: string | undefined;
-          let userPhoto: string | undefined;
-          try {
-            console.log('Buscando informações do usuário para sessionId:', sessionIdRef.current);
-            const userInfo = await scoresService.getUserInfo(sessionIdRef.current);
-            console.log('Informações do usuário recebidas:', userInfo);
-            if (userInfo) {
-              userName = userInfo.userName;
-              userPhoto = userInfo.userPhoto;
-              console.log('userName:', userName, 'userPhoto:', userPhoto);
-            }
-          } catch (error) {
-            console.error('Erro ao buscar informações do usuário:', error);
-          }
-          
-          setTimeout(() => {
-            if (onGameOver) {
-              onGameOver(playerScore, maxPossiblePoints, userName, userPhoto);
-            }
-          }, 500);
-        }).catch(async () => {
-          // Se houver erro ao parar gravação, continuar mesmo assim
-          pause();
-          
-          // Buscar informações do usuário
-          let userName: string | undefined;
-          let userPhoto: string | undefined;
-          try {
-            console.log('Buscando informações do usuário para sessionId:', sessionIdRef.current);
-            const userInfo = await scoresService.getUserInfo(sessionIdRef.current);
-            console.log('Informações do usuário recebidas:', userInfo);
-            if (userInfo) {
-              userName = userInfo.userName;
-              userPhoto = userInfo.userPhoto;
-              console.log('userName:', userName, 'userPhoto:', userPhoto);
-            }
-          } catch (error) {
-            console.error('Erro ao buscar informações do usuário:', error);
-          }
-          
-          setTimeout(() => {
-            if (onGameOver) {
-              onGameOver(playerScore, maxPossiblePoints, userName, userPhoto);
-            }
-          }, 500);
-        });
-      } else {
-        // Se não estiver gravando, apenas pausar e redirecionar
-        pause();
-        
-        // Buscar informações do usuário
-        (async () => {
-          let userName: string | undefined;
-          let userPhoto: string | undefined;
-          try {
-            const userInfo = await scoresService.getUserInfo(sessionIdRef.current);
-            if (userInfo) {
-              userName = userInfo.userName;
-              userPhoto = userInfo.userPhoto;
-            }
-          } catch (error) {
-            // Ignorar erros ao buscar informações do usuário
-          }
-          
-          setTimeout(() => {
-            if (onGameOver) {
-              onGameOver(playerScore, maxPossiblePoints, userName, userPhoto);
-            }
-          }, 500);
-        })();
-      }
+      // Parar música (a gravação será parada automaticamente pelo AudioRecorder)
+      pause();
     }
-  }, [currentTime, songDuration, isPlaying, isRecording, pause, playerScore, maxPossiblePoints, onGameOver]);
+  }, [currentTime, songDuration, isPlaying, isRecording, pause]);
 
   // Sincronizar vídeo com o áudio
   useEffect(() => {
@@ -428,17 +279,6 @@ export default function KaraokeView({
           
           resultsHistoryRef.current.push(newResult);
 
-          // Salvar resultado individual no backend
-          if (songId) {
-            try {
-              await scoresService.addResult(songId, newResult, maxPossiblePoints, sessionIdRef.current);
-            } catch (error) {
-              console.error('Error saving result to backend:', error);
-            }
-          }
-
-          // Atualizar pontuação do jogador
-          await updatePlayerScore();
 
           // Limpar o texto capturado para o novo trecho
           fullTranscriptRef.current = '';
@@ -457,7 +297,7 @@ export default function KaraokeView({
     };
     
     handleUpdate();
-  }, [currentTime, lyrics, isRecording, recordedText, songId, maxPossiblePoints]);
+  }, [currentTime, lyrics, isRecording, recordedText, songId]);
 
   // Função para avançar para o próximo trecho
   const goToNextLyric = () => {
@@ -523,180 +363,14 @@ export default function KaraokeView({
     }
   };
 
-  // Função para calcular e atualizar a pontuação do jogador (acumulada)
-  const updatePlayerScore = async () => {
-    const history = resultsHistoryRef.current;
-    
-    if (history.length === 0) {
-      setPlayerScore({ total: 0, average: 0, count: 0, points: 0 });
-      previousAverageRef.current = 0;
-      previousPointsRef.current = 0;
-      
-      // Salvar pontuação vazia no backend
-      if (songId) {
-        try {
-          await scoresService.saveScore(songId, [], maxPossiblePoints, sessionIdRef.current);
-        } catch (error) {
-          console.error('Error saving score to backend:', error);
-        }
-      }
-      return;
-    }
-
-    // Calcular pontos acumulados: cada palavra acertada vale 100 pontos
-    // Cada trecho pode dar até (número de palavras × 100) pontos
-    const totalPoints = history.reduce((sum, result) => {
-      // Cada palavra acertada vale 100 pontos
-      const trechoPoints = result.score * 100;
-      return sum + trechoPoints;
-    }, 0);
-
-    // Calcular média para referência (não exibida)
-    const totalPercentage = history.reduce((sum, result) => sum + result.percentage, 0);
-    const average = Math.round(totalPercentage / history.length);
-
-    // Verificar se a pontuação aumentou para animação
-    const previousPoints = previousPointsRef.current;
-    if (totalPoints > previousPoints) {
-      // Calcular média atual para verificar se atingiu 90%+
-      if (average >= 90) {
-        setScoreAnimation('celebration');
-      } else {
-        setScoreAnimation('increase');
-      }
-      
-      // Resetar animação após um tempo
-      setTimeout(() => {
-        setScoreAnimation('none');
-      }, 1500);
-    }
-
-    previousAverageRef.current = average;
-    previousPointsRef.current = totalPoints;
-
-    const newScore: PlayerScore = {
-      total: totalPercentage,
-      average,
-      count: history.length,
-      points: totalPoints
-    };
-    
-    setPlayerScore(newScore);
-    
-    // Salvar pontuação no backend
-    if (songId) {
-      try {
-        await scoresService.saveScore(songId, history, maxPossiblePoints, sessionIdRef.current);
-      } catch (error) {
-        console.error('Error saving score to backend:', error);
-      }
-    }
-  };
 
   // countCorrectWords is now imported from utils
 
-  // Iniciar captura de áudio
+  // Iniciar captura de áudio (desabilitado - usando AudioRecorder do App.tsx)
   const startRecording = async () => {
-    try {
-      // Solicitar permissão do microfone
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      audioStreamRef.current = stream;
-      
-      // Inicializar MediaRecorder para backup (caso SpeechRecognition não funcione)
-      const mediaRecorder = new MediaRecorder(stream);
-      mediaRecorderRef.current = mediaRecorder;
-      audioChunksRef.current = [];
-      
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
-        }
-      };
-      
-      mediaRecorder.start();
-      
-      // Tentar usar Web Speech API
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      
-      if (SpeechRecognition) {
-        const recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true; // Ativar resultados intermediários para atualização em tempo real
-        recognition.lang = 'pt-BR';
-        
-        fullTranscriptRef.current = '';
-        
-        recognition.onresult = (event: SpeechRecognitionEvent) => {
-          // Processar resultados de forma mais eficiente para reduzir delay
-          let interimText = '';
-          
-          // Processar apenas os novos resultados (a partir do resultIndex) para melhor performance
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            const isFinal = event.results[i].isFinal;
-            
-            if (isFinal) {
-              // Texto final - adicionar ao texto permanente
-              fullTranscriptRef.current += transcript + ' ';
-            } else {
-              // Texto intermediário - usar diretamente para atualização em tempo real
-              interimText = transcript;
-            }
-          }
-          
-          // Combinar texto permanente com o intermediário atual de forma otimizada
-          const currentText = fullTranscriptRef.current.trim() + (interimText ? ' ' + interimText : '');
-          
-          // Atualizar estado imediatamente (sem delay adicional)
-          setRecordedText(currentText);
-        };
-        
-        recognition.onerror = () => {
-          // Erro silencioso
-        };
-        
-        recognition.onend = () => {
-          if (isRecordingRef.current) {
-            // Se ainda está gravando, reiniciar
-            try {
-              recognition.start();
-            } catch (err) {
-              // Erro silencioso
-            }
-          }
-        };
-        
-        recognition.start();
-        recognitionRef.current = recognition;
-      }
-      
-      setIsRecording(true);
-      isRecordingRef.current = true;
-      setRecordedText('');
-      fullTranscriptRef.current = '';
-      previousActiveIndexRef.current = -1;
-      previousLyricTextRef.current = '';
-      
-      // Criar nova sessão ao iniciar gravação
-      sessionIdRef.current = Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9);
-      resultsHistoryRef.current = [];
-      setPlayerScore({ total: 0, average: 0, count: 0, points: 0 });
-      previousAverageRef.current = 0;
-      previousPointsRef.current = 0;
-      setScoreAnimation('none');
-      
-      // Salvar pontuação inicial no backend
-      if (songId) {
-        try {
-          await scoresService.saveScore(songId, [], maxPossiblePoints, sessionIdRef.current);
-        } catch (error) {
-          console.error('Error initializing score in backend:', error);
-        }
-      }
-      
-    } catch (error) {
-      alert('Erro ao acessar o microfone. Verifique as permissões.');
-    }
+    // A gravação é feita automaticamente pelo AudioRecorder quando a música toca
+    // Esta função está desabilitada para evitar conflito de acesso ao microfone
+    console.log('Gravação automática gerenciada pelo AudioRecorder');
   };
 
   // Parar captura de áudio e analisar
@@ -765,17 +439,6 @@ export default function KaraokeView({
     
     resultsHistoryRef.current.push(newResult);
     
-    // Salvar resultado no backend
-    if (songId) {
-      try {
-        await scoresService.addResult(songId, newResult, maxPossiblePoints, sessionIdRef.current);
-      } catch (error) {
-        console.error('Error saving result to backend:', error);
-      }
-    }
-    
-    // Atualizar pontuação do jogador
-    await updatePlayerScore();
     
     // Mostrar resumo de todos os trechos analisados
     const historySummary = resultsHistoryRef.current
@@ -800,10 +463,8 @@ export default function KaraokeView({
   const handlePlayWithCountdown = async () => {
     if (countdown !== null) return; // Já está em contagem
     
-    // Preparar captura em paralelo (não esperar, apenas iniciar)
-    startRecording().catch(() => {
-      // Se falhar, continuar mesmo assim
-    });
+    // A gravação será iniciada automaticamente pelo AudioRecorder quando a música começar
+    // Não precisamos chamar startRecording aqui para evitar conflito
     
     // Iniciar contagem regressiva
     setCountdown(3);
@@ -943,26 +604,6 @@ export default function KaraokeView({
       )}
       {/* Controles superiores */}
       <div className="karaoke-controls">
-        {/* Pontuação do jogador */}
-        <div className={`karaoke-score-display ${scoreAnimation !== 'none' ? `score-${scoreAnimation}` : ''}`}>
-          <div className="score-max-points">
-            Máximo: {maxPossiblePoints.toLocaleString('pt-BR')}
-          </div>
-          <div className="score-label">Pontuação</div>
-          <div className="score-value">
-            <span className={`score-average ${scoreAnimation !== 'none' ? 'score-pulse' : ''}`}>
-              {formatNumber(playerScore.points)}
-            </span>
-            <span className="score-details">
-              {playerScore.count > 0 && `${playerScore.count} trecho${playerScore.count !== 1 ? 's' : ''}`}
-            </span>
-          </div>
-          {scoreAnimation === 'celebration' && (
-            <div className="score-celebration">
-              <span className="celebration-text">🎉 Excelente!</span>
-            </div>
-          )}
-        </div>
         <button
           className="karaoke-play-btn"
           onClick={isPlaying ? handlePause : handlePlayWithCountdown}
@@ -993,16 +634,14 @@ export default function KaraokeView({
         >
           <i className="fas fa-backward"></i>
         </button>
+        {/* Botão de microfone desabilitado - gravação automática via AudioRecorder */}
         <button
-          className={`karaoke-mic-btn ${isRecording ? 'recording' : ''}`}
-          onClick={isRecording ? stopRecording : startRecording}
-          title={isRecording ? 'Parar captura e analisar' : 'Iniciar captura de áudio'}
+          className="karaoke-mic-btn"
+          disabled
+          title="Gravação automática ativa (gerenciada pelo sistema)"
+          style={{ opacity: 0.5, cursor: 'not-allowed' }}
         >
-          {isRecording ? (
-            <i className="fas fa-pause"></i>
-          ) : (
-            <i className="fas fa-microphone"></i>
-          )}
+          <i className="fas fa-microphone"></i>
         </button>
         <button
           className="karaoke-test-btn"

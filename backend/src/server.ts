@@ -12,6 +12,7 @@ import { videoRoutes } from './routes/video.js';
 import { scoresRoutes } from './routes/scores.js';
 import { qrcodeRoutes } from './routes/qrcode.js';
 import { usersRoutes } from './routes/users.js';
+import { recordingRoutes } from './routes/recording.js';
 import * as qrcodeController from './controllers/qrcodeController.js';
 import { setupWebSocket } from './websocket/sync.js';
 import { errorHandler } from './middlewares/errorHandler.js';
@@ -44,6 +45,7 @@ app.use('/api/video', videoRoutes);
 app.use('/api/scores', scoresRoutes);
 app.use('/api/qrcode', qrcodeRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/recording', recordingRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

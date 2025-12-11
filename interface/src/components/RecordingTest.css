@@ -1,0 +1,245 @@
+.recording-test {
+  background: var(--bg-tertiary, #2a2a2a);
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 2rem 0;
+  border: 1px solid var(--border-primary, #3a3a3a);
+}
+
+.recording-test-header {
+  margin-bottom: 1.5rem;
+}
+
+.recording-test-header h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
+  color: var(--text-primary, #ffffff);
+}
+
+.recording-test-description {
+  margin: 0;
+  color: var(--text-secondary, #aaaaaa);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.recording-test-controls {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.recording-test-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 200px;
+  justify-content: center;
+}
+
+.recording-test-btn.start-btn {
+  background: var(--accent-primary, #4a90e2);
+  color: var(--text-primary, #ffffff);
+}
+
+.recording-test-btn.start-btn:hover:not(:disabled) {
+  background: var(--accent-primary-hover, #5aa0f2);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
+}
+
+.recording-test-btn.stop-btn {
+  background: var(--error-color, #e74c3c);
+  color: var(--text-primary, #ffffff);
+  animation: pulse 2s infinite;
+}
+
+.recording-test-btn.stop-btn:hover {
+  background: #f55;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+}
+
+.recording-test-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  font-size: 1.3rem;
+}
+
+.btn-icon.recording {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.recording-test-status {
+  text-align: center;
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: var(--bg-secondary, #1a1a1a);
+  border-radius: 8px;
+}
+
+.recording-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--error-color, #e74c3c);
+  margin-bottom: 0.5rem;
+}
+
+.pulse-dot {
+  width: 12px;
+  height: 12px;
+  background: var(--error-color, #e74c3c);
+  border-radius: 50%;
+  animation: pulse-dot 1s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.2);
+  }
+}
+
+.recording-time {
+  font-size: 2rem;
+  font-weight: 700;
+  font-family: 'Courier New', monospace;
+  color: var(--text-primary, #ffffff);
+  margin-top: 0.5rem;
+}
+
+.processing-indicator {
+  font-size: 1rem;
+  color: var(--accent-primary, #4a90e2);
+  font-weight: 500;
+}
+
+.recording-test-error {
+  background: rgba(231, 76, 60, 0.1);
+  border: 1px solid var(--error-color, #e74c3c);
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  color: var(--error-color, #e74c3c);
+}
+
+.recording-test-result {
+  margin: 1.5rem 0;
+  padding: 1.5rem;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recording-test-result.success {
+  background: rgba(46, 204, 113, 0.1);
+  border: 1px solid #2ecc71;
+  color: #2ecc71;
+}
+
+.recording-test-result.error {
+  background: rgba(231, 76, 60, 0.1);
+  border: 1px solid var(--error-color, #e74c3c);
+  color: var(--error-color, #e74c3c);
+}
+
+.result-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+
+.result-message {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.result-details {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.result-details code {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+}
+
+.recording-test-info {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-primary, #3a3a3a);
+}
+
+.recording-test-info h4 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary, #ffffff);
+  font-size: 1.1rem;
+}
+
+.recording-test-info ol {
+  margin: 0 0 1rem 0;
+  padding-left: 1.5rem;
+  color: var(--text-secondary, #aaaaaa);
+  line-height: 1.8;
+}
+
+.recording-test-info li {
+  margin-bottom: 0.5rem;
+}
+
+.info-note {
+  margin: 1rem 0 0 0;
+  padding: 1rem;
+  background: rgba(74, 144, 226, 0.1);
+  border-left: 3px solid var(--accent-primary, #4a90e2);
+  border-radius: 4px;
+  color: var(--text-secondary, #aaaaaa);
+  font-size: 0.9rem;
+}
+
+.info-note code {
+  background: rgba(0, 0, 0, 0.2);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  color: var(--accent-primary, #4a90e2);
+}

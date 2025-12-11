@@ -4,17 +4,20 @@ import LyricsDisplay from './components/LyricsDisplay';
 import AudioControls from './components/AudioControls';
 import MusicProcessor from './components/MusicProcessor';
 import KaraokeView from './components/KaraokeView';
-import ResultsScreen from './components/ResultsScreen.js';
 import HomeScreen from './components/HomeScreen.js';
 import SongTree from './components/SongTree.js';
+import AudioRecorder from './components/AudioRecorder';
+import LRCComparison from './components/LRCComparison';
+import RecordingTest from './components/RecordingTest';
 import { useSyncWebSocket } from './hooks/useSyncWebSocket';
 import { useAlert } from './hooks/useAlert';
+import { useAudioRecorder } from './hooks/useAudioRecorder';
 import { songsService } from './services/songsService.js';
 import { lyricsService } from './services/lyricsService.js';
 import { processingService } from './services/processingService.js';
 import { bandsService } from './services/bandsService.js';
 import { categoriesService } from './services/categoriesService.js';
-import { Song, AudioMode, PlayerScore, Band, Category } from './types/index.js';
+import { Song, AudioMode, Band, Category } from './types/index.js';
 import './App.css';
 
 function App() {
@@ -34,9 +37,11 @@ function App() {
   const [generatingLRC, setGeneratingLRC] = useState<{ [songId: string]: boolean }>({});
   const [editingSongName, setEditingSongName] = useState<string | null>(null);
   const [editedSongName, setEditedSongName] = useState<string>('');
-  const [finalScore, setFinalScore] = useState<{ score: PlayerScore; maxPoints: number; userName?: string; userPhoto?: string } | null>(null);
+  const [showLRCComparison, setShowLRCComparison] = useState(false);
+  const [showRecordingTest, setShowRecordingTest] = useState(false);
   const { currentTime, isPlaying, play, pause, seek } = useSyncWebSocket();
   const { alert, confirm, AlertComponent, ConfirmComponent } = useAlert();
+  const { uploadRecording, generateLRC, error: recordingError, isUploading, isProcessing } = useAudioRecorder();
 
   // Carregar lista de músicas, categorias e bandas do banco de dados
   useEffect(() => {
@@ -402,6 +407,60 @@ function App() {
     }
   }, [selectedSong]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Handler para quando gravação for completada
+  const handleRecordingComplete = useCallback(async (audioBlob: Blob, startTime: number) => {
+    if (!selectedSong) {
+      console.warn('⚠️ Nenhuma música selecionada, ignorando gravação');
+      return;
+    }
+
+    try {
+      console.log('📤 Iniciando upload da gravação...');
+      // Fazer upload da gravação
+      const recordingId = await uploadRecording(audioBlob, selectedSong, startTime);
+      
+      if (!recordingId) {
+        console.error('❌ Upload falhou: recordingId é null');
+        await alert('Erro ao fazer upload da gravação', {
+          type: 'error',
+          title: 'Erro'
+        });
+        return;
+      }
+
+      console.log('✅ Upload concluído, recordingId:', recordingId);
+      console.log('🔄 Iniciando geração de LRC...');
+      
+      // Aguardar um pouco para garantir que o arquivo foi salvo
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Gerar LRC da gravação, passando o recordingId explicitamente
+      const lrcPath = await generateLRC(selectedSong, recordingId);
+      
+      if (lrcPath) {
+        console.log('✅ LRC gerado com sucesso:', lrcPath);
+        // Mostrar comparação
+        setShowLRCComparison(true);
+        await alert('Gravação processada! Comparação de letras disponível.', {
+          type: 'success',
+          title: 'Sucesso'
+        });
+      } else {
+        console.error('❌ Geração de LRC falhou: lrcPath é null');
+        await alert('Gravação salva, mas houve erro ao gerar o LRC. Verifique o console do backend.', {
+          type: 'warning',
+          title: 'Aviso'
+        });
+      }
+    } catch (error: any) {
+      console.error('❌ Erro ao processar gravação:', error);
+      await alert('Erro ao processar gravação: ' + error.message, {
+        type: 'error',
+        title: 'Erro'
+      });
+    }
+  }, [selectedSong, uploadRecording, generateLRC, alert]);
+
   // Se estiver no modo de resultados, mostrar a tela de resultados
   if (viewMode === 'results' && finalScore) {
     return (
@@ -447,18 +506,36 @@ function App() {
   // Se estiver no modo de apresentação, mostrar a tela de karaokê
   if (viewMode === 'presentation') {
     return (
-      <KaraokeView
-        songId={selectedSong}
-        onSettingsClick={() => setViewMode('config')}
-        onSelectSong={(songId) => setSelectedSong(songId)}
-        audioMode={audioMode}
-        vocalsVolume={vocalsVolume}
-        instrumentalVolume={instrumentalVolume}
-        onGameOver={(score, maxPoints, userName, userPhoto) => {
-          setFinalScore({ score, maxPoints, userName, userPhoto });
-          setViewMode('results');
-        }}
-      />
+      <>
+        {/* Componente de gravação para LRC (invisível, gerencia gravação em background) */}
+        <AudioRecorder
+          isPlaying={isPlaying}
+          songId={selectedSong}
+          currentTime={currentTime}
+          onRecordingComplete={handleRecordingComplete}
+          onError={(error) => {
+            console.error('Erro na gravação:', error);
+            // Não mostrar alerta no modo presentation para não interromper a experiência
+          }}
+        />
+        
+        {/* Indicador de gravação/processamento (apenas se estiver processando) */}
+        {(isUploading || isProcessing) && (
+          <div className="recording-status" style={{ position: 'fixed', top: '1rem', right: '1rem', zIndex: 1000 }}>
+            {isUploading && <span>📤 Enviando gravação...</span>}
+            {isProcessing && <span>🔄 Gerando LRC...</span>}
+          </div>
+        )}
+
+        <KaraokeView
+          songId={selectedSong}
+          onSettingsClick={() => setViewMode('config')}
+          onSelectSong={(songId) => setSelectedSong(songId)}
+          audioMode={audioMode}
+          vocalsVolume={vocalsVolume}
+          instrumentalVolume={instrumentalVolume}
+        />
+      </>
     );
   }
 
@@ -533,6 +610,23 @@ function App() {
 
         {/* Área Principal - Karaokê */}
         <main className="karaoke-area">
+          {/* Botão para mostrar/esconder teste de gravação (apenas em modo config) */}
+          {viewMode === 'config' && (
+            <div className="recording-test-controls">
+              <button
+                className="btn-toggle-recording-test"
+                onClick={() => setShowRecordingTest(!showRecordingTest)}
+                title={showRecordingTest ? 'Ocultar teste de gravação' : 'Mostrar teste de gravação'}
+              >
+                <i className={`fas ${showRecordingTest ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
+                {showRecordingTest ? 'Ocultar Teste de Gravação' : 'Teste de Gravação'}
+              </button>
+            </div>
+          )}
+          
+          {/* Componente de Teste de Gravação */}
+          {viewMode === 'config' && showRecordingTest && <RecordingTest />}
+
           {!selectedSong ? (
             <div className="empty-state">
               <div className="empty-icon">
@@ -548,38 +642,76 @@ function App() {
             </div>
           ) : (
             <>
-              <div className="player-section">
-                <AudioControls
-                  mode={audioMode}
-                  onModeChange={handleAudioModeChange}
-                  vocalsVolume={vocalsVolume}
-                  instrumentalVolume={instrumentalVolume}
-                  onVocalsVolumeChange={setVocalsVolume}
-                  onInstrumentalVolumeChange={setInstrumentalVolume}
-                />
-                <AudioPlayer
-                  isPlaying={isPlaying}
-                  currentTime={currentTime}
-                  onPlay={play}
-                  onPause={pause}
-                  onSeek={seek}
-                  audioMode={audioMode}
-                  vocalsVolume={vocalsVolume}
-                  instrumentalVolume={instrumentalVolume}
-                  songId={selectedSong}
-                />
-              </div>
+              {/* Componente de gravação (invisível, gerencia gravação em background) */}
+              <AudioRecorder
+                isPlaying={isPlaying}
+                songId={selectedSong}
+                currentTime={currentTime}
+                onRecordingComplete={handleRecordingComplete}
+                onError={(error) => {
+                  console.error('Erro na gravação:', error);
+                  alert(error, { type: 'error', title: 'Erro na Gravação' });
+                }}
+              />
 
-              <div className="lyrics-section">
-                <LyricsDisplay
-                  lyrics={lyrics}
-                  currentTime={currentTime}
-                  songId={selectedSong}
-                  onLyricsUpdate={(updatedLyrics) => {
-                    setLyrics(updatedLyrics);
-                  }}
-                />
-              </div>
+              {/* Indicador de gravação/processamento */}
+              {(isUploading || isProcessing) && (
+                <div className="recording-status">
+                  {isUploading && <span>📤 Enviando gravação...</span>}
+                  {isProcessing && <span>🔄 Gerando LRC...</span>}
+                </div>
+              )}
+
+              {recordingError && (
+                <div className="recording-error">
+                  ⚠️ {recordingError}
+                </div>
+              )}
+
+              {showLRCComparison ? (
+                <div className="lrc-comparison-wrapper">
+                  <LRCComparison
+                    songId={selectedSong}
+                    originalLyrics={lyrics}
+                    onClose={() => setShowLRCComparison(false)}
+                  />
+                </div>
+              ) : (
+                <>
+                  <div className="player-section">
+                    <AudioControls
+                      mode={audioMode}
+                      onModeChange={handleAudioModeChange}
+                      vocalsVolume={vocalsVolume}
+                      instrumentalVolume={instrumentalVolume}
+                      onVocalsVolumeChange={setVocalsVolume}
+                      onInstrumentalVolumeChange={setInstrumentalVolume}
+                    />
+                    <AudioPlayer
+                      isPlaying={isPlaying}
+                      currentTime={currentTime}
+                      onPlay={play}
+                      onPause={pause}
+                      onSeek={seek}
+                      audioMode={audioMode}
+                      vocalsVolume={vocalsVolume}
+                      instrumentalVolume={instrumentalVolume}
+                      songId={selectedSong}
+                    />
+                  </div>
+
+                  <div className="lyrics-section">
+                    <LyricsDisplay
+                      lyrics={lyrics}
+                      currentTime={currentTime}
+                      songId={selectedSong}
+                      onLyricsUpdate={(updatedLyrics) => {
+                        setLyrics(updatedLyrics);
+                      }}
+                    />
+                  </div>
+                </>
+              )}
             </>
           )}
         </main>
