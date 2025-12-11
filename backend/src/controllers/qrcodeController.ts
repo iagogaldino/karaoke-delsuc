@@ -7,6 +7,15 @@ import { getSongById, getAllSongs } from '../utils/database.js';
 import { createOrUpdateUser, getUserByPhone } from '../utils/usersDatabase.js';
 import { getLocalIP } from '../utils/networkUtils.js';
 
+/**
+ * Redireciona para o app Angular mobile
+ */
+function redirectToMobileApp(res: Response, path: string, qrId: string): void {
+  const clientUrl = SERVER_CONFIG.CLIENT_MOBILE_URL;
+  const redirectUrl = `${clientUrl}${path}/${qrId}`;
+  res.redirect(redirectUrl);
+}
+
 // Importação dinâmica do módulo qrcode (CommonJS)
 let QRCode: any = null;
 
@@ -172,22 +181,78 @@ export const getStatus = asyncHandler(async (req: Request, res: Response) => {
     return res.status(410).json({ error: 'QR code expirado' });
   }
 
-  res.json({
+  const response: any = {
     qrId,
     isValid: qrData.isValid,
     nameSubmitted: qrData.nameSubmitted,
     userName: qrData.userName,
     userPhone: qrData.userPhone,
+    userPhoto: qrData.userPhoto,
     createdAt: qrData.createdAt,
-    expiresAt: qrData.createdAt + QR_CODE_EXPIRY
-  });
+    expiresAt: qrData.createdAt + QR_CODE_EXPIRY,
+    songSelected: qrData.songSelected,
+    songId: qrData.songId
+  };
+
+  // Se tem música selecionada, incluir informações da música
+  if (qrData.songSelected && qrData.songId) {
+    const song = getSongById(qrData.songId);
+    if (song) {
+      response.song = {
+        id: song.id,
+        name: song.name,
+        displayName: song.displayName,
+        artist: song.artist,
+        duration: song.duration
+      };
+    }
+  }
+
+  res.json(response);
 });
 
 /**
  * GET /qrcode/:qrId
- * Página HTML para o usuário inserir o nome
+ * Redireciona para o app Angular mobile baseado no status do QR code
  */
 export const getNamePage = asyncHandler(async (req: Request, res: Response) => {
+  const { qrId } = req.params;
+  const qrData = qrCodes.get(qrId);
+
+  if (!qrData) {
+    // QR code não encontrado - redirecionar para página de erro
+    const clientUrl = SERVER_CONFIG.CLIENT_MOBILE_URL;
+    return res.redirect(`${clientUrl}/error?message=${encodeURIComponent('QR Code não encontrado ou expirado')}`);
+  }
+
+  // Verificar se expirou
+  if (Date.now() - qrData.createdAt > QR_CODE_EXPIRY) {
+    qrCodes.delete(qrId);
+    const clientUrl = SERVER_CONFIG.CLIENT_MOBILE_URL;
+    return res.redirect(`${clientUrl}/error?message=${encodeURIComponent('QR Code expirado')}`);
+  }
+
+  // Se o nome já foi submetido
+  if (qrData.nameSubmitted) {
+    // Se já selecionou música, redirecionar para player
+    if (qrData.songSelected) {
+      redirectToMobileApp(res, '/player', qrId);
+      return;
+    }
+    // Se ainda não selecionou música, redirecionar para lista de músicas
+    redirectToMobileApp(res, '/songs', qrId);
+    return;
+  }
+
+  // Se ainda não se cadastrou, redirecionar para formulário de cadastro
+  redirectToMobileApp(res, '/register', qrId);
+});
+
+/**
+ * GET /qrcode/:qrId/old
+ * Versão antiga com HTML inline (mantida para compatibilidade se necessário)
+ */
+export const getNamePageOld = asyncHandler(async (req: Request, res: Response) => {
   const { qrId } = req.params;
   const qrData = qrCodes.get(qrId);
 

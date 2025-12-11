@@ -12,6 +12,7 @@ export const PROJECT_ROOT = join(__dirname, '..', '..', '..');
 export const SERVER_CONFIG = {
   PORT: parseInt(process.env.PORT || '3001', 10),
   NODE_ENV: process.env.NODE_ENV || 'development',
+  CLIENT_MOBILE_URL: process.env.CLIENT_MOBILE_URL || 'http://localhost:4200',
 };
 
 // File paths configuration

@@ -931,7 +931,8 @@ export async function processYouTubeMusic(
   musicDir: string,
   songId: string,
   musicName: string,
-  displayName: string
+  displayName: string,
+  bandId?: string
 ) {
   const status = processingStatus.get(fileId);
   if (!status) return;
