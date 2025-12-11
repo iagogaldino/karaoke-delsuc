@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { SyncMessage } from '../types/index.js';
 import { WEBSOCKET_CONFIG } from '../config/index.js';
+import { getWebSocketUrl } from '../utils/electronUtils.js';
 
 export function useSyncWebSocket() {
   const [isConnected, setIsConnected] = useState(false);
@@ -10,8 +11,7 @@ export function useSyncWebSocket() {
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const connect = useCallback(() => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}${WEBSOCKET_CONFIG.PATH}`;
+    const wsUrl = getWebSocketUrl(WEBSOCKET_CONFIG.PATH);
     
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;

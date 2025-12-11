@@ -11,7 +11,7 @@ import { lyricsService } from '../services/lyricsService.js';
 import { scoresService } from '../services/scoresService.js';
 import { normalizeText, countCorrectWords } from '../utils/textUtils.js';
 import { formatNumber, formatTime } from '../utils/formatters.js';
-import { WEBSOCKET_CONFIG } from '../config/index.js';
+import { WEBSOCKET_CONFIG, API_CONFIG } from '../config/index.js';
 import './KaraokeView.css';
 
 interface KaraokeViewProps {
@@ -896,7 +896,7 @@ export default function KaraokeView({
       {hasVideo && songId && (
         <video
           ref={videoRef}
-          src={`/api/video?song=${songId}`}
+          src={`${API_CONFIG.BASE_URL}/api/video?song=${songId}`}
           className="karaoke-video-background"
           onTimeUpdate={handleVideoSeek}
           onLoadedMetadata={() => {

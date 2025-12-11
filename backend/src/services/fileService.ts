@@ -54,6 +54,9 @@ export function serveFile(
       res.setHeader('Accept-Ranges', 'bytes');
       res.setHeader('Content-Length', chunkSize);
       res.setHeader('Content-Type', contentType);
+      // Headers para melhorar streaming no Electron
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Connection', 'keep-alive');
 
       const stream = createReadStream(filePath, { start, end });
 
@@ -86,6 +89,9 @@ export function serveFile(
       res.setHeader('Content-Length', fileSize);
       res.setHeader('Content-Type', contentType);
       res.setHeader('Accept-Ranges', 'bytes');
+      // Headers para melhorar streaming no Electron
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Connection', 'keep-alive');
 
       const stream = createReadStream(filePath);
 

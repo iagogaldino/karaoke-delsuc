@@ -1,7 +1,10 @@
 // Frontend configuration
+import { getApiBaseUrl } from '../utils/electronUtils.js';
 
 export const API_CONFIG = {
-  BASE_URL: '', // Empty for same origin
+  get BASE_URL() {
+    return getApiBaseUrl();
+  },
   ENDPOINTS: {
     SONGS: '/api/songs',
     CATEGORIES: '/api/categories',
@@ -21,9 +24,9 @@ export const WEBSOCKET_CONFIG = {
 };
 
 export const AUDIO_CONFIG = {
-  MIN_BUFFER: 3, // seconds
-  BUFFER_TIMEOUT: 10000, // ms
-  BUFFER_CHECK_INTERVAL: 500, // ms
+  MIN_BUFFER: 2, // seconds - reduzido para Electron (streaming mais rápido)
+  BUFFER_TIMEOUT: 8000, // ms - reduzido para Electron
+  BUFFER_CHECK_INTERVAL: 300, // ms - mais frequente para melhor responsividade
   SEEK_TOLERANCE: 0.1, // seconds
 };
 

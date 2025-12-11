@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import './WaveformVisualizer.css';
+import { API_CONFIG } from '../config/index.js';
 
 interface WaveformVisualizerProps {
   waveformData: {
@@ -27,7 +28,8 @@ export default function WaveformVisualizer({
   useEffect(() => {
     if (!waveformData || !songId) return;
 
-    const streamUrl = songId ? `/api/waveform/stream?song=${songId}` : '/api/waveform/stream';
+    const baseUrl = API_CONFIG.BASE_URL;
+    const streamUrl = songId ? `${baseUrl}/api/waveform/stream?song=${songId}` : `${baseUrl}/api/waveform/stream`;
     const eventSource = new EventSource(streamUrl);
     const fullWaveform: number[] = [];
 

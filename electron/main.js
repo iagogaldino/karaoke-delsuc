@@ -13,7 +13,12 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
-      webSecurity: true
+      webSecurity: false, // Desabilitado para melhorar streaming de áudio no Electron
+      allowRunningInsecureContent: true,
+      experimentalFeatures: true,
+      // Otimizações para streaming de mídia
+      backgroundThrottling: false, // Evitar throttling quando em background
+      offscreen: false
     },
     icon: path.join(__dirname, '../assets/icon.png'), // Opcional: ícone da aplicação
     autoHideMenuBar: true, // Esconder barra de menu por padrão

@@ -3,7 +3,7 @@ import './AudioPlayer.css';
 import { AudioMode } from '../types/index.js';
 import { audioService } from '../services/audioService.js';
 import { formatTime } from '../utils/formatters.js';
-import { AUDIO_CONFIG } from '../config/index.js';
+import { AUDIO_CONFIG, API_CONFIG } from '../config/index.js';
 
 interface AudioPlayerProps {
   isPlaying: boolean;
@@ -43,8 +43,9 @@ export default function AudioPlayer({
 
     if (!vocals || !instrumental || !songId) return;
 
-    const vocalsUrl = songId ? `/api/audio/vocals?song=${songId}` : '/api/audio/vocals';
-    const instrumentalUrl = songId ? `/api/audio/instrumental?song=${songId}` : '/api/audio/instrumental';
+    const baseUrl = API_CONFIG.BASE_URL;
+    const vocalsUrl = songId ? `${baseUrl}/api/audio/vocals?song=${songId}` : `${baseUrl}/api/audio/vocals`;
+    const instrumentalUrl = songId ? `${baseUrl}/api/audio/instrumental?song=${songId}` : `${baseUrl}/api/audio/instrumental`;
     
     vocals.src = vocalsUrl;
     instrumental.src = instrumentalUrl;

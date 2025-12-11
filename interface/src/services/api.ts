@@ -5,17 +5,17 @@ import { Song, LyricsJson, ProcessingStatus, AudioInfo } from '../types/index.js
  * Base API service with error handling
  */
 class ApiService {
-  private baseUrl: string;
-
-  constructor(baseUrl: string = API_CONFIG.BASE_URL) {
-    this.baseUrl = baseUrl;
+  private getBaseUrl(): string {
+    // Sempre pegar o valor atual do BASE_URL (pode mudar em runtime)
+    return API_CONFIG.BASE_URL;
   }
 
   private async request<T>(
     endpoint: string,
     options?: RequestInit
   ): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
+    const baseUrl = this.getBaseUrl();
+    const url = `${baseUrl}${endpoint}`;
     
     try {
       const response = await fetch(url, {
@@ -64,7 +64,8 @@ class ApiService {
   }
 
   async postFormData<T>(endpoint: string, formData: FormData): Promise<T> {
-    const url = `${this.baseUrl}${endpoint}`;
+    const baseUrl = this.getBaseUrl();
+    const url = `${baseUrl}${endpoint}`;
     
     try {
       const response = await fetch(url, {
