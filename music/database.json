@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-10T22:00:42.848Z",
+  "lastUpdated": "2025-12-11T03:43:47.795Z",
   "songs": [
     {
       "id": "miunnkaj-c6z8aq",
@@ -664,7 +664,49 @@
         "uploader": "Sérgio Do Forró",
         "view_count": 47591,
         "file": "video.mp4"
-      }
+      },
+      "category": "cat-1765422412612-nagkvabzf",
+      "band": "band-1765422435936-3xwe2ssum"
+    },
+    {
+      "id": "mj0vy93c-1qz78a",
+      "name": "Lonely Day",
+      "displayName": "Lonely Day",
+      "artist": "Unknown",
+      "duration": 171.01496598639457,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-11T03:36:05.622Z",
+        "lastProcessed": "2025-12-11T03:43:17.485Z"
+      },
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "DnGdoEa1tPg",
+        "title": "System Of A Down - Lonely Day (Official HD Video)",
+        "url": "https://www.youtube.com/watch?v=DnGdoEa1tPg",
+        "thumbnail": "https://i.ytimg.com/vi_webp/DnGdoEa1tPg/maxresdefault.webp",
+        "duration": 171,
+        "uploader": "System Of A Down",
+        "view_count": 438813146,
+        "file": "video.mp4"
+      },
+      "band": "band-1765424132911-2gzofrbpn",
+      "category": "cat-rock-001"
     }
   ],
   "categories": [
@@ -708,6 +750,12 @@
       "name": "MPB",
       "createdAt": "2025-12-10T18:55:30.731Z",
       "updatedAt": "2025-12-10T18:55:30.731Z"
+    },
+    {
+      "id": "cat-1765422412612-nagkvabzf",
+      "name": "Forró",
+      "createdAt": "2025-12-11T03:06:52.612Z",
+      "updatedAt": "2025-12-11T03:06:52.612Z"
     }
   ],
   "bands": [
@@ -814,6 +862,20 @@
       "name": "Frejat",
       "createdAt": "2025-12-10T20:30:30.839Z",
       "updatedAt": "2025-12-10T20:41:44.813Z",
+      "category": "cat-rock-001"
+    },
+    {
+      "id": "band-1765422435936-3xwe2ssum",
+      "name": "Sergio do Forró",
+      "createdAt": "2025-12-11T03:07:15.936Z",
+      "updatedAt": "2025-12-11T03:07:15.957Z",
+      "category": "cat-1765422412612-nagkvabzf"
+    },
+    {
+      "id": "band-1765424132911-2gzofrbpn",
+      "name": "System of a down",
+      "createdAt": "2025-12-11T03:35:32.911Z",
+      "updatedAt": "2025-12-11T03:43:47.795Z",
       "category": "cat-rock-001"
     }
   ]

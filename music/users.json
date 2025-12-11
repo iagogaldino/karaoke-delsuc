@@ -1,13 +1,14 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-10T16:18:52.171Z",
+  "lastUpdated": "2025-12-11T10:30:09.680Z",
   "users": [
     {
       "id": "user-mixgxg46-k9y5m1u",
       "name": "IagoIag",
       "phone": "74988420307",
       "createdAt": "2025-12-08T18:11:50.358Z",
-      "lastPlayedAt": "2025-12-08T18:21:21.339Z"
+      "lastPlayedAt": "2025-12-11T10:09:35.432Z",
+      "photo": "users-photos/photo-fac66a3bf272c4766a39c1c56e058254-1765447775387.jpg"
     },
     {
       "id": "user-mixhbwox-t3acilk",
@@ -16,6 +17,14 @@
       "createdAt": "2025-12-08T18:23:05.025Z",
       "lastPlayedAt": "2025-12-10T16:18:52.171Z",
       "photo": "users-photos/photo-c474d3cafbc03198dcf5eb1c141b6c28-1765383532148.jpg"
+    },
+    {
+      "id": "user-mj191clc-2qyxdfq",
+      "name": "Fernanda",
+      "phone": "74988585133",
+      "createdAt": "2025-12-11T09:42:00.192Z",
+      "lastPlayedAt": "2025-12-11T10:30:09.680Z",
+      "photo": "users-photos/photo-4d87f2c94fd2e9b33efecdcdc20a87ae-1765446120145.jpg"
     }
   ]
 }

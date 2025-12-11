@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-10T15:59:09.998Z",
+  "lastUpdated": "2025-12-11T03:44:06.786Z",
   "scores": [
     {
       "songId": "miurk9ti-c4wnra",
@@ -1584,6 +1584,76 @@
       "maxPossiblePoints": 900,
       "createdAt": "2025-12-10T15:59:09.997Z",
       "updatedAt": "2025-12-10T15:59:09.997Z"
+    },
+    {
+      "songId": "mj0jrysz-a5xojh",
+      "sessionId": "1765423088450-7rt8cjad3",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 25500,
+      "createdAt": "2025-12-11T03:18:08.497Z",
+      "updatedAt": "2025-12-11T03:18:08.497Z"
+    },
+    {
+      "songId": "mj07h6s0-afr43s",
+      "sessionId": "1765423385905-lsay8gv8b",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 21000,
+      "createdAt": "2025-12-11T03:23:05.968Z",
+      "updatedAt": "2025-12-11T03:23:05.968Z"
+    },
+    {
+      "songId": "miw9mwnc-4km1gi",
+      "sessionId": "1765423722185-mizkef810",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 23100,
+      "createdAt": "2025-12-11T03:28:42.229Z",
+      "updatedAt": "2025-12-11T03:28:42.229Z"
+    },
+    {
+      "songId": "miw9mwnc-4km1gi",
+      "sessionId": "1765423892198-odpr8bv6w",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 23100,
+      "createdAt": "2025-12-11T03:31:32.218Z",
+      "updatedAt": "2025-12-11T03:31:32.218Z"
+    },
+    {
+      "songId": "mj0vy93c-1qz78a",
+      "sessionId": "1765424646765-x6c1svcff",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 13800,
+      "createdAt": "2025-12-11T03:44:06.786Z",
+      "updatedAt": "2025-12-11T03:44:06.786Z"
     }
   ]
 }
