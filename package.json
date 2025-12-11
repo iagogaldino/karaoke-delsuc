@@ -10,8 +10,10 @@
     "build:backend": "cd backend && npm run build",
     "build:interface": "cd interface && npm run build",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:interface\" \"wait-on http://localhost:3000 && npm run electron:dev\"",
+    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:interface\" \"npm run dev:mobile\" \"wait-on http://localhost:3000 && npm run electron:dev\"",
     "dev:backend": "cd backend && npm run dev",
     "dev:interface": "cd interface && npm run dev",
+    "dev:mobile": "cd client-mobile && npm start",
     "start": "npm run build:all && electron .",
     "postinstall": "electron-builder install-app-deps"
   },
