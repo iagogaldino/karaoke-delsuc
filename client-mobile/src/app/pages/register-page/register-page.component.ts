@@ -500,6 +500,9 @@ export class RegisterPageComponent implements OnInit {
       return;
     }
 
+    // Carregar dados salvos do último acesso primeiro e verificar se usuário existe
+    this.loadSavedDataAndCheckUser();
+
     // Máscara de telefone e busca automática
     this.registerForm.get('phone')?.valueChanges.pipe(
       debounceTime(1000),
@@ -507,33 +510,37 @@ export class RegisterPageComponent implements OnInit {
     ).subscribe(value => {
       const phone = value.replace(/\D/g, '');
       if (phone.length >= 10) {
-        this.apiService.getUserByPhone(phone).pipe(
-          catchError(() => of(null))
-        ).subscribe(user => {
-          if (user) {
-            this.registerForm.patchValue({ name: user.name }, { emitEvent: false });
-            this.userFound = true;
-            
-            // Se o usuário tem foto, carregar automaticamente
-            if (user.photo) {
-              this.loadExistingPhoto(user.photo);
-            } else {
-              // Limpar foto existente se não tiver
-              this.existingPhotoPath = null;
-              this.photoPreview = null;
-              this.photoFile = null;
-            }
-          } else {
-            this.userFound = false;
-            // Limpar foto quando usuário não encontrado
-            this.existingPhotoPath = null;
-            this.photoPreview = null;
-            this.photoFile = null;
-          }
-        });
+        this.checkUserExists(phone);
       } else {
         this.userFound = false;
         // Limpar foto quando telefone incompleto
+        this.existingPhotoPath = null;
+        this.photoPreview = null;
+        this.photoFile = null;
+      }
+    });
+  }
+
+  checkUserExists(phone: string): void {
+    this.apiService.getUserByPhone(phone).pipe(
+      catchError(() => of(null))
+    ).subscribe(user => {
+      if (user) {
+        this.registerForm.patchValue({ name: user.name }, { emitEvent: false });
+        this.userFound = true;
+        
+        // Se o usuário tem foto, carregar automaticamente
+        if (user.photo) {
+          this.loadExistingPhoto(user.photo);
+        } else {
+          // Limpar foto existente se não tiver
+          this.existingPhotoPath = null;
+          this.photoPreview = null;
+          this.photoFile = null;
+        }
+      } else {
+        this.userFound = false;
+        // Limpar foto quando usuário não encontrado
         this.existingPhotoPath = null;
         this.photoPreview = null;
         this.photoFile = null;
@@ -607,6 +614,54 @@ export class RegisterPageComponent implements OnInit {
       });
   }
 
+  loadSavedDataAndCheckUser(): void {
+    try {
+      const savedData = localStorage.getItem('karaoke_last_registration');
+      if (savedData) {
+        const data = JSON.parse(savedData);
+        // Carregar telefone primeiro (sem emitir evento para não disparar busca)
+        if (data.phone) {
+          // Formatar telefone se necessário (adicionar máscara)
+          let formattedPhone = data.phone;
+          if (formattedPhone.length === 11) {
+            formattedPhone = `(${formattedPhone.substring(0, 2)}) ${formattedPhone.substring(2, 7)}-${formattedPhone.substring(7)}`;
+          } else if (formattedPhone.length === 10) {
+            formattedPhone = `(${formattedPhone.substring(0, 2)}) ${formattedPhone.substring(2, 6)}-${formattedPhone.substring(6)}`;
+          }
+          this.registerForm.patchValue({ phone: formattedPhone }, { emitEvent: false });
+          
+          // Verificar se o usuário existe no backend
+          const phoneNumber = data.phone.replace(/\D/g, '');
+          if (phoneNumber.length >= 10) {
+            // Aguardar um pouco para garantir que o formulário foi atualizado
+            setTimeout(() => {
+              this.checkUserExists(phoneNumber);
+            }, 500);
+          }
+        }
+        // Carregar nome depois
+        if (data.name) {
+          this.registerForm.patchValue({ name: data.name }, { emitEvent: false });
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao carregar dados salvos:', error);
+    }
+  }
+
+  saveData(name: string, phone: string): void {
+    try {
+      const dataToSave = {
+        name: name.trim(),
+        phone: phone.replace(/\D/g, ''),
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem('karaoke_last_registration', JSON.stringify(dataToSave));
+    } catch (error) {
+      console.error('Erro ao salvar dados:', error);
+    }
+  }
+
   onSubmit(): void {
     if (this.registerForm.invalid || (!this.photoFile && !this.existingPhotoPath) || !this.qrId) {
       return;
@@ -615,6 +670,9 @@ export class RegisterPageComponent implements OnInit {
     this.isSubmitting = true;
     const { name, phone } = this.registerForm.value;
     const normalizedPhone = phone.replace(/\D/g, '');
+
+    // Salvar dados para próximo acesso
+    this.saveData(name, phone);
 
     // Se já tem foto existente, usar ela diretamente
     if (this.existingPhotoPath && !this.photoFile) {

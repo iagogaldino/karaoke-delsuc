@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { PlayerScore } from '../types/index.js';
 import { formatNumber } from '../utils/formatters.js';
 import './ResultsScreen.css';
@@ -17,6 +18,25 @@ export default function ResultsScreen({
   userPhoto,
   onBack
 }: ResultsScreenProps) {
+  const [timeRemaining, setTimeRemaining] = useState(60); // 60 segundos = 1 minuto
+
+  // Redirecionamento automático após 1 minuto
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          onBack();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [onBack]);
   const percentage = maxPossiblePoints > 0 
     ? Math.round((score.points / maxPossiblePoints) * 100) 
     : 0;
@@ -124,6 +144,9 @@ export default function ResultsScreen({
             </div>
 
             <div className="results-actions">
+              <div className="results-auto-redirect">
+                <p>Redirecionando automaticamente em {timeRemaining}s...</p>
+              </div>
               <button className="results-btn results-btn-primary" onClick={onBack}>
                 <i className="fas fa-home"></i>
                 Voltar ao Início
