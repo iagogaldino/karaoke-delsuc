@@ -82,9 +82,17 @@ export class QrcodePageComponent implements OnInit {
     }
 
     this.apiService.getQRCodeStatus(qrId).subscribe({
-      next: (status) => {
+      next: (status: any) => {
         if (!status.isValid) {
           this.router.navigate(['/error'], { queryParams: { message: 'QR Code já foi utilizado' } });
+          return;
+        }
+
+        // Se o usuário desistiu, redirecionar para página de erro
+        if (status.gaveUp) {
+          this.router.navigate(['/error'], { 
+            queryParams: { message: 'Você desistiu e não pode mais escolher músicas. Escaneie um novo QR code para participar novamente.' }
+          });
           return;
         }
 

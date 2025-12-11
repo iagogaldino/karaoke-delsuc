@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
-import { ApiService, Song } from '../../services/api.service';
+import { ApiService, Song, Category } from '../../services/api.service';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSelectModule } from '@angular/material/select';
 import { FormsModule } from '@angular/forms';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
@@ -22,6 +23,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
     MatInputModule,
     MatFormFieldModule,
     MatProgressSpinnerModule,
+    MatSelectModule,
     FormsModule,
     MatSnackBarModule
   ],
@@ -37,11 +39,24 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 
       <div class="content">
         <div class="search-wrapper">
-          <mat-form-field appearance="fill" class="search-box">
-            <mat-label>Buscar música</mat-label>
-            <input matInput [(ngModel)]="searchTerm" (input)="filterSongs()" placeholder="Digite para buscar...">
-            <mat-icon matPrefix>search</mat-icon>
-          </mat-form-field>
+          <div class="filters-row">
+            <mat-form-field appearance="fill" class="search-box">
+              <mat-label>Buscar música</mat-label>
+              <input matInput [(ngModel)]="searchTerm" (input)="filterSongs()" placeholder="Digite para buscar...">
+              <mat-icon matPrefix>search</mat-icon>
+            </mat-form-field>
+            
+            <mat-form-field appearance="fill" class="category-filter">
+              <mat-label>Categoria</mat-label>
+              <mat-select [(ngModel)]="selectedCategoryId" (selectionChange)="filterSongs()">
+                <mat-option [value]="null">Todas as categorias</mat-option>
+                <mat-option *ngFor="let category of categories" [value]="category.id">
+                  {{ category.name }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>category</mat-icon>
+            </mat-form-field>
+          </div>
         </div>
 
         <div class="songs-container">
@@ -131,8 +146,64 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
       border-bottom: 1px solid var(--spotify-gray);
     }
 
+    .filters-row {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
     .search-box {
       width: 100%;
+    }
+
+    .category-filter {
+      width: 100%;
+    }
+
+    ::ng-deep .mat-mdc-select {
+      color: var(--spotify-white) !important;
+    }
+
+    ::ng-deep .mat-mdc-select-value {
+      color: var(--spotify-white) !important;
+    }
+
+    ::ng-deep .mat-mdc-select-value-text {
+      color: var(--spotify-white) !important;
+    }
+
+    ::ng-deep .mat-mdc-select-arrow {
+      color: var(--spotify-light-gray) !important;
+    }
+
+    ::ng-deep .mat-mdc-select-panel {
+      background: var(--spotify-gray) !important;
+      color: var(--spotify-white) !important;
+    }
+
+    ::ng-deep .mat-mdc-select-panel .mat-mdc-option {
+      color: var(--spotify-white) !important;
+      background: transparent !important;
+    }
+
+    ::ng-deep .mat-mdc-select-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
+      background: rgba(29, 185, 84, 0.2) !important;
+    }
+
+    ::ng-deep .mat-mdc-select-panel .mat-mdc-option.mdc-list-item--selected {
+      background: rgba(29, 185, 84, 0.3) !important;
+    }
+
+    ::ng-deep .mat-mdc-select-panel .mat-mdc-option .mdc-list-item__primary-text {
+      color: var(--spotify-white) !important;
+    }
+
+    ::ng-deep .mat-mdc-select-panel .mdc-list-item {
+      color: var(--spotify-white) !important;
+    }
+
+    ::ng-deep .mat-mdc-select-panel .mdc-list-item__primary-text {
+      color: var(--spotify-white) !important;
     }
 
     .songs-container {
@@ -298,6 +369,14 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
         border-radius: 25px 25px 0 0;
       }
 
+      .search-wrapper {
+        padding: 20px 12px 16px;
+      }
+
+      .filters-row {
+        gap: 12px;
+      }
+
       .song-item {
         padding: 16px;
         gap: 14px;
@@ -330,8 +409,11 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 export class SongsPageComponent implements OnInit {
   songs: Song[] = [];
   filteredSongs: Song[] = [];
+  categories: Category[] = [];
   searchTerm = '';
+  selectedCategoryId: string | null = null;
   loading = true;
+  loadingCategories = true;
   qrId: string | null = null;
   userName = '';
 
@@ -351,7 +433,16 @@ export class SongsPageComponent implements OnInit {
 
     // Buscar status do QR code para obter o nome do usuário
     this.apiService.getQRCodeStatus(this.qrId).subscribe({
-      next: (status) => {
+      next: (status: any) => {
+        // Se o usuário desistiu, redirecionar para página de erro
+        if (status.gaveUp) {
+          this.router.navigate(['/error'], { 
+            queryParams: { message: 'Você desistiu e não pode mais escolher músicas. Escaneie um novo QR code para participar novamente.' },
+            replaceUrl: true
+          });
+          return;
+        }
+
         this.userName = status.userName || 'Usuário';
         
         // Se já tiver música selecionada, redirecionar para o player
@@ -361,9 +452,19 @@ export class SongsPageComponent implements OnInit {
         }
         
         this.loadSongs();
+        this.loadCategories();
       },
-      error: () => {
+      error: (error: any) => {
+        // Se o erro for 403 (forbidden), significa que desistiu
+        if (error.status === 403) {
+          this.router.navigate(['/error'], { 
+            queryParams: { message: error.error?.error || 'Você desistiu e não pode mais escolher músicas.' },
+            replaceUrl: true
+          });
+          return;
+        }
         this.loadSongs();
+        this.loadCategories();
       }
     });
   }
@@ -372,7 +473,7 @@ export class SongsPageComponent implements OnInit {
     this.apiService.getAllSongs().subscribe({
       next: (response) => {
         this.songs = (response.songs || []).filter(song => song.status.ready);
-        this.filteredSongs = this.songs;
+        this.filterSongs();
         this.loading = false;
       },
       error: (error) => {
@@ -382,17 +483,38 @@ export class SongsPageComponent implements OnInit {
     });
   }
 
+  loadCategories(): void {
+    this.apiService.getAllCategories().subscribe({
+      next: (response) => {
+        this.categories = response.categories || [];
+        this.loadingCategories = false;
+      },
+      error: (error) => {
+        this.loadingCategories = false;
+        // Não mostrar erro, apenas não filtrar por categoria
+        console.error('Erro ao carregar categorias:', error);
+      }
+    });
+  }
+
   filterSongs(): void {
-    if (!this.searchTerm.trim()) {
-      this.filteredSongs = this.songs;
-      return;
+    let filtered = [...this.songs];
+
+    // Filtrar por categoria
+    if (this.selectedCategoryId) {
+      filtered = filtered.filter(song => song.category === this.selectedCategoryId);
     }
 
-    const search = this.searchTerm.toLowerCase();
-    this.filteredSongs = this.songs.filter(song =>
-      (song.displayName || song.name).toLowerCase().includes(search) ||
-      (song.artist || '').toLowerCase().includes(search)
-    );
+    // Filtrar por termo de busca
+    if (this.searchTerm.trim()) {
+      const search = this.searchTerm.toLowerCase();
+      filtered = filtered.filter(song =>
+        (song.displayName || song.name).toLowerCase().includes(search) ||
+        (song.artist || '').toLowerCase().includes(search)
+      );
+    }
+
+    this.filteredSongs = filtered;
   }
 
   selectSong(songId: string): void {

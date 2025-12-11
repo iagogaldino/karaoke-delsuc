@@ -25,6 +25,10 @@ export default function HomeScreen({ onSelectSong, onSettingsClick }: HomeScreen
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [emptySlotsCount, setEmptySlotsCount] = useState(50);
   const [visiblePhotos, setVisiblePhotos] = useState<Set<string>>(new Set());
+  const [isUserSelectingSong, setIsUserSelectingSong] = useState(false);
+  const [selectingUserName, setSelectingUserName] = useState<string>('');
+  const [timeRemaining, setTimeRemaining] = useState<number>(240); // 4 minutos em segundos
+  const [selectionStartTime, setSelectionStartTime] = useState<number | null>(null);
 
   // Buscar QR code do backend
   useEffect(() => {
@@ -45,6 +49,84 @@ export default function HomeScreen({ onSelectSong, onSettingsClick }: HomeScreen
     };
     fetchQrCode();
   }, []);
+
+  // Verificar periodicamente o status do QR code para detectar quando alguém está escolhendo música
+  useEffect(() => {
+    if (!qrId) return;
+
+    const checkQRCodeStatus = async () => {
+      try {
+        const status = await qrcodeService.getStatus(qrId) as any;
+        // Se nome foi submetido mas música ainda não foi selecionada, alguém está escolhendo
+        if (status.nameSubmitted && !status.songSelected && status.userName) {
+          setIsUserSelectingSong(true);
+          setSelectingUserName(status.userName);
+          
+          // Calcular tempo restante baseado no nameSubmittedAt
+          // Tempo máximo: 4 minutos (240 segundos) desde que o nome foi submetido
+          const startTime = status.nameSubmittedAt || status.createdAt;
+          const elapsed = (Date.now() - startTime) / 1000;
+          const remaining = Math.max(0, 240 - elapsed);
+          setTimeRemaining(Math.floor(remaining));
+          
+          // Se tempo expirou, resetar estado
+          if (remaining <= 0) {
+            setIsUserSelectingSong(false);
+            setSelectingUserName('');
+            setTimeRemaining(240);
+            setSelectionStartTime(null);
+          } else if (selectionStartTime === null) {
+            setSelectionStartTime(startTime);
+          }
+        } else if (status.songSelected) {
+          // Se música foi selecionada, parar de mostrar mensagem
+          setIsUserSelectingSong(false);
+          setSelectingUserName('');
+          setTimeRemaining(240);
+          setSelectionStartTime(null);
+        } else {
+          // Se não há nome submetido, mostrar QR code normalmente
+          setIsUserSelectingSong(false);
+          setSelectingUserName('');
+          setTimeRemaining(240);
+          setSelectionStartTime(null);
+        }
+      } catch (error) {
+        console.error('Erro ao verificar status do QR code:', error);
+      }
+    };
+
+    // Verificar imediatamente
+    checkQRCodeStatus();
+
+    // Verificar a cada 2 segundos
+    const interval = setInterval(checkQRCodeStatus, 2000);
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qrId]);
+
+  // Timer regressivo quando alguém está escolhendo música
+  useEffect(() => {
+    if (!isUserSelectingSong || timeRemaining <= 0) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeRemaining(prev => {
+        const newTime = prev - 1;
+        if (newTime <= 0) {
+          // Tempo esgotado - resetar estado
+          setIsUserSelectingSong(false);
+          setSelectingUserName('');
+          setSelectionStartTime(null);
+          return 0;
+        }
+        return newTime;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isUserSelectingSong, timeRemaining]);
 
   // Buscar ranking
   useEffect(() => {
@@ -158,12 +240,28 @@ export default function HomeScreen({ onSelectSong, onSettingsClick }: HomeScreen
           if (message.type === 'qrcodeNameSubmitted') {
             console.log('📝 QR code name submitted:', message.userName);
             setIsQrScanned(true);
+            // Quando nome é submetido, usuário está escolhendo música
+            setIsUserSelectingSong(true);
+            setSelectingUserName(message.userName || '');
+            setTimeRemaining(240); // Resetar timer para 4 minutos
+            setSelectionStartTime(Date.now());
             // Recarregar usuários quando um novo nome é submetido
             usersService.getAll().then(setUsers).catch(console.error);
           } else if (message.type === 'qrcodeSongSelected' && message.songId) {
             console.log('🎵 QR code song selected:', message.songId, 'by', message.userName);
+            // Quando música é selecionada, parar de mostrar mensagem
+            setIsUserSelectingSong(false);
+            setSelectingUserName('');
+            setTimeRemaining(240);
+            setSelectionStartTime(null);
             onSelectSong(message.songId);
             ws.close();
+          } else if (message.type === 'qrcodeGiveUp') {
+            // Quando usuário desiste, voltar a mostrar QR code
+            setIsUserSelectingSong(false);
+            setSelectingUserName('');
+            setTimeRemaining(240);
+            setSelectionStartTime(null);
           }
         }
       } catch (error) {
@@ -270,18 +368,36 @@ export default function HomeScreen({ onSelectSong, onSettingsClick }: HomeScreen
             )}
           </div>
           
-          {/* QR Code abaixo do ranking */}
+          {/* QR Code abaixo do ranking ou mensagem de seleção */}
           <div className="ranking-qr-section">
-            <label className="qr-label">Escaneie para participar</label>
-            {isLoadingQr ? (
-              <div className="qr-loading-small">
-                <div className="loading-spinner-small"></div>
+            {isUserSelectingSong ? (
+              <div className="user-selecting-message">
+                <div className="selecting-icon">🎵</div>
+                <div className="selecting-text">
+                  <div className="selecting-label">Escolhendo música...</div>
+                  <div className="selecting-name">{selectingUserName}</div>
+                  <div className="selecting-timer">
+                    <div className={`timer-value ${timeRemaining <= 30 ? 'timer-warning' : ''}`}>
+                      {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
+                    </div>
+                    <div className="timer-label">Tempo restante</div>
+                  </div>
+                </div>
               </div>
             ) : (
-              <div 
-                className="ranking-qr-svg"
-                dangerouslySetInnerHTML={{ __html: qrSvg }}
-              />
+              <>
+                <label className="qr-label">Escaneie para participar</label>
+                {isLoadingQr ? (
+                  <div className="qr-loading-small">
+                    <div className="loading-spinner-small"></div>
+                  </div>
+                ) : (
+                  <div 
+                    className="ranking-qr-svg"
+                    dangerouslySetInnerHTML={{ __html: qrSvg }}
+                  />
+                )}
+              </>
             )}
           </div>
         </div>

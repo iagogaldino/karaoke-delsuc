@@ -13,6 +13,7 @@ export interface QRCodeStatus {
   expiresAt: number;
   songSelected?: boolean;
   songId?: string;
+  gaveUp?: boolean;
   song?: {
     id: string;
     name: string;
@@ -28,9 +29,21 @@ export interface Song {
   displayName?: string;
   artist?: string;
   duration: number;
+  category?: string;
   status: {
     ready: boolean;
   };
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+export interface CategoriesResponse {
+  categories: Category[];
+  total: number;
 }
 
 export interface SongsResponse {
@@ -95,6 +108,10 @@ export class ApiService {
 
   giveUp(qrId: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/qrcode/${qrId}/giveup`, {});
+  }
+
+  getAllCategories(): Observable<CategoriesResponse> {
+    return this.http.get<CategoriesResponse>(`${this.apiUrl}/categories`);
   }
 }
 

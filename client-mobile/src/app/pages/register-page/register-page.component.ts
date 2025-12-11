@@ -65,7 +65,7 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
               Tire uma selfie *
             </label>
             <div class="photo-preview-wrapper">
-              <div *ngIf="!photoPreview" class="photo-placeholder">
+              <div *ngIf="!photoPreview" class="photo-placeholder" (click)="fileInput.click()" [style.cursor]="isSubmitting ? 'not-allowed' : 'pointer'">
                 <mat-icon>add_a_photo</mat-icon>
                 <span>Toque para tirar foto</span>
               </div>
@@ -275,6 +275,18 @@ import { NgxMaskDirective, provideNgxMask } from 'ngx-mask';
       color: var(--spotify-light-gray);
       transition: all 0.3s ease;
       background: var(--spotify-gray);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .photo-placeholder:hover:not(:disabled) {
+      border-color: var(--spotify-green);
+      background: rgba(29, 185, 84, 0.1);
+      transform: scale(1.05);
+    }
+
+    .photo-placeholder:active:not(:disabled) {
+      transform: scale(0.98);
     }
 
     .photo-placeholder mat-icon {

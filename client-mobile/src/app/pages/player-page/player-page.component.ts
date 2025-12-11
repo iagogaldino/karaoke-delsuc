@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ActivatedRoute, Router, Location } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule, Location } from '@angular/common';
 import { ApiService } from '../../services/api.service';
 import { WebSocketService } from '../../services/websocket.service';
 import { MatCardModule } from '@angular/material/card';
@@ -613,7 +613,7 @@ export class PlayerPageComponent implements OnInit, OnDestroy {
   }
 
   giveUp(): void {
-    if (!confirm('Tem certeza que deseja desistir desta música?')) {
+    if (!confirm('Tem certeza que deseja desistir desta música?\n\nApós desistir, você não poderá mais escolher músicas com este QR code.')) {
       return;
     }
 
@@ -626,8 +626,11 @@ export class PlayerPageComponent implements OnInit, OnDestroy {
         // Remover o listener antes de navegar
         window.removeEventListener('popstate', this.onPopState);
         setTimeout(() => {
-          // Permitir voltar para seleção de músicas apenas quando desistir
-          this.router.navigate(['/songs', this.qrId]);
+          // Redirecionar para página de erro informando que não pode mais escolher músicas
+          this.router.navigate(['/error'], { 
+            queryParams: { message: 'Você desistiu e não pode mais escolher músicas. Escaneie um novo QR code para participar novamente.' },
+            replaceUrl: true
+          });
         }, 1500);
       },
       error: (error) => {

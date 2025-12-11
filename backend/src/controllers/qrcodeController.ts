@@ -44,9 +44,11 @@ interface QRCodeData {
   userPhone?: string;
   userPhoto?: string;
   nameSubmitted: boolean;
+  nameSubmittedAt?: number; // Timestamp de quando o nome foi submetido
   songId?: string;
   songSelected: boolean;
   sessionId?: string; // Associar sessionId quando o jogo começar
+  gaveUp?: boolean; // Marca se o usuário desistiu
 }
 
 const qrCodes = new Map<string, QRCodeData>();
@@ -55,6 +57,7 @@ const sessionToQrMap = new Map<string, string>();
 
 // Limpar códigos expirados a cada 5 minutos
 const QR_CODE_EXPIRY = 10 * 60 * 1000; // 10 minutos
+const SONG_SELECTION_TIMEOUT = 4 * 60 * 1000; // 4 minutos para escolher música
 setInterval(() => {
   const now = Date.now();
   for (const [id, data] of qrCodes.entries()) {
@@ -119,7 +122,9 @@ export const generate = asyncHandler(async (req: Request, res: Response) => {
     createdAt: Date.now(),
     isValid: true,
     nameSubmitted: false,
-    songSelected: false
+    songSelected: false,
+    nameSubmittedAt: undefined,
+    gaveUp: false
   });
 
   res.json({
@@ -195,7 +200,9 @@ export const getStatus = asyncHandler(async (req: Request, res: Response) => {
     createdAt: qrData.createdAt,
     expiresAt: qrData.createdAt + QR_CODE_EXPIRY,
     songSelected: qrData.songSelected,
-    songId: qrData.songId
+    songId: qrData.songId,
+    nameSubmittedAt: qrData.nameSubmittedAt,
+    gaveUp: qrData.gaveUp || false
   };
 
   // Se tem música selecionada, incluir informações da música
@@ -237,6 +244,12 @@ export const getNamePage = asyncHandler(async (req: Request, res: Response) => {
     qrCodes.delete(qrId);
     const clientUrl = SERVER_CONFIG.CLIENT_MOBILE_URL;
     return res.redirect(`${clientUrl}/error?message=${encodeURIComponent('QR Code expirado')}`);
+  }
+
+  // Se o usuário desistiu, redirecionar para página de erro
+  if (qrData.gaveUp) {
+    const clientUrl = SERVER_CONFIG.CLIENT_MOBILE_URL;
+    return res.redirect(`${clientUrl}/error?message=${encodeURIComponent('Você desistiu e não pode mais escolher músicas. Escaneie um novo QR code para participar novamente.')}`);
   }
 
   // Se o nome já foi submetido
@@ -1754,6 +1767,7 @@ export const submitName = asyncHandler(async (req: Request, res: Response) => {
   qrData.userPhone = user.phone;
   qrData.userPhoto = user.photo;
   qrData.nameSubmitted = true;
+  qrData.nameSubmittedAt = Date.now(); // Registrar quando o nome foi submetido
 
   // Notificar o frontend via WebSocket
   broadcastQRCodeName(qrId, user.name);
@@ -1794,6 +1808,25 @@ export const selectSong = asyncHandler(async (req: Request, res: Response) => {
   // Verificar se o nome foi submetido primeiro
   if (!qrData.nameSubmitted) {
     return res.status(400).json({ error: 'Nome deve ser submetido antes de selecionar música' });
+  }
+
+  // Verificar se o usuário desistiu - não pode mais escolher músicas
+  if (qrData.gaveUp) {
+    return res.status(403).json({ error: 'Você desistiu e não pode mais escolher músicas. Escaneie um novo QR code para participar novamente.' });
+  }
+
+  // Verificar se o tempo de 4 minutos para escolher música expirou
+  if (qrData.nameSubmittedAt) {
+    const timeSinceNameSubmitted = Date.now() - qrData.nameSubmittedAt;
+    if (timeSinceNameSubmitted > SONG_SELECTION_TIMEOUT) {
+      // Resetar o QR code (remover nome submetido para permitir novo escaneamento)
+      qrData.nameSubmitted = false;
+      qrData.nameSubmittedAt = undefined;
+      qrData.userName = undefined;
+      qrData.userPhone = undefined;
+      qrData.userPhoto = undefined;
+      return res.status(408).json({ error: 'Tempo para escolher música expirado. Escaneie o QR code novamente.' });
+    }
   }
 
   // Verificar se a música existe
@@ -1904,7 +1937,8 @@ export const giveUp = asyncHandler(async (req: Request, res: Response) => {
   const userName = qrData.userName || 'Usuário';
   const songId = qrData.songId;
 
-  // Resetar seleção de música (mas manter nome)
+  // Marcar que o usuário desistiu - não poderá mais escolher músicas
+  qrData.gaveUp = true;
   qrData.songSelected = false;
   qrData.songId = undefined;
 
@@ -1914,6 +1948,7 @@ export const giveUp = asyncHandler(async (req: Request, res: Response) => {
   res.json({
     success: true,
     message: 'Desistência registrada com sucesso',
-    userName
+    userName,
+    gaveUp: true
   });
 });

@@ -87,3 +87,50 @@ button {
   -webkit-user-select: none;
 }
 
+/* Estilos para Material Select - tema escuro */
+.cdk-overlay-pane .mat-mdc-select-panel,
+.mat-mdc-select-panel {
+  background: var(--spotify-gray) !important;
+  color: var(--spotify-white) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
+}
+
+.cdk-overlay-pane .mat-mdc-select-panel .mat-mdc-option,
+.mat-mdc-select-panel .mat-mdc-option {
+  color: var(--spotify-white) !important;
+  background: transparent !important;
+}
+
+.cdk-overlay-pane .mat-mdc-select-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled),
+.mat-mdc-select-panel .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
+  background: rgba(29, 185, 84, 0.2) !important;
+}
+
+.cdk-overlay-pane .mat-mdc-select-panel .mat-mdc-option.mdc-list-item--selected,
+.mat-mdc-select-panel .mat-mdc-option.mdc-list-item--selected {
+  background: rgba(29, 185, 84, 0.3) !important;
+}
+
+.cdk-overlay-pane .mat-mdc-select-panel .mdc-list-item,
+.mat-mdc-select-panel .mdc-list-item {
+  color: var(--spotify-white) !important;
+}
+
+.cdk-overlay-pane .mat-mdc-select-panel .mdc-list-item__primary-text,
+.mat-mdc-select-panel .mdc-list-item__primary-text {
+  color: var(--spotify-white) !important;
+}
+
+.mat-mdc-select-value {
+  color: var(--spotify-white) !important;
+}
+
+.mat-mdc-select-value-text {
+  color: var(--spotify-white) !important;
+}
+
+.mat-mdc-select-arrow {
+  color: var(--spotify-light-gray) !important;
+}
+
