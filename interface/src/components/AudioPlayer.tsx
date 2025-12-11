@@ -199,6 +199,14 @@ export default function AudioPlayer({
     if (!vocals || !instrumental) return;
 
     if (isPlaying) {
+      // Se a música chegou ao fim (currentTime >= duration), resetar para o início antes de tocar
+      if (duration > 0 && currentTime >= duration - 0.1) {
+        console.log('🔄 Música no fim, resetando para o início antes de tocar...');
+        vocals.currentTime = 0;
+        instrumental.currentTime = 0;
+        onSeek(0);
+      }
+      
       // Sempre tocar ambos para manter sincronização, mas o mute controla o que é ouvido
       const playVocals = vocals.play().catch(err => {
         // Ignorar erros de interrupção (AbortError)
@@ -216,7 +224,35 @@ export default function AudioPlayer({
       vocals.pause();
       instrumental.pause();
     }
-  }, [isPlaying]);
+  }, [isPlaying, currentTime, duration, onSeek]);
+
+  // Detectar quando a música termina (evento ended)
+  useEffect(() => {
+    const vocals = vocalsRef.current;
+    const instrumental = instrumentalRef.current;
+
+    if (!vocals || !instrumental) return;
+
+    const handleEnded = () => {
+      // Se qualquer um dos áudios terminar, pausar ambos e resetar para o início
+      if (isPlaying) {
+        console.log('🎵 Música terminou, pausando e resetando para o início...');
+        // Resetar tempo para 0
+        vocals.currentTime = 0;
+        instrumental.currentTime = 0;
+        onSeek(0);
+        onPause();
+      }
+    };
+
+    vocals.addEventListener('ended', handleEnded);
+    instrumental.addEventListener('ended', handleEnded);
+
+    return () => {
+      vocals.removeEventListener('ended', handleEnded);
+      instrumental.removeEventListener('ended', handleEnded);
+    };
+  }, [isPlaying, onPause, onSeek]);
 
   // Sincronizar seek
   useEffect(() => {

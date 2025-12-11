@@ -39,6 +39,7 @@ function App() {
   const [editedSongName, setEditedSongName] = useState<string>('');
   const [showLRCComparison, setShowLRCComparison] = useState(false);
   const [showRecordingTest, setShowRecordingTest] = useState(false);
+  const [songDuration, setSongDuration] = useState<number>(0);
   const { currentTime, isPlaying, play, pause, seek } = useSyncWebSocket();
   const { alert, confirm, AlertComponent, ConfirmComponent } = useAlert();
   const { uploadRecording, generateLRC, error: recordingError, isUploading, isProcessing } = useAudioRecorder();
@@ -401,11 +402,22 @@ function App() {
     if (selectedSong) {
       // Resetar tempo para 0 e pausar quando trocar de música
       seek(0);
+      setSongDuration(0);
       if (isPlaying) {
         pause();
       }
     }
   }, [selectedSong]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Detectar quando a música termina no modo config
+  useEffect(() => {
+    if (songDuration > 0 && currentTime >= songDuration - 0.1 && isPlaying) {
+      console.log('🎵 Música terminou no modo config, pausando e resetando para o início...');
+      // Resetar tempo para 0 quando a música terminar
+      seek(0);
+      pause();
+    }
+  }, [currentTime, songDuration, isPlaying, pause, seek]);
 
   // Handler para quando gravação for completada
   const handleRecordingComplete = useCallback(async (audioBlob: Blob, startTime: number) => {
@@ -697,6 +709,11 @@ function App() {
                       vocalsVolume={vocalsVolume}
                       instrumentalVolume={instrumentalVolume}
                       songId={selectedSong}
+                      onDurationChange={(duration) => {
+                        if (duration > 0 && isFinite(duration)) {
+                          setSongDuration(duration);
+                        }
+                      }}
                     />
                   </div>
 
