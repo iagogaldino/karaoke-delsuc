@@ -1,62 +1,95 @@
-# Instruções de Uso
+# Instruções de Uso - Teste com Celular
 
-## Configuração Inicial
+## Configuração para Teste com Celular
 
-1. Instalar dependências:
-```bash
-cd client-mobile
-npm install
-```
+### 1. Iniciar o Backend
 
-2. Configurar variável de ambiente no backend (opcional):
-```bash
-# No arquivo .env do backend ou variável de ambiente
-CLIENT_MOBILE_URL=http://localhost:4200
-```
-
-## Executar em Desenvolvimento
-
-1. Iniciar o backend (na pasta raiz do projeto):
 ```bash
 cd backend
 npm run dev
 ```
 
-2. Iniciar o app Angular (em outro terminal):
+O backend estará rodando em `http://[SEU_IP]:3001`
+
+### 2. Iniciar o App Angular
+
 ```bash
 cd client-mobile
 npm start
 ```
 
-O app estará disponível em `http://localhost:4200`
+O app estará disponível em:
+- `http://localhost:4200` (na máquina local)
+- `http://[SEU_IP]:4200` (na rede local, acessível pelo celular)
+
+**Importante:** O app está configurado com `--host 0.0.0.0`, permitindo acesso da rede local.
+
+### 3. Descobrir seu IP Local
+
+**Windows:**
+```bash
+ipconfig
+```
+Procure por "IPv4 Address" na sua interface de rede Wi-Fi/Ethernet (geralmente começa com 192.168.x.x)
+
+**Linux/Mac:**
+```bash
+ifconfig
+# ou
+ip addr
+```
+
+### 4. Testar o QR Code
+
+1. Na interface do karaokê, gere um QR code
+2. O QR code já estará configurado com o IP da rede local automaticamente
+3. Escaneie o QR code com seu celular
+4. O celular será redirecionado para o app Angular no IP correto
+5. O app Angular fará requisições para o backend no mesmo IP
 
 ## Como Funciona
 
-1. Quando um usuário acessa `/qrcode/:qrId` no backend, ele é redirecionado para o app Angular
-2. O app Angular verifica o status do QR code e redireciona para a página apropriada:
-   - `/register/:qrId` - Se ainda não se cadastrou
-   - `/songs/:qrId` - Se já se cadastrou mas não selecionou música
-   - `/player/:qrId` - Se já selecionou música
+1. **Detecção Automática de IP:**
+   - O backend detecta automaticamente o IP da rede local usando `getLocalIP()`
+   - O QR code é gerado com esse IP: `http://[IP]:3001/qrcode/:qrId`
 
-## Estrutura de Rotas
+2. **Redirecionamento:**
+   - Quando o celular acessa o QR code, o backend redireciona para o app Angular
+   - O backend usa o mesmo IP detectado: `http://[IP]:4200`
 
-- `/qrcode/:qrId` - Página inicial que verifica e redireciona
-- `/register/:qrId` - Formulário de cadastro
-- `/songs/:qrId` - Lista de músicas disponíveis
-- `/player/:qrId` - Controles do player (play/pause)
-- `/error` - Página de erro
+3. **Requisições da API:**
+   - Quando o app Angular é acessado pelo IP (não localhost), ele detecta automaticamente
+   - As requisições `/api` são redirecionadas para `http://[IP]:3001/api`
+   - O WebSocket também usa o IP correto: `ws://[IP]:3001/ws/sync`
 
-## Proxy de Desenvolvimento
+## Troubleshooting
 
-O arquivo `proxy.conf.json` está configurado para redirecionar requisições `/api` e `/ws` para o backend em `http://localhost:3001`.
+### Celular não consegue acessar
 
-## Build para Produção
+1. **Verifique se estão na mesma rede Wi-Fi:**
+   - Celular e computador devem estar na mesma rede
+
+2. **Verifique o firewall:**
+   - Windows: Permitir conexões na porta 4200 e 3001
+   - Linux: `sudo ufw allow 4200` e `sudo ufw allow 3001`
+
+3. **Verifique o IP:**
+   - Use `ipconfig` (Windows) ou `ifconfig` (Linux/Mac)
+   - Confirme que o IP está correto no QR code
+
+### Requisições falhando
+
+- O app Angular detecta automaticamente quando está sendo acessado por IP
+- Se ainda assim não funcionar, verifique se o backend está acessível em `http://[IP]:3001/api`
+
+## Configuração Manual (Opcional)
+
+Se quiser forçar um IP específico, defina variáveis de ambiente:
 
 ```bash
-npm run build
+# No backend
+CLIENT_MOBILE_URL=http://192.168.1.100:4200
+
+# No Angular (no package.json ou angular.json)
+# Já está configurado para aceitar conexões da rede local
 ```
-
-Os arquivos compilados estarão em `dist/karaoke-client-mobile`.
-
-Para produção, configure a variável `CLIENT_MOBILE_URL` no backend para apontar para a URL do app Angular em produção.
-

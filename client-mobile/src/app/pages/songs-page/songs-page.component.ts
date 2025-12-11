@@ -27,137 +27,303 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
   ],
   template: `
     <div class="container">
-      <mat-card>
-        <mat-card-header>
-          <mat-card-title>🎤 Selecionar Música</mat-card-title>
-          <mat-card-subtitle>Olá, <strong>{{ userName }}</strong>! Escolha uma música para cantar.</mat-card-subtitle>
-        </mat-card-header>
-        <mat-card-content>
-          <mat-form-field appearance="outline" class="search-box">
+      <div class="header">
+        <div class="header-content">
+          <h1>🎤 Selecionar Música</h1>
+          <p class="greeting">Olá, <strong>{{ userName }}</strong>!</p>
+          <p class="subtitle">Escolha uma música para cantar</p>
+        </div>
+      </div>
+
+      <div class="content">
+        <div class="search-wrapper">
+          <mat-form-field appearance="fill" class="search-box">
             <mat-label>Buscar música</mat-label>
             <input matInput [(ngModel)]="searchTerm" (input)="filterSongs()" placeholder="Digite para buscar...">
             <mat-icon matPrefix>search</mat-icon>
           </mat-form-field>
+        </div>
 
+        <div class="songs-container">
           <div *ngIf="loading" class="loading">
-            <mat-spinner></mat-spinner>
+            <mat-spinner diameter="50"></mat-spinner>
             <p>Carregando músicas...</p>
           </div>
 
           <div *ngIf="!loading && filteredSongs.length === 0" class="empty">
+            <mat-icon>music_off</mat-icon>
             <p>Nenhuma música disponível no momento.</p>
           </div>
 
           <div *ngIf="!loading && filteredSongs.length > 0" class="songs-list">
-            <div *ngFor="let song of filteredSongs" class="song-item" (click)="selectSong(song.id)">
+            <div *ngFor="let song of filteredSongs; trackBy: trackBySongId" class="song-item" (click)="selectSong(song.id)">
+              <div class="song-icon-wrapper">
+                <mat-icon class="song-icon">music_note</mat-icon>
+              </div>
               <div class="song-info">
                 <div class="song-name">{{ song.displayName || song.name }}</div>
                 <div *ngIf="song.artist" class="song-artist">{{ song.artist }}</div>
               </div>
-              <mat-icon>chevron_right</mat-icon>
+              <mat-icon class="chevron">chevron_right</mat-icon>
             </div>
           </div>
-        </mat-card-content>
-      </mat-card>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
     .container {
       min-height: 100vh;
-      padding: 20px;
-      background: #0a0a0a;
+      padding: 0;
+      background: var(--spotify-black);
+      display: flex;
+      flex-direction: column;
     }
-    mat-card {
-      max-width: 600px;
-      margin: 0 auto;
-      background: rgba(255, 255, 255, 0.05);
-    }
-    mat-card-header {
+
+    .header {
+      padding: 50px 20px 30px;
+      color: var(--spotify-white);
       text-align: center;
-      margin-bottom: 20px;
-      padding-bottom: 20px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      background: linear-gradient(180deg, rgba(29, 185, 84, 0.1) 0%, transparent 100%);
     }
-    mat-card-title {
-      color: #ffffff;
-      font-size: 28px;
-      margin-bottom: 10px;
+
+    .header-content h1 {
+      font-size: 32px;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.2);
     }
-    mat-card-subtitle {
-      color: rgba(255, 255, 255, 0.7);
+
+    .greeting {
+      font-size: 18px;
+      margin: 0 0 8px 0;
+      opacity: 0.95;
+    }
+
+    .greeting strong {
+      font-weight: 700;
+      color: var(--spotify-green);
+    }
+
+    .subtitle {
       font-size: 14px;
+      opacity: 0.85;
+      margin: 0;
     }
+
+    .content {
+      flex: 1;
+      background: var(--spotify-dark-gray);
+      border-radius: 30px 30px 0 0;
+      margin-top: -20px;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .search-wrapper {
+      flex-shrink: 0;
+      background: var(--spotify-dark-gray);
+      padding: 24px 16px 20px;
+      border-bottom: 1px solid var(--spotify-gray);
+    }
+
     .search-box {
       width: 100%;
-      margin-bottom: 20px;
     }
+
+    .songs-container {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      min-height: 0;
+    }
+
     ::ng-deep .mat-mdc-form-field {
-      --mdc-filled-text-field-container-color: rgba(255, 255, 255, 0.05);
-      --mdc-filled-text-field-input-text-color: #ffffff;
+      --mdc-filled-text-field-container-color: var(--spotify-gray);
+      --mdc-filled-text-field-input-text-color: var(--spotify-white);
+      --mdc-filled-text-field-label-text-color: var(--spotify-light-gray);
+      --mdc-filled-text-field-focus-label-text-color: var(--spotify-green);
+      --mdc-filled-text-field-focus-active-indicator-color: var(--spotify-green);
     }
+
     ::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper {
-      border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 8px;
+      padding: 4px 16px;
+      background: var(--spotify-gray) !important;
     }
+
+    ::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper:hover {
+      background: var(--spotify-gray) !important;
+    }
+
+    ::ng-deep .mat-mdc-form-field .mat-mdc-text-field-wrapper.mdc-text-field--focused {
+      background: var(--spotify-gray) !important;
+      box-shadow: 0 0 0 2px var(--spotify-green);
+    }
+
     .loading, .empty {
       text-align: center;
-      padding: 40px;
-      color: rgba(255, 255, 255, 0.5);
-    }
-    .loading {
+      padding: 60px 20px;
+      color: rgba(255, 255, 255, 0.6);
+      min-height: 200px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 20px;
+      justify-content: center;
     }
+
+    .loading {
+      gap: 24px;
+    }
+
+    .empty {
+      gap: 16px;
+    }
+
+    .empty mat-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      opacity: 0.5;
+    }
+
     .songs-list {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      max-height: calc(100vh - 300px);
-      overflow-y: auto;
+      gap: 12px;
+      padding: 20px 16px;
     }
+
     .song-item {
-      padding: 16px;
+      padding: 18px 20px;
+      background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
+      border-radius: 20px;
       cursor: pointer;
-      transition: all 0.3s;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      background: rgba(255, 255, 255, 0.03);
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
     }
-    .song-item:hover {
-      border-color: rgba(102, 126, 234, 0.5);
-      background: rgba(102, 126, 234, 0.1);
-      transform: translateX(5px);
+
+    .song-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0;
+      background: linear-gradient(90deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+      transition: width 0.3s ease;
     }
+
     .song-item:active {
       transform: scale(0.98);
     }
+
+    .song-item:active::before {
+      width: 100%;
+    }
+
+    .song-icon-wrapper {
+      width: 56px;
+      height: 56px;
+      border-radius: 8px;
+      background: rgba(29, 185, 84, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .song-icon {
+      color: var(--spotify-green);
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+
     .song-info {
       flex: 1;
       min-width: 0;
     }
+
     .song-name {
       font-weight: 600;
-      color: #ffffff;
+      color: var(--spotify-white);
       font-size: 16px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       word-wrap: break-word;
+      line-height: 1.4;
     }
+
     .song-artist {
-      color: rgba(255, 255, 255, 0.6);
+      color: var(--spotify-light-gray);
       font-size: 14px;
       word-wrap: break-word;
+      line-height: 1.3;
     }
-    .song-item mat-icon {
-      color: rgba(255, 255, 255, 0.5);
-      transition: color 0.3s;
+
+    .chevron {
+      color: var(--spotify-light-gray);
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
     }
-    .song-item:hover mat-icon {
-      color: #667eea;
+
+    .song-item:hover .chevron {
+      color: var(--spotify-green);
+      transform: translateX(4px);
+    }
+
+    @media (max-width: 480px) {
+      .header {
+        padding: 40px 16px 24px;
+      }
+
+      .header-content h1 {
+        font-size: 26px;
+      }
+
+      .content {
+        padding: 20px 12px;
+        border-radius: 25px 25px 0 0;
+      }
+
+      .song-item {
+        padding: 16px;
+        gap: 14px;
+      }
+
+      .song-icon-wrapper {
+        width: 48px;
+        height: 48px;
+      }
+
+      .song-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+
+      .song-name {
+        font-size: 16px;
+      }
+    }
+
+    /* Safe area para iPhone */
+    @supports (padding: max(0px)) {
+      .content {
+        padding-bottom: max(24px, env(safe-area-inset-bottom));
+      }
     }
   `]
 })
@@ -187,6 +353,13 @@ export class SongsPageComponent implements OnInit {
     this.apiService.getQRCodeStatus(this.qrId).subscribe({
       next: (status) => {
         this.userName = status.userName || 'Usuário';
+        
+        // Se já tiver música selecionada, redirecionar para o player
+        if (status.songSelected && status.songId) {
+          this.router.navigate(['/player', this.qrId], { replaceUrl: true });
+          return;
+        }
+        
         this.loadSongs();
       },
       error: () => {
@@ -227,12 +400,18 @@ export class SongsPageComponent implements OnInit {
 
     this.apiService.selectSong(this.qrId, songId).subscribe({
       next: () => {
-        this.router.navigate(['/player', this.qrId]);
+        // Usar replaceUrl para remover a página de músicas do histórico
+        // Assim o usuário não pode voltar usando o botão voltar do navegador
+        this.router.navigate(['/player', this.qrId], { replaceUrl: true });
       },
       error: (error) => {
         this.snackBar.open(error.error?.error || 'Erro ao selecionar música', 'OK', { duration: 3000 });
       }
     });
+  }
+
+  trackBySongId(index: number, song: Song): string {
+    return song.id;
   }
 }
 

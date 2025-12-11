@@ -51,7 +51,17 @@ export interface User {
 export class ApiService {
   private apiUrl = '/api';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {
+    // Se estiver acessando pelo IP (não localhost), usar o mesmo host para API
+    // Isso permite que o celular faça requisições corretamente
+    if (typeof window !== 'undefined') {
+      const host = window.location.host;
+      // Se não for localhost, usar o mesmo host para API
+      if (!host.includes('localhost') && !host.includes('127.0.0.1')) {
+        this.apiUrl = `http://${host.split(':')[0]}:3001/api`;
+      }
+    }
+  }
 
   getQRCodeStatus(qrId: string): Observable<QRCodeStatus> {
     return this.http.get<QRCodeStatus>(`${this.apiUrl}/qrcode/${qrId}/status`);

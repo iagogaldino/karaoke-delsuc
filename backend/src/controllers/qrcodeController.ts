@@ -13,6 +13,8 @@ import { getLocalIP } from '../utils/networkUtils.js';
 function redirectToMobileApp(res: Response, path: string, qrId: string): void {
   const clientUrl = SERVER_CONFIG.CLIENT_MOBILE_URL;
   const redirectUrl = `${clientUrl}${path}/${qrId}`;
+  console.log(`🔄 Redirecionando para: ${redirectUrl}`);
+  console.log(`📱 CLIENT_MOBILE_URL configurado: ${clientUrl}`);
   res.redirect(redirectUrl);
 }
 
@@ -96,6 +98,8 @@ export const generate = asyncHandler(async (req: Request, res: Response) => {
   const url = `${protocol}://${host}/qrcode/${qrId}`;
   
   console.log(`📱 QR Code gerado com URL: ${url}`);
+  console.log(`🌐 Backend rodando na porta: ${SERVER_CONFIG.PORT}`);
+  console.log(`📱 App Angular configurado em: ${SERVER_CONFIG.CLIENT_MOBILE_URL}`);
 
   // Gerar QR code como SVG com a URL
   const qrSvg = await qrcode.toString(url, {
@@ -218,6 +222,9 @@ export const getStatus = asyncHandler(async (req: Request, res: Response) => {
 export const getNamePage = asyncHandler(async (req: Request, res: Response) => {
   const { qrId } = req.params;
   const qrData = qrCodes.get(qrId);
+
+  console.log(`📱 Requisição recebida para QR code: ${qrId}`);
+  console.log(`🌐 CLIENT_MOBILE_URL configurado: ${SERVER_CONFIG.CLIENT_MOBILE_URL}`);
 
   if (!qrData) {
     // QR code não encontrado - redirecionar para página de erro

@@ -1,5 +1,6 @@
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { getLocalIP } from '../utils/networkUtils.js';
 
 // Get __dirname equivalent in ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -8,11 +9,22 @@ const __dirname = dirname(__filename);
 // Project root (3 levels up from backend/src/config)
 export const PROJECT_ROOT = join(__dirname, '..', '..', '..');
 
+// Detectar IP local para o client mobile
+const CLIENT_MOBILE_PORT = parseInt(process.env.CLIENT_MOBILE_PORT || '4200', 10);
+const localIP = getLocalIP();
+const defaultClientMobileUrl = `http://${localIP}:${CLIENT_MOBILE_PORT}`;
+
+console.log(`🔧 Configuração do Client Mobile:`);
+console.log(`   - IP detectado: ${localIP}`);
+console.log(`   - Porta Angular: ${CLIENT_MOBILE_PORT}`);
+console.log(`   - URL do Angular: ${defaultClientMobileUrl}`);
+
 // Server configuration
 export const SERVER_CONFIG = {
   PORT: parseInt(process.env.PORT || '3001', 10),
   NODE_ENV: process.env.NODE_ENV || 'development',
-  CLIENT_MOBILE_URL: process.env.CLIENT_MOBILE_URL || 'http://localhost:4200',
+  CLIENT_MOBILE_URL: process.env.CLIENT_MOBILE_URL || defaultClientMobileUrl,
+  CLIENT_MOBILE_PORT: CLIENT_MOBILE_PORT,
 };
 
 // File paths configuration

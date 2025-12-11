@@ -16,7 +16,18 @@ export class WebSocketService {
   private messageSubject = new Subject<WebSocketMessage>();
   public messages$ = this.messageSubject.asObservable();
 
-  connect(host: string): void {
+  connect(host?: string): void {
+    // Se não fornecido, usar o host atual
+    if (!host) {
+      host = window.location.host;
+      // Se não for localhost, usar apenas o IP (sem porta do Angular)
+      if (!host.includes('localhost') && !host.includes('127.0.0.1')) {
+        const ip = host.split(':')[0];
+        host = `${ip}:3001`; // Porta do backend
+      } else {
+        host = `${host.split(':')[0]}:3001`; // Porta do backend
+      }
+    }
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${host}/ws/sync`;
 
@@ -47,7 +58,7 @@ export class WebSocketService {
       this.ws.onclose = () => {
         console.log('WebSocket disconnected');
         // Tentar reconectar após 3 segundos
-        setTimeout(() => this.connect(host), 3000);
+        setTimeout(() => this.connect(), 3000);
       };
     } catch (error) {
       console.error('Error connecting WebSocket:', error);

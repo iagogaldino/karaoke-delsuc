@@ -11,14 +11,13 @@ import { MatCardModule } from '@angular/material/card';
   imports: [CommonModule, MatProgressSpinnerModule, MatCardModule],
   template: `
     <div class="container">
-      <mat-card>
-        <mat-card-content>
-          <div class="spinner-container">
-            <mat-spinner></mat-spinner>
-            <p>Verificando QR Code...</p>
-          </div>
-        </mat-card-content>
-      </mat-card>
+      <div class="content">
+        <div class="logo">🎤</div>
+        <div class="spinner-container">
+          <mat-spinner diameter="60"></mat-spinner>
+          <p>Verificando QR Code...</p>
+        </div>
+      </div>
     </div>
   `,
   styles: [`
@@ -28,22 +27,43 @@ import { MatCardModule } from '@angular/material/card';
       justify-content: center;
       min-height: 100vh;
       padding: 20px;
+      background: var(--spotify-black);
     }
-    mat-card {
+
+    .content {
+      text-align: center;
       max-width: 400px;
       width: 100%;
-      background: rgba(255, 255, 255, 0.05);
     }
+
+    .logo {
+      font-size: 80px;
+      margin-bottom: 40px;
+      animation: float 3s ease-in-out infinite;
+      filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
     .spinner-container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 20px;
-      padding: 40px;
+      gap: 24px;
     }
+
     p {
-      color: rgba(255, 255, 255, 0.7);
+      color: rgba(255, 255, 255, 0.9);
       margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    ::ng-deep .mat-mdc-progress-spinner circle {
+      stroke: white !important;
     }
   `]
 })
