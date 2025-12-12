@@ -11,9 +11,10 @@ interface LyricsDisplayProps {
   capturedText?: string; // Texto capturado em tempo real durante a gravação
   isRecording?: boolean; // Indica se está gravando
   allowEdit?: boolean; // Permite edição de letras (padrão: true)
+  showUpcomingLines?: boolean; // Mostra as próximas linhas destacadas (modo apresentação)
 }
 
-export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpdate, capturedText = '', isRecording = false, allowEdit = true }: LyricsDisplayProps) {
+export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpdate, capturedText = '', isRecording = false, allowEdit = true, showUpcomingLines = false }: LyricsDisplayProps) {
   const [activeIndex, setActiveIndex] = useState(-1);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState('');
@@ -31,6 +32,7 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
   const activeRef = useRef<HTMLDivElement>(null);
   const editInputRef = useRef<HTMLInputElement>(null);
   const newLineTextRef = useRef<HTMLInputElement>(null);
+  const activeTextRef = useRef<HTMLSpanElement>(null);
 
   // Atualizar letras locais quando props mudarem
   useEffect(() => {
@@ -54,6 +56,30 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
       setActiveIndex(newActiveIndex);
     }
   }, [currentTime, lyrics, activeIndex]);
+
+  // Ajustar tamanho da fonte da linha ativa para caber em uma linha
+  useEffect(() => {
+    if (activeRef.current && activeTextRef.current && activeIndex >= 0 && editingIndex === null) {
+      const activeElement = activeRef.current;
+      const textElement = activeTextRef.current;
+      
+      // Resetar tamanho da fonte
+      textElement.style.fontSize = '';
+      
+      // Aguardar próximo frame para medir
+      requestAnimationFrame(() => {
+        const containerWidth = activeElement.offsetWidth - 120; // Margem para padding e timestamp
+        const textWidth = textElement.scrollWidth;
+        
+        if (textWidth > containerWidth && containerWidth > 0) {
+          const baseFontSize = 1.4; // 1.4rem
+          const ratio = containerWidth / textWidth;
+          const newFontSize = Math.max(0.8, baseFontSize * ratio * 0.95); // Mínimo 0.8rem
+          textElement.style.fontSize = `${newFontSize}rem`;
+        }
+      });
+    }
+  }, [activeIndex, editingIndex, localLyrics]);
 
   // Scroll automático para linha ativa
   useEffect(() => {
@@ -602,12 +628,17 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
           const isPast = index < activeIndex;
           const isFuture = index > activeIndex;
           const isEditing = editingIndex === index;
+          
+          // Calcular se é uma das próximas linhas (modo apresentação)
+          const upcomingOffset = index - activeIndex;
+          const isUpcoming = showUpcomingLines && !allowEdit && activeIndex >= 0 && upcomingOffset > 0 && upcomingOffset <= 3;
+          const upcomingClass = isUpcoming ? `upcoming upcoming-${Math.min(upcomingOffset, 3)}` : '';
 
           return (
             <div
               key={index}
               ref={isActive ? activeRef : null}
-              className={`lyric-line ${isActive ? 'active' : ''} ${isPast ? 'past' : ''} ${isFuture ? 'future' : ''} ${isEditing ? 'editing' : ''}`}
+              className={`lyric-line ${isActive ? 'active' : ''} ${isPast ? 'past' : ''} ${isFuture ? 'future' : ''} ${isEditing ? 'editing' : ''} ${upcomingClass}`}
             >
               {isEditing && allowEdit ? (
                 <div className="lyric-edit-container">
@@ -670,7 +701,10 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
                 <>
                   <div className="lyric-content">
                     {allowEdit && <span className="lyric-timestamp">{formatTime(lyric.time)}</span>}
-                    <span className="lyric-text">
+                    <span 
+                      className="lyric-text"
+                      ref={isActive ? activeTextRef : null}
+                    >
                       {isActive && isRecording && capturedText ? (
                         // Modo jogador: destacar palavras acertadas
                         highlightWords(lyric.text, capturedText)

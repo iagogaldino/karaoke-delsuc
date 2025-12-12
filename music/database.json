@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-12T20:44:14.977Z",
+  "lastUpdated": "2025-12-12T20:55:40.570Z",
   "songs": [
     {
       "id": "miunnkaj-c6z8aq",
@@ -359,7 +359,8 @@
       },
       "category": "cat-rock-001",
       "band": "band-1765385326587-6yup2hc7z",
-      "audioMode": "both"
+      "audioMode": "both",
+      "generateLRCAfterRecording": false
     },
     {
       "id": "mj04o5gz-255so2",

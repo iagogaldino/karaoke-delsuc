@@ -497,6 +497,7 @@ export default function KaraokeView({
           currentTime={currentTime}
           songId={songId}
           allowEdit={false}
+          showUpcomingLines={true}
           onLyricsUpdate={(updatedLyrics) => {
             setLyrics(updatedLyrics);
           }}
