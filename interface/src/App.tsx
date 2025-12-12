@@ -9,6 +9,7 @@ import SongTree from './components/SongTree.js';
 import AudioRecorder from './components/AudioRecorder';
 import LRCComparison from './components/LRCComparison';
 import RecordingTest from './components/RecordingTest';
+import ResultsScreen from './components/ResultsScreen';
 import { useSyncWebSocket } from './hooks/useSyncWebSocket';
 import { useAlert } from './hooks/useAlert';
 import { useAudioRecorder } from './hooks/useAudioRecorder';
@@ -17,7 +18,10 @@ import { lyricsService } from './services/lyricsService.js';
 import { processingService } from './services/processingService.js';
 import { bandsService } from './services/bandsService.js';
 import { categoriesService } from './services/categoriesService.js';
-import { Song, AudioMode, Band, Category } from './types/index.js';
+import { recordingService } from './services/recordingService.js';
+import { scoresService } from './services/scoresService.js';
+import { Song, AudioMode, Band, Category, LyricsLine, PlayerScore } from './types/index.js';
+import { alignLRCLinesByTextOnly, calculateScoreFromLRCAlignment } from './utils/textUtils.js';
 import './App.css';
 
 function App() {
@@ -41,6 +45,9 @@ function App() {
   const [lrcRefreshKey, setLrcRefreshKey] = useState(0);
   const [showRecordingTest, setShowRecordingTest] = useState(false);
   const [songDuration, setSongDuration] = useState<number>(0);
+  const [finalScore, setFinalScore] = useState<{ score: PlayerScore; maxPoints: number; userName?: string; userPhoto?: string } | null>(null);
+  const [isCalculatingScore, setIsCalculatingScore] = useState(false);
+  const [recordingIdForScore, setRecordingIdForScore] = useState<string | null>(null);
   const { currentTime, isPlaying, play, pause, seek } = useSyncWebSocket();
   const { alert, confirm, AlertComponent, ConfirmComponent } = useAlert();
   const { uploadRecording, generateLRC, error: recordingError, isUploading, isProcessing } = useAudioRecorder();
@@ -420,6 +427,64 @@ function App() {
     }
   }, [currentTime, songDuration, isPlaying, pause, seek]);
 
+  // Função helper para parse LRC (mesma do LRCComparison)
+  const parseLRC = useCallback((lrcContent: string): LyricsLine[] => {
+    const lines: LyricsLine[] = [];
+    const lrcLines = lrcContent.split('\n');
+
+    for (const line of lrcLines) {
+      // Formato LRC: [mm:ss.xx]texto
+      const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2})\](.*)/);
+      if (match) {
+        const minutes = parseInt(match[1], 10);
+        const seconds = parseInt(match[2], 10);
+        const centiseconds = parseInt(match[3], 10);
+        const time = minutes * 60 + seconds + centiseconds / 100;
+        const text = match[4].trim();
+
+        if (text) {
+          lines.push({ time, text });
+        }
+      }
+    }
+
+    return lines.sort((a, b) => a.time - b.time);
+  }, []);
+
+  // Função para calcular pontuação do LRC gravado (mesma forma que LRCComparison)
+  const calculateScoreFromRecordedLRC = useCallback(async (
+    songId: string,
+    recordingId?: string
+  ): Promise<{ results: Array<{ lyric: string; score: number; percentage: number; totalWords: number }>; totalScore: number } | null> => {
+    try {
+      // O backend agora aguarda o LRC ser criado antes de retornar sucesso,
+      // então não precisamos mais fazer retry aqui
+      const recordedLRCContent = await recordingService.getRecordingLRC(songId, recordingId);
+
+      // Carregar letras originais
+      const originalLyricsData = await lyricsService.getJson(songId);
+
+      const recordedLyrics = parseLRC(recordedLRCContent);
+      const originalLyrics = originalLyricsData.lyrics || [];
+
+      if (originalLyrics.length === 0 || recordedLyrics.length === 0) {
+        console.warn('⚠️ Não há letras originais ou gravadas para comparar');
+        return null;
+      }
+
+      // Usar alinhamento apenas por texto (mesma forma que LRCComparison)
+      const alignments = alignLRCLinesByTextOnly(originalLyrics, recordedLyrics, 0.3);
+
+      // Calcular pontuação
+      const scoreResult = calculateScoreFromLRCAlignment(alignments);
+
+      return scoreResult;
+    } catch (error: any) {
+      console.error('❌ Erro ao calcular pontuação do LRC:', error);
+      return null;
+    }
+  }, [parseLRC]);
+
   // Handler para quando gravação for completada
   const handleRecordingComplete = useCallback(async (audioBlob: Blob, startTime: number) => {
     if (!selectedSong) {
@@ -452,16 +517,88 @@ function App() {
       
       if (lrcPath) {
         console.log('✅ LRC gerado com sucesso:', lrcPath);
-        // Forçar recarregamento do LRCComparison
-        setLrcRefreshKey(prev => prev + 1);
-        // Aguardar um pouco para garantir que o arquivo foi salvo
-        await new Promise(resolve => setTimeout(resolve, 500));
-        // Mostrar comparação
-        setShowLRCComparison(true);
-        await alert('Gravação processada! Comparação de letras disponível.', {
-          type: 'success',
-          title: 'Sucesso'
-        });
+        
+        // Guardar recordingId para calcular pontuação depois
+        setRecordingIdForScore(recordingId);
+        
+        // O backend agora aguarda o LRC ser criado antes de retornar sucesso,
+        // então não precisamos mais aguardar aqui
+        
+        // Se estiver no modo presentation, calcular pontuação e mostrar resultados
+        // Se estiver no modo config, apenas mostrar comparação
+        if (viewMode === 'presentation') {
+          // Redirecionar imediatamente para resultados com loading
+          setIsCalculatingScore(true);
+          setFinalScore({
+            score: { total: 0, average: 0, count: 0, points: 0 },
+            maxPoints: 0
+          });
+          setViewMode('results');
+          
+          // Calcular pontuação em background
+          try {
+            const scoreResult = await calculateScoreFromRecordedLRC(selectedSong, recordingId);
+            
+            if (scoreResult) {
+              // Calcular maxPossiblePoints (total de palavras * 100)
+              const maxPossiblePoints = scoreResult.results.reduce((sum, r) => sum + r.totalWords * 100, 0);
+              
+              // Gerar sessionId único (ou usar algum ID do usuário se disponível)
+              const sessionId = Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9);
+              
+              // Salvar pontuação
+              console.log('💾 Salvando pontuação...');
+              const savedScore = await scoresService.saveScore(
+                selectedSong,
+                scoreResult.results,
+                maxPossiblePoints,
+                sessionId
+              );
+              
+              // Converter para PlayerScore
+              const playerScore: PlayerScore = savedScore.score;
+              
+              console.log('✅ Pontuação salva:', {
+                pontos: playerScore.points,
+                maxPontos: maxPossiblePoints,
+                porcentagem: maxPossiblePoints > 0 ? Math.round((playerScore.points / maxPossiblePoints) * 100) : 0
+              });
+              
+              // Atualizar pontuação final e parar loading
+              setFinalScore({
+                score: playerScore,
+                maxPoints: maxPossiblePoints
+              });
+              setIsCalculatingScore(false);
+            } else {
+              // Se não conseguiu calcular, voltar para home
+              setIsCalculatingScore(false);
+              setViewMode('home');
+              setFinalScore(null);
+              await alert('Não foi possível calcular a pontuação. Comparação de letras disponível na tela de configuração.', {
+                type: 'warning',
+                title: 'Aviso'
+              });
+            }
+          } catch (scoreError: any) {
+            console.error('❌ Erro ao calcular pontuação:', scoreError);
+            setIsCalculatingScore(false);
+            setViewMode('home');
+            setFinalScore(null);
+            await alert('Erro ao calcular pontuação: ' + scoreError.message, {
+              type: 'error',
+              title: 'Erro'
+            });
+          }
+        } else {
+          // Modo config: apenas mostrar comparação
+          setLrcRefreshKey(prev => prev + 1);
+          setShowLRCComparison(true);
+          await alert('Gravação processada! Comparação de letras disponível.', {
+            type: 'success',
+            title: 'Sucesso'
+          });
+        }
       } else {
         console.error('❌ Geração de LRC falhou: lrcPath é null');
         await alert('Gravação salva, mas houve erro ao gerar o LRC. Verifique o console do backend.', {
@@ -471,12 +608,13 @@ function App() {
       }
     } catch (error: any) {
       console.error('❌ Erro ao processar gravação:', error);
+      setIsCalculatingScore(false);
       await alert('Erro ao processar gravação: ' + error.message, {
         type: 'error',
         title: 'Erro'
       });
     }
-  }, [selectedSong, uploadRecording, generateLRC, alert]);
+  }, [selectedSong, uploadRecording, generateLRC, alert, calculateScoreFromRecordedLRC, viewMode]);
 
   // Se estiver no modo de resultados, mostrar a tela de resultados
   if (viewMode === 'results' && finalScore) {
@@ -486,10 +624,13 @@ function App() {
         maxPossiblePoints={finalScore.maxPoints}
         userName={finalScore.userName}
         userPhoto={finalScore.userPhoto}
+        isLoading={isCalculatingScore}
         onBack={() => {
           setViewMode('home');
           setFinalScore(null);
           setSelectedSong(null);
+          setIsCalculatingScore(false);
+          setRecordingIdForScore(null);
         }}
       />
     );

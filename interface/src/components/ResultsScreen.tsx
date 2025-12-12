@@ -8,7 +8,13 @@ interface ResultsScreenProps {
   maxPossiblePoints: number;
   userName?: string;
   userPhoto?: string;
+  isLoading?: boolean;
   onBack: () => void;
+}
+
+// Função de easing easeOutCubic
+function easeOutCubic(t: number): number {
+  return 1 - Math.pow(1 - t, 3);
 }
 
 export default function ResultsScreen({
@@ -16,12 +22,63 @@ export default function ResultsScreen({
   maxPossiblePoints,
   userName,
   userPhoto,
+  isLoading = false,
   onBack
 }: ResultsScreenProps) {
   const [timeRemaining, setTimeRemaining] = useState(60); // 60 segundos = 1 minuto
+  const [animatedScore, setAnimatedScore] = useState(0);
+  const [animatedPercentage, setAnimatedPercentage] = useState(0);
 
-  // Redirecionamento automático após 1 minuto
+  const percentage = maxPossiblePoints > 0 
+    ? Math.round((score.points / maxPossiblePoints) * 100) 
+    : 0;
+
+  // Animar pontuação quando não estiver carregando e houver pontuação
   useEffect(() => {
+    if (!isLoading && score.points > 0) {
+      // Resetar para começar animação do zero apenas uma vez
+      if (animatedScore === 0 && animatedPercentage === 0) {
+        const duration = 2500; // 2.5 segundos
+        const startTime = Date.now();
+        const startScore = 0;
+        const endScore = score.points;
+        const startPercentage = 0;
+        const endPercentage = percentage;
+
+        const animate = () => {
+          const now = Date.now();
+          const elapsed = now - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          
+          const easedProgress = easeOutCubic(progress);
+          
+          const currentScore = Math.round(startScore + (endScore - startScore) * easedProgress);
+          const currentPercentage = Math.round(startPercentage + (endPercentage - startPercentage) * easedProgress);
+          
+          setAnimatedScore(currentScore);
+          setAnimatedPercentage(currentPercentage);
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            // Garantir valores finais
+            setAnimatedScore(endScore);
+            setAnimatedPercentage(endPercentage);
+          }
+        };
+
+        // Pequeno delay antes de começar animação
+        setTimeout(() => {
+          requestAnimationFrame(animate);
+        }, 300);
+      }
+    }
+  }, [isLoading, score.points, percentage, animatedScore, animatedPercentage]);
+
+  // Redirecionamento automático após 1 minuto (apenas quando não estiver carregando)
+  useEffect(() => {
+    if (isLoading) return; // Não iniciar timer se ainda estiver carregando
+
     const timer = setInterval(() => {
       setTimeRemaining((prev) => {
         if (prev <= 1) {
@@ -36,19 +93,17 @@ export default function ResultsScreen({
     return () => {
       clearInterval(timer);
     };
-  }, [onBack]);
-  const percentage = maxPossiblePoints > 0 
-    ? Math.round((score.points / maxPossiblePoints) * 100) 
-    : 0;
+  }, [onBack, isLoading]);
 
   const getMessage = () => {
-    if (percentage >= 90) {
+    const currentPercentage = isLoading ? 0 : animatedPercentage;
+    if (currentPercentage >= 90) {
       return '🎉 Excelente! Você foi incrível!';
-    } else if (percentage >= 70) {
+    } else if (currentPercentage >= 70) {
       return '👏 Muito bom! Continue praticando!';
-    } else if (percentage >= 50) {
+    } else if (currentPercentage >= 50) {
       return '👍 Bom trabalho! Você está melhorando!';
-    } else if (percentage >= 30) {
+    } else if (currentPercentage >= 30) {
       return '💪 Continue tentando! Você consegue!';
     } else {
       return '🎵 Boa tentativa! Pratique mais!';
@@ -56,20 +111,43 @@ export default function ResultsScreen({
   };
 
   const getEmoji = () => {
-    if (percentage >= 90) return '🏆';
-    if (percentage >= 70) return '⭐';
-    if (percentage >= 50) return '👍';
-    if (percentage >= 30) return '💪';
+    const currentPercentage = isLoading ? 0 : animatedPercentage;
+    if (currentPercentage >= 90) return '🏆';
+    if (currentPercentage >= 70) return '⭐';
+    if (currentPercentage >= 50) return '👍';
+    if (currentPercentage >= 30) return '💪';
     return '🎵';
   };
 
   const getTitleColor = () => {
-    if (percentage >= 90) return '#4ade80';
-    if (percentage >= 70) return '#60a5fa';
-    if (percentage >= 50) return '#fbbf24';
-    if (percentage >= 30) return '#f97316';
+    const currentPercentage = isLoading ? 0 : animatedPercentage;
+    if (currentPercentage >= 90) return '#4ade80';
+    if (currentPercentage >= 70) return '#60a5fa';
+    if (currentPercentage >= 50) return '#fbbf24';
+    if (currentPercentage >= 30) return '#f97316';
     return '#ef4444';
   };
+
+  // Se estiver carregando, mostrar tela de loading
+  if (isLoading) {
+    return (
+      <div className="results-screen">
+        <div className="results-spotlights">
+          <div className="results-spotlight results-spotlight-1"></div>
+          <div className="results-spotlight results-spotlight-2"></div>
+          <div className="results-spotlight results-spotlight-3"></div>
+        </div>
+        
+        <div className="results-container">
+          <div className="results-loading">
+            <div className="results-loading-spinner"></div>
+            <h2 className="results-loading-text">Calculando pontuação...</h2>
+            <p className="results-loading-subtext">Aguarde enquanto analisamos sua performance</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="results-screen">
@@ -135,11 +213,11 @@ export default function ResultsScreen({
             <div className="results-main-score">
               <div className="main-score-label">Pontuação Total</div>
               <div className="main-score-value" style={{ color: getTitleColor() }}>
-                {formatNumber(score.points)}
+                {formatNumber(animatedScore)}
                 <span className="main-score-max"> / {formatNumber(maxPossiblePoints)}</span>
               </div>
               <div className="main-score-percentage" style={{ color: getTitleColor() }}>
-                {percentage}%
+                {animatedPercentage}%
               </div>
             </div>
 

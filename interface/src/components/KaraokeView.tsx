@@ -5,10 +5,9 @@ import AudioPlayer from './AudioPlayer';
 import SongSelectorModal from './SongSelectorModal';
 import MusicAnimation from './MusicAnimation';
 import StageLights from './StageLights';
-import { AudioMode, SpeechRecognition, SpeechRecognitionEvent, LyricsLine, WordMatchResult, LyricResult, SyncMessage } from '../types/index.js';
+import { AudioMode, LyricsLine, SyncMessage } from '../types/index.js';
 import { songsService } from '../services/songsService.js';
 import { lyricsService } from '../services/lyricsService.js';
-import { normalizeText, countCorrectWords } from '../utils/textUtils.js';
 import { formatNumber, formatTime } from '../utils/formatters.js';
 import { WEBSOCKET_CONFIG, API_CONFIG } from '../config/index.js';
 import './KaraokeView.css';
@@ -38,21 +37,8 @@ export default function KaraokeView({
   const videoRef = useRef<HTMLVideoElement>(null);
   const { currentTime, isPlaying, play, pause, seek } = useSyncWebSocket();
   
-  // Estados para captura de áudio
-  const [isRecording, setIsRecording] = useState(false);
-  const [recordedText, setRecordedText] = useState<string>('');
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioStreamRef = useRef<MediaStream | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const isRecordingRef = useRef<boolean>(false);
-  const fullTranscriptRef = useRef<string>('');
-  const previousActiveIndexRef = useRef<number>(-1);
-  const previousLyricTextRef = useRef<string>('');
-  const resultsHistoryRef = useRef<LyricResult[]>([]);
   const [countdown, setCountdown] = useState<number | null>(null);
   const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const sessionIdRef = useRef<string>(Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9));
   const [songDuration, setSongDuration] = useState<number>(0);
   const hasShownGameOverRef = useRef<boolean>(false);
   const wsRef = useRef<WebSocket | null>(null);
@@ -166,25 +152,33 @@ export default function KaraokeView({
   }, [lyrics, songId]);
   
 
-  // Limitar currentTime para não ultrapassar a duração
+  // Detectar fim da música e notificar App.tsx para calcular pontuação
   useEffect(() => {
-    if (songDuration > 0 && currentTime > songDuration && isPlaying) {
-      // Se o tempo ultrapassou a duração, fazer seek para a duração e pausar
-      seek(songDuration);
-      pause();
-    }
-  }, [currentTime, songDuration, isPlaying, seek, pause]);
-
-  // Detectar fim da música e redirecionar para tela de resultados
-  useEffect(() => {
-    if (songDuration > 0 && currentTime >= songDuration - 0.5 && !hasShownGameOverRef.current && isPlaying) {
-      // Música terminou
-      hasShownGameOverRef.current = true;
+    if (songDuration > 0 && isPlaying && !hasShownGameOverRef.current) {
+      // Usar tolerância muito pequena (0.05s) para detectar quando está praticamente no fim
+      // Ou se o tempo ultrapassou a duração por mais de 0.1s (para dar margem para pequenas imprecisões)
+      const tolerance = 0.05; // 50ms de tolerância
+      const isVeryNearEnd = currentTime >= songDuration - tolerance;
+      const hasSignificantlyPassedDuration = currentTime >= songDuration + 0.1;
       
-      // Parar música (a gravação será parada automaticamente pelo AudioRecorder)
-      pause();
+      // Só marcar como terminado se estiver muito próximo do fim ou se passou significativamente
+      if (isVeryNearEnd || hasSignificantlyPassedDuration) {
+        // Música terminou
+        hasShownGameOverRef.current = true;
+        
+        // Se passou da duração, fazer seek para o fim exato para garantir que a barra de progresso mostre 100%
+        if (currentTime > songDuration) {
+          seek(songDuration);
+        }
+        
+        // Pequeno delay para garantir que o seek foi processado
+        setTimeout(() => {
+          // Parar música (a gravação será parada automaticamente pelo AudioRecorder)
+          pause();
+        }, 50);
+      }
     }
-  }, [currentTime, songDuration, isPlaying, isRecording, pause]);
+  }, [currentTime, songDuration, isPlaying, pause, seek]);
 
   // Sincronizar vídeo com o áudio
   useEffect(() => {
@@ -245,59 +239,6 @@ export default function KaraokeView({
     return null;
   };
 
-  // Detectar mudança de trecho e analisar automaticamente
-  useEffect(() => {
-    const handleUpdate = async () => {
-      if (!isRecording || lyrics.length === 0) {
-        previousActiveIndexRef.current = -1;
-        return;
-      }
-
-      const activeLyricData = getActiveLyric();
-      const currentActiveIndex = activeLyricData ? activeLyricData.index : -1;
-      const previousActiveIndex = previousActiveIndexRef.current;
-
-      // Se o trecho mudou e havia um trecho anterior
-      if (previousActiveIndex >= 0 && currentActiveIndex !== previousActiveIndex) {
-        const previousLyricText = previousLyricTextRef.current;
-        const currentCapturedText = fullTranscriptRef.current.trim() || recordedText;
-
-        // Se havia texto capturado do trecho anterior, analisar
-        if (currentCapturedText && previousLyricText) {
-          const result = countCorrectWords(previousLyricText, currentCapturedText);
-          
-          // Contar palavras totais no trecho
-          const totalWords = normalizeText(previousLyricText).split(/\s+/).filter(w => w.length > 0).length;
-          
-          // Adicionar ao histórico de resultados
-          const newResult: LyricResult = {
-            lyric: previousLyricText,
-            score: result.correct,
-            percentage: result.percentage,
-            totalWords: totalWords
-          };
-          
-          resultsHistoryRef.current.push(newResult);
-
-
-          // Limpar o texto capturado para o novo trecho
-          fullTranscriptRef.current = '';
-          setRecordedText('');
-        }
-      }
-
-      // Atualizar referências para o próximo ciclo
-      if (activeLyricData) {
-        previousActiveIndexRef.current = activeLyricData.index;
-        previousLyricTextRef.current = activeLyricData.lyric.text;
-      } else {
-        previousActiveIndexRef.current = -1;
-        previousLyricTextRef.current = '';
-      }
-    };
-    
-    handleUpdate();
-  }, [currentTime, lyrics, isRecording, recordedText, songId]);
 
   // Função para avançar para o próximo trecho
   const goToNextLyric = () => {
@@ -364,100 +305,6 @@ export default function KaraokeView({
   };
 
 
-  // countCorrectWords is now imported from utils
-
-  // Iniciar captura de áudio (desabilitado - usando AudioRecorder do App.tsx)
-  const startRecording = async () => {
-    // A gravação é feita automaticamente pelo AudioRecorder quando a música toca
-    // Esta função está desabilitada para evitar conflito de acesso ao microfone
-    console.log('Gravação automática gerenciada pelo AudioRecorder');
-  };
-
-  // Parar captura de áudio e analisar
-  const stopRecording = async () => {
-    setIsRecording(false);
-    isRecordingRef.current = false;
-    
-    // Parar MediaRecorder
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-      mediaRecorderRef.current.stop();
-    }
-    
-    // Parar reconhecimento de voz
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch (err) {
-        // Erro silencioso
-      }
-      recognitionRef.current = null;
-    }
-    
-    // Parar stream de áudio
-    if (audioStreamRef.current) {
-      audioStreamRef.current.getTracks().forEach(track => {
-        track.stop();
-      });
-      audioStreamRef.current = null;
-    }
-    
-    // Aguardar um pouco para garantir que o texto foi processado
-    // Usar o texto completo da ref
-    setTimeout(async () => {
-      const finalText = fullTranscriptRef.current.trim() || recordedText;
-      await analyzeRecording(finalText);
-    }, 500);
-  };
-
-  // Analisar gravação (usado quando para manualmente)
-  const analyzeRecording = async (capturedText: string) => {
-    const activeLyricData = getActiveLyric();
-    
-    if (!activeLyricData) {
-      alert('Nenhuma letra ativa no momento. Selecione uma música e aguarde o trecho.');
-      return;
-    }
-    
-    const activeLyric = activeLyricData.lyric;
-    
-    if (!capturedText || capturedText.trim() === '') {
-      return;
-    }
-    
-    const result = countCorrectWords(activeLyric.text, capturedText);
-    
-    // Contar palavras totais no trecho
-    const totalWords = normalizeText(activeLyric.text).split(/\s+/).filter(w => w.length > 0).length;
-    
-    // Adicionar ao histórico
-    const newResult: LyricResult = {
-      lyric: activeLyric.text,
-      score: result.correct,
-      percentage: result.percentage,
-      totalWords: totalWords
-    };
-    
-    resultsHistoryRef.current.push(newResult);
-    
-    
-    // Mostrar resumo de todos os trechos analisados
-    const historySummary = resultsHistoryRef.current
-      .map((r, idx) => `${idx + 1}. ${r.percentage}% (${r.score} palavras)`)
-      .join('\n');
-    
-    alert(
-      `Análise do trecho:\n\n` +
-      `Trecho esperado: "${activeLyric.text}"\n` +
-      `Texto capturado: "${capturedText}"\n\n` +
-      `Palavras acertadas: ${result.correct} de ${result.total}\n` +
-      `Porcentagem: ${result.percentage}%\n\n` +
-      (resultsHistoryRef.current.length > 1 ? `Histórico:\n${historySummary}` : '')
-    );
-    
-    // Limpar texto capturado
-    setRecordedText('');
-    fullTranscriptRef.current = '';
-  };
 
   // Função para iniciar reprodução com contagem regressiva
   const handlePlayWithCountdown = async () => {
@@ -495,12 +342,7 @@ export default function KaraokeView({
       setCountdown(null);
     }
     
-    // Parar captura se estiver gravando
-    if (isRecording) {
-      await stopRecording();
-    }
-    
-    // Pausar música
+    // Pausar música (a gravação é gerenciada pelo AudioRecorder)
     pause();
   };
 
@@ -509,16 +351,6 @@ export default function KaraokeView({
     return () => {
       if (countdownIntervalRef.current) {
         clearInterval(countdownIntervalRef.current);
-      }
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch (err) {
-          // Erro silencioso
-        }
-      }
-      if (audioStreamRef.current) {
-        audioStreamRef.current.getTracks().forEach(track => track.stop());
       }
     };
   }, []);
@@ -666,8 +498,6 @@ export default function KaraokeView({
           lyrics={lyrics}
           currentTime={currentTime}
           songId={songId}
-          capturedText={recordedText}
-          isRecording={isRecording}
           allowEdit={false}
           onLyricsUpdate={(updatedLyrics) => {
             setLyrics(updatedLyrics);

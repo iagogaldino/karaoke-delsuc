@@ -472,73 +472,103 @@ export const generateLRC = asyncHandler(async (req: Request, res: Response) => {
       console.error(`❌ Erro ao executar LRC Generator:`, execError);
       console.error(`❌ STDOUT:`, execError.stdout || 'N/A');
       console.error(`❌ STDERR:`, execError.stderr || 'N/A');
-      throw execError;
+      
+      // Retornar erro detalhado ao invés de lançar exceção
+      const errorMessage = execError.stderr || execError.message || 'Erro desconhecido ao executar LRC Generator';
+      return res.status(500).json({ 
+        success: false,
+        error: `Falha ao executar LRC Generator: ${errorMessage}`,
+        details: {
+          stdout: execError.stdout || null,
+          stderr: execError.stderr || null,
+          command: command
+        }
+      });
     }
 
-    // Aguardar um pouco para garantir que o arquivo foi escrito
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    // Procurar arquivo LRC gerado no diretório de gravações
+    // Aguardar o arquivo LRC ser criado (polling)
+    console.log(`⏳ Aguardando arquivo LRC ser criado...`);
     const fs = await import('fs/promises');
-    let files: string[];
-    try {
-      files = await fs.readdir(recordingsDir);
-      console.log(`📁 Todos os arquivos no diretório de gravações:`, files);
-    } catch (dirError: any) {
-      console.error(`❌ Erro ao listar arquivos do diretório:`, dirError);
-      throw new Error(`Não foi possível acessar o diretório de gravações: ${recordingsDir}`);
+    const maxWaitTime = 60000; // 60 segundos máximo
+    const checkInterval = 500; // Verificar a cada 500ms
+    const startTime = Date.now();
+    let lrcFile: string | null = null;
+    
+    while (Date.now() - startTime < maxWaitTime) {
+      try {
+        const files = await fs.readdir(recordingsDir);
+        
+        // Procurar qualquer arquivo .lrc
+        const allLrcFiles = files.filter(f => f.toLowerCase().endsWith('.lrc'));
+        
+        if (allLrcFiles.length > 0) {
+          // O LRCGenerator pode gerar com diferentes nomes dependendo do nome do áudio
+          // Procurar por: recording-lyrics.lrc, lyrics.lrc, ou qualquer outro .lrc
+          // IMPORTANTE: Priorizar recording-lyrics.lrc, mas aceitar lyrics.lrc também
+          lrcFile = allLrcFiles.find(f => f === 'recording-lyrics.lrc') || null;
+          if (!lrcFile) {
+            lrcFile = allLrcFiles.find(f => f === 'lyrics.lrc') || null;
+          }
+          if (!lrcFile && allLrcFiles.length > 0) {
+            // Pegar o arquivo .lrc mais recente (por timestamp no nome ou data de modificação)
+            lrcFile = allLrcFiles[0];
+          }
+          
+          if (lrcFile) {
+            console.log(`✅ Arquivo LRC encontrado: ${lrcFile}`);
+            break;
+          }
+        }
+      } catch (dirError: any) {
+        console.warn(`⚠️ Erro ao listar arquivos do diretório (tentativa):`, dirError.message);
+      }
+      
+      // Aguardar antes da próxima verificação
+      await new Promise(resolve => setTimeout(resolve, checkInterval));
     }
     
-    // Procurar qualquer arquivo .lrc
-    const allLrcFiles = files.filter(f => f.toLowerCase().endsWith('.lrc'));
-    console.log(`📝 Arquivos .lrc encontrados:`, allLrcFiles);
-    
-    // O LRCGenerator pode gerar com diferentes nomes dependendo do nome do áudio
-    // Procurar por: recording-lyrics.lrc, lyrics.lrc, ou qualquer outro .lrc
-    // IMPORTANTE: Priorizar recording-lyrics.lrc, mas aceitar lyrics.lrc também
-    let lrcFile = allLrcFiles.find(f => f === 'recording-lyrics.lrc');
     if (!lrcFile) {
-      lrcFile = allLrcFiles.find(f => f === 'lyrics.lrc');
-    }
-    if (!lrcFile && allLrcFiles.length > 0) {
-      // Pegar o arquivo .lrc mais recente (por timestamp no nome ou data de modificação)
-      lrcFile = allLrcFiles[0];
+      console.error(`❌ Arquivo LRC não foi criado após ${maxWaitTime / 1000}s de espera`);
+      return res.status(500).json({ 
+        success: false,
+        error: 'LRC não foi gerado dentro do tempo esperado. Verifique os logs do LRC Generator acima e certifique-se de que a OPENAI_API_KEY está configurada no arquivo .env do lrc-generator.' 
+      });
     }
 
     // Se encontrou um arquivo LRC, garantir que está com o nome correto
-    if (lrcFile) {
-      const generatedLrcPath = join(recordingsDir, lrcFile);
-      
-      if (lrcFile !== 'recording-lyrics.lrc') {
-        console.log(`📝 Arquivo LRC encontrado: ${lrcFile}, renomeando para recording-lyrics.lrc`);
-        // Verificar se o arquivo existe antes de renomear
-        if (existsSync(generatedLrcPath)) {
-          // Se o arquivo de destino já existe, removê-lo primeiro
-          if (existsSync(outputLrcPath)) {
-            await fs.unlink(outputLrcPath);
-            console.log(`🗑️ Arquivo recording-lyrics.lrc antigo removido`);
-          }
-          await fs.rename(generatedLrcPath, outputLrcPath);
-          console.log(`✅ Arquivo renomeado com sucesso de ${lrcFile} para recording-lyrics.lrc`);
-        } else {
-          console.warn(`⚠️ Arquivo ${lrcFile} não existe mais`);
+    const generatedLrcPath = join(recordingsDir, lrcFile);
+    
+    if (lrcFile !== 'recording-lyrics.lrc') {
+      console.log(`📝 Arquivo LRC encontrado: ${lrcFile}, renomeando para recording-lyrics.lrc`);
+      // Verificar se o arquivo existe antes de renomear
+      if (existsSync(generatedLrcPath)) {
+        // Se o arquivo de destino já existe, removê-lo primeiro
+        if (existsSync(outputLrcPath)) {
+          await fs.unlink(outputLrcPath);
+          console.log(`🗑️ Arquivo recording-lyrics.lrc antigo removido`);
         }
+        await fs.rename(generatedLrcPath, outputLrcPath);
+        console.log(`✅ Arquivo renomeado com sucesso de ${lrcFile} para recording-lyrics.lrc`);
       } else {
-        console.log(`✅ Arquivo recording-lyrics.lrc já existe e está atualizado`);
+        console.warn(`⚠️ Arquivo ${lrcFile} não existe mais`);
       }
     } else {
-      console.warn(`⚠️ Nenhum arquivo LRC encontrado no diretório de gravações`);
-      console.warn(`⚠️ Verifique se o LRC Generator foi executado corretamente`);
-      console.warn(`⚠️ Verifique se a OPENAI_API_KEY está configurada no arquivo .env do lrc-generator`);
-      console.warn(`⚠️ Verifique os logs do LRC Generator acima para mais detalhes`);
+      console.log(`✅ Arquivo recording-lyrics.lrc já existe e está atualizado`);
+    }
+    
+    // Verificar se o arquivo final existe antes de retornar sucesso
+    if (!existsSync(outputLrcPath)) {
+      console.error(`❌ Arquivo LRC final não existe: ${outputLrcPath}`);
+      return res.status(500).json({ 
+        success: false,
+        error: 'Arquivo LRC não foi criado corretamente' 
+      });
     }
 
-    // Verificar se o arquivo final existe
-    if (!existsSync(outputLrcPath)) {
-      console.error(`❌ Arquivo LRC não encontrado em: ${outputLrcPath}`);
-      console.error(`❌ Arquivos no diretório:`, files);
-      throw new Error(`Arquivo LRC não foi gerado. Verifique os logs acima e certifique-se de que a OPENAI_API_KEY está configurada no arquivo .env do lrc-generator.`);
-    }
+    console.log(`✅ Arquivo LRC confirmado e pronto em: ${outputLrcPath}`);
+    
+    // Aguardar um pouco extra para garantir que o arquivo está totalmente escrito
+    await new Promise(resolve => setTimeout(resolve, 500));
     
     // Verificar se o arquivo não está vazio
     const fileStats = await fs.stat(outputLrcPath);
@@ -584,10 +614,15 @@ export const getRecordingLRC = asyncHandler(async (req: Request, res: Response) 
   // Tentar encontrar o LRC no diretório de gravações
   let lrcPath: string;
 
-  if (recordingId) {
-    // Se houver recordingId, verificar primeiro no diretório de gravações
+  // IMPORTANTE: O generateLRC sempre salva como 'recording-lyrics.lrc', 
+  // então procuramos primeiro por esse arquivo, independente do recordingId
+  lrcPath = join(recordingsDir, 'recording-lyrics.lrc');
+  
+  // Se não existir, tentar com o nome específico do recordingId (compatibilidade com versões antigas)
+  if (!existsSync(lrcPath) && recordingId) {
     lrcPath = join(recordingsDir, `${recordingId}-lyrics.lrc`);
-    // Se não existir, verificar no diretório antigo (compatibilidade)
+    
+    // Se ainda não existir, verificar no diretório antigo (compatibilidade)
     if (!existsSync(lrcPath)) {
       const oldMusicDir = join(PATHS.MUSIC_DIR, songId);
       const oldRecordingsDir = join(oldMusicDir, 'recordings');
@@ -604,16 +639,14 @@ export const getRecordingLRC = asyncHandler(async (req: Request, res: Response) 
         }
       }
     }
-  } else {
-    // Buscar o LRC de pontuação no diretório de gravações
-    lrcPath = join(recordingsDir, 'recording-lyrics.lrc');
-    // Se não existir, verificar no diretório scoring antigo (compatibilidade)
-    if (!existsSync(lrcPath)) {
-      const oldScoringDir = join(PATHS.SCORING_DIR, songId);
-      const oldScoringLrcPath = join(oldScoringDir, 'recording-lyrics.lrc');
-      if (existsSync(oldScoringLrcPath)) {
-        lrcPath = oldScoringLrcPath;
-      }
+  }
+  
+  // Se ainda não encontrou e não tinha recordingId, verificar no diretório scoring antigo (compatibilidade)
+  if (!existsSync(lrcPath) && !recordingId) {
+    const oldScoringDir = join(PATHS.SCORING_DIR, songId);
+    const oldScoringLrcPath = join(oldScoringDir, 'recording-lyrics.lrc');
+    if (existsSync(oldScoringLrcPath)) {
+      lrcPath = oldScoringLrcPath;
     }
   }
 
