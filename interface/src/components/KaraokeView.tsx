@@ -163,19 +163,17 @@ export default function KaraokeView({
       
       // Só marcar como terminado se estiver muito próximo do fim ou se passou significativamente
       if (isVeryNearEnd || hasSignificantlyPassedDuration) {
-        // Música terminou
+        // Música terminou - marcar flag ANTES de qualquer outra ação
         hasShownGameOverRef.current = true;
         
+        // Parar música IMEDIATAMENTE (sem delay) para evitar que recomece
+        pause();
+        
         // Se passou da duração, fazer seek para o fim exato para garantir que a barra de progresso mostre 100%
+        // Mas só fazer seek se realmente passou, não se estiver apenas próximo
         if (currentTime > songDuration) {
           seek(songDuration);
         }
-        
-        // Pequeno delay para garantir que o seek foi processado
-        setTimeout(() => {
-          // Parar música (a gravação será parada automaticamente pelo AudioRecorder)
-          pause();
-        }, 50);
       }
     }
   }, [currentTime, songDuration, isPlaying, pause, seek]);

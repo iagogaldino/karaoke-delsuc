@@ -234,13 +234,12 @@ export default function AudioPlayer({
     if (!vocals || !instrumental) return;
 
     const handleEnded = () => {
-      // Se qualquer um dos áudios terminar, pausar ambos e resetar para o início
+      // Se qualquer um dos áudios terminar, apenas pausar (não resetar)
+      // O KaraokeView já trata a lógica de fim de música e redirecionamento
       if (isPlaying) {
-        console.log('🎵 Música terminou, pausando e resetando para o início...');
-        // Resetar tempo para 0
-        vocals.currentTime = 0;
-        instrumental.currentTime = 0;
-        onSeek(0);
+        console.log('🎵 Música terminou (evento ended), pausando...');
+        // Apenas pausar, não resetar para o início
+        // O reset só acontece quando o usuário reinicia manualmente
         onPause();
       }
     };

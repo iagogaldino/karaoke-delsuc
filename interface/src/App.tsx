@@ -492,25 +492,49 @@ function App() {
       return;
     }
 
+    // Verificar se está no modo presentation ANTES de processar
+    const isPresentationMode = viewMode === 'presentation';
+    
+    // Se estiver no modo presentation, redirecionar IMEDIATAMENTE para resultados com loading
+    // Processar tudo em background (upload, LRC, cálculo)
+    if (isPresentationMode) {
+      console.log('🎯 Redirecionando imediatamente para tela de resultados com loading...');
+      // Redirecionar imediatamente para resultados com loading
+      setIsCalculatingScore(true);
+      setFinalScore({
+        score: { total: 0, average: 0, count: 0, points: 0 },
+        maxPoints: 0
+      });
+      setViewMode('results');
+    }
+
+    // Processar tudo em background (upload, LRC, cálculo de pontuação)
     try {
       console.log('📤 Iniciando upload da gravação...');
       // Fazer upload da gravação
       const recordingId = await uploadRecording(audioBlob, selectedSong, startTime);
       
-      if (!recordingId) {
+        if (!recordingId) {
         console.error('❌ Upload falhou: recordingId é null');
-        await alert('Erro ao fazer upload da gravação', {
-          type: 'error',
-          title: 'Erro'
-        });
+        if (isPresentationMode) {
+          setIsCalculatingScore(false);
+          setViewMode('home');
+          setFinalScore(null);
+          await alert('Erro ao fazer upload da gravação', {
+            type: 'error',
+            title: 'Erro'
+          });
+        } else {
+          await alert('Erro ao fazer upload da gravação', {
+            type: 'error',
+            title: 'Erro'
+          });
+        }
         return;
       }
 
       console.log('✅ Upload concluído, recordingId:', recordingId);
       console.log('🔄 Iniciando geração de LRC...');
-      
-      // Aguardar um pouco para garantir que o arquivo foi salvo
-      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Gerar LRC da gravação, passando o recordingId explicitamente
       const lrcPath = await generateLRC(selectedSong, recordingId);
@@ -521,20 +545,9 @@ function App() {
         // Guardar recordingId para calcular pontuação depois
         setRecordingIdForScore(recordingId);
         
-        // O backend agora aguarda o LRC ser criado antes de retornar sucesso,
-        // então não precisamos mais aguardar aqui
-        
-        // Se estiver no modo presentation, calcular pontuação e mostrar resultados
+        // Se estiver no modo presentation, calcular pontuação e atualizar resultados
         // Se estiver no modo config, apenas mostrar comparação
-        if (viewMode === 'presentation') {
-          // Redirecionar imediatamente para resultados com loading
-          setIsCalculatingScore(true);
-          setFinalScore({
-            score: { total: 0, average: 0, count: 0, points: 0 },
-            maxPoints: 0
-          });
-          setViewMode('results');
-          
+        if (isPresentationMode) {
           // Calcular pontuação em background
           try {
             const scoreResult = await calculateScoreFromRecordedLRC(selectedSong, recordingId);
@@ -601,18 +614,37 @@ function App() {
         }
       } else {
         console.error('❌ Geração de LRC falhou: lrcPath é null');
-        await alert('Gravação salva, mas houve erro ao gerar o LRC. Verifique o console do backend.', {
-          type: 'warning',
-          title: 'Aviso'
-        });
+        if (viewMode === 'presentation') {
+          setIsCalculatingScore(false);
+          setViewMode('home');
+          setFinalScore(null);
+          await alert('Erro ao gerar o LRC. Verifique o console do backend.', {
+            type: 'warning',
+            title: 'Aviso'
+          });
+        } else {
+          await alert('Gravação salva, mas houve erro ao gerar o LRC. Verifique o console do backend.', {
+            type: 'warning',
+            title: 'Aviso'
+          });
+        }
       }
     } catch (error: any) {
       console.error('❌ Erro ao processar gravação:', error);
-      setIsCalculatingScore(false);
-      await alert('Erro ao processar gravação: ' + error.message, {
-        type: 'error',
-        title: 'Erro'
-      });
+      if (viewMode === 'presentation') {
+        setIsCalculatingScore(false);
+        setViewMode('home');
+        setFinalScore(null);
+        await alert('Erro ao processar gravação: ' + error.message, {
+          type: 'error',
+          title: 'Erro'
+        });
+      } else {
+        await alert('Erro ao processar gravação: ' + error.message, {
+          type: 'error',
+          title: 'Erro'
+        });
+      }
     }
   }, [selectedSong, uploadRecording, generateLRC, alert, calculateScoreFromRecordedLRC, viewMode]);
 
