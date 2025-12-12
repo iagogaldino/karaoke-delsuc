@@ -239,3 +239,30 @@ export function calculateScoreFromLRCAlignment(
 
   return { results, totalScore };
 }
+
+/**
+ * Parse LRC content into LyricsLine array
+ * Format: [mm:ss.xx]text
+ */
+export function parseLRC(lrcContent: string): Array<{ time: number; text: string }> {
+  const lines: Array<{ time: number; text: string }> = [];
+  const lrcLines = lrcContent.split('\n');
+
+  for (const line of lrcLines) {
+    // Formato LRC: [mm:ss.xx]texto
+    const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2})\](.*)/);
+    if (match) {
+      const minutes = parseInt(match[1], 10);
+      const seconds = parseInt(match[2], 10);
+      const centiseconds = parseInt(match[3], 10);
+      const time = minutes * 60 + seconds + centiseconds / 100;
+      const text = match[4].trim();
+
+      if (text) {
+        lines.push({ time, text });
+      }
+    }
+  }
+
+  return lines.sort((a, b) => a.time - b.time);
+}

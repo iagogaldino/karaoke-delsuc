@@ -7,6 +7,7 @@ export default function RecordingTest() {
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const [generateLRCEnabled, setGenerateLRCEnabled] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string; lrcPath?: string } | null>(null);
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -149,33 +150,41 @@ export default function RecordingTest() {
         return;
       }
 
-      setTestResult({ success: false, message: 'Gerando LRC...' });
+      // Gerar LRC apenas se o checkbox estiver marcado
+      if (generateLRCEnabled) {
+        setTestResult({ success: false, message: 'Gerando LRC...' });
 
-      // Aguardar um pouco
-      await new Promise(resolve => setTimeout(resolve, 500));
+        // Aguardar um pouco
+        await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Gerar LRC
-      const lrcPath = await generateLRC(testSongId, recordingId);
+        // Gerar LRC
+        const lrcPath = await generateLRC(testSongId, recordingId);
 
-      if (lrcPath) {
-        // Tentar ler o conteúdo do LRC
-        try {
-          const lrcContent = await recordingService.getRecordingLRC(testSongId, recordingId);
-          const lines = lrcContent.split('\n').filter(line => line.trim()).length;
-          setTestResult({
-            success: true,
-            message: `LRC gerado com sucesso! ${lines} linhas de letras encontradas.`,
-            lrcPath: lrcPath,
-          });
-        } catch (err) {
-          setTestResult({
-            success: true,
-            message: 'LRC gerado com sucesso!',
-            lrcPath: lrcPath,
-          });
+        if (lrcPath) {
+          // Tentar ler o conteúdo do LRC
+          try {
+            const lrcContent = await recordingService.getRecordingLRC(testSongId, recordingId);
+            const lines = lrcContent.split('\n').filter(line => line.trim()).length;
+            setTestResult({
+              success: true,
+              message: `LRC gerado com sucesso! ${lines} linhas de letras encontradas.`,
+              lrcPath: lrcPath,
+            });
+          } catch (err) {
+            setTestResult({
+              success: true,
+              message: 'LRC gerado com sucesso!',
+              lrcPath: lrcPath,
+            });
+          }
+        } else {
+          setTestResult({ success: false, message: 'Erro ao gerar LRC. Verifique os logs do backend.' });
         }
       } else {
-        setTestResult({ success: false, message: 'Erro ao gerar LRC. Verifique os logs do backend.' });
+        setTestResult({
+          success: true,
+          message: 'Gravação enviada com sucesso! LRC não foi gerado (opção desmarcada).',
+        });
       }
     } catch (error: any) {
       console.error('Erro ao processar gravação:', error);
@@ -198,6 +207,18 @@ export default function RecordingTest() {
           ⚠️ Permissão de microfone negada. Por favor, permita o acesso ao microfone nas configurações do navegador.
         </div>
       )}
+
+      <div className="recording-test-options">
+        <label className="recording-test-checkbox">
+          <input
+            type="checkbox"
+            checked={generateLRCEnabled}
+            onChange={(e) => setGenerateLRCEnabled(e.target.checked)}
+            disabled={isRecording || isUploading || isProcessing}
+          />
+          <span>Gerar LRC após gravação</span>
+        </label>
+      </div>
 
       <div className="recording-test-controls">
         {!isRecording ? (
@@ -262,10 +283,11 @@ export default function RecordingTest() {
       <div className="recording-test-info">
         <h4>Como usar:</h4>
         <ol>
+          <li>Marque a opção "Gerar LRC após gravação" se desejar que o LRC seja gerado</li>
           <li>Clique em "Iniciar Gravação"</li>
           <li>Fale algo (pode ser uma música, poema, ou qualquer texto)</li>
           <li>Clique em "Parar Gravação"</li>
-          <li>Aguarde o processamento (upload e geração de LRC)</li>
+          <li>Aguarde o processamento (upload e, se marcado, geração de LRC)</li>
           <li>Veja o resultado abaixo</li>
         </ol>
         <p className="info-note">

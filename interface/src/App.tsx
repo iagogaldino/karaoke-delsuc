@@ -20,8 +20,8 @@ import { bandsService } from './services/bandsService.js';
 import { categoriesService } from './services/categoriesService.js';
 import { recordingService } from './services/recordingService.js';
 import { scoresService } from './services/scoresService.js';
-import { Song, AudioMode, Band, Category, LyricsLine, PlayerScore } from './types/index.js';
-import { alignLRCLinesByTextOnly, calculateScoreFromLRCAlignment } from './utils/textUtils.js';
+import { Song, AudioMode, Band, Category, PlayerScore } from './types/index.js';
+import { useScoreCalculation } from './hooks/useScoreCalculation.js';
 import './App.css';
 
 function App() {
@@ -45,12 +45,14 @@ function App() {
   const [lrcRefreshKey, setLrcRefreshKey] = useState(0);
   const [showRecordingTest, setShowRecordingTest] = useState(false);
   const [songDuration, setSongDuration] = useState<number>(0);
+  const [generateLRCAfterRecording, setGenerateLRCAfterRecording] = useState(true);
   const [finalScore, setFinalScore] = useState<{ score: PlayerScore; maxPoints: number; userName?: string; userPhoto?: string } | null>(null);
   const [isCalculatingScore, setIsCalculatingScore] = useState(false);
   const [recordingIdForScore, setRecordingIdForScore] = useState<string | null>(null);
   const { currentTime, isPlaying, play, pause, seek } = useSyncWebSocket();
   const { alert, confirm, AlertComponent, ConfirmComponent } = useAlert();
   const { uploadRecording, generateLRC, error: recordingError, isUploading, isProcessing } = useAudioRecorder();
+  const { calculateScoreFromRecordedLRC } = useScoreCalculation();
 
   // Carregar lista de músicas, categorias e bandas do banco de dados
   useEffect(() => {
@@ -373,12 +375,13 @@ function App() {
       setIsReady(false);
       setLyrics([]);
       setAudioMode('both'); // Reset para padrão quando não há música selecionada
+      setGenerateLRCAfterRecording(true); // Reset para padrão
       return;
     }
 
     setIsReady(false);
 
-    // Carregar informações da música incluindo audioMode
+    // Carregar informações da música incluindo audioMode e generateLRCAfterRecording
     songsService.getById(selectedSong)
       .then(song => {
         // Carregar audioMode salvo ou usar padrão
@@ -386,6 +389,12 @@ function App() {
           setAudioMode(song.audioMode);
         } else {
           setAudioMode('both');
+        }
+        // Carregar generateLRCAfterRecording salvo ou usar padrão (true)
+        if (song.generateLRCAfterRecording !== undefined) {
+          setGenerateLRCAfterRecording(song.generateLRCAfterRecording);
+        } else {
+          setGenerateLRCAfterRecording(true);
         }
       })
       .catch(err => console.error('Error loading song:', err));
@@ -427,63 +436,17 @@ function App() {
     }
   }, [currentTime, songDuration, isPlaying, pause, seek]);
 
-  // Função helper para parse LRC (mesma do LRCComparison)
-  const parseLRC = useCallback((lrcContent: string): LyricsLine[] => {
-    const lines: LyricsLine[] = [];
-    const lrcLines = lrcContent.split('\n');
 
-    for (const line of lrcLines) {
-      // Formato LRC: [mm:ss.xx]texto
-      const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2})\](.*)/);
-      if (match) {
-        const minutes = parseInt(match[1], 10);
-        const seconds = parseInt(match[2], 10);
-        const centiseconds = parseInt(match[3], 10);
-        const time = minutes * 60 + seconds + centiseconds / 100;
-        const text = match[4].trim();
-
-        if (text) {
-          lines.push({ time, text });
-        }
-      }
-    }
-
-    return lines.sort((a, b) => a.time - b.time);
-  }, []);
-
-  // Função para calcular pontuação do LRC gravado (mesma forma que LRCComparison)
-  const calculateScoreFromRecordedLRC = useCallback(async (
-    songId: string,
-    recordingId?: string
-  ): Promise<{ results: Array<{ lyric: string; score: number; percentage: number; totalWords: number }>; totalScore: number } | null> => {
-    try {
-      // O backend agora aguarda o LRC ser criado antes de retornar sucesso,
-      // então não precisamos mais fazer retry aqui
-      const recordedLRCContent = await recordingService.getRecordingLRC(songId, recordingId);
-
-      // Carregar letras originais
-      const originalLyricsData = await lyricsService.getJson(songId);
-
-      const recordedLyrics = parseLRC(recordedLRCContent);
-      const originalLyrics = originalLyricsData.lyrics || [];
-
-      if (originalLyrics.length === 0 || recordedLyrics.length === 0) {
-        console.warn('⚠️ Não há letras originais ou gravadas para comparar');
-        return null;
-      }
-
-      // Usar alinhamento apenas por texto (mesma forma que LRCComparison)
-      const alignments = alignLRCLinesByTextOnly(originalLyrics, recordedLyrics, 0.3);
-
-      // Calcular pontuação
-      const scoreResult = calculateScoreFromLRCAlignment(alignments);
-
-      return scoreResult;
-    } catch (error: any) {
-      console.error('❌ Erro ao calcular pontuação do LRC:', error);
-      return null;
-    }
-  }, [parseLRC]);
+  // Helper para tratamento de erro e navegação no modo presentation
+  const handlePresentationError = useCallback(async (errorMessage: string, errorTitle: string = 'Erro') => {
+    setIsCalculatingScore(false);
+    setViewMode('home');
+    setFinalScore(null);
+    await alert(errorMessage, {
+      type: errorTitle === 'Erro' ? 'error' : 'warning',
+      title: errorTitle
+    });
+  }, [alert]);
 
   // Handler para quando gravação for completada
   const handleRecordingComplete = useCallback(async (audioBlob: Blob, startTime: number) => {
@@ -492,14 +455,11 @@ function App() {
       return;
     }
 
-    // Verificar se está no modo presentation ANTES de processar
     const isPresentationMode = viewMode === 'presentation';
     
     // Se estiver no modo presentation, redirecionar IMEDIATAMENTE para resultados com loading
-    // Processar tudo em background (upload, LRC, cálculo)
     if (isPresentationMode) {
       console.log('🎯 Redirecionando imediatamente para tela de resultados com loading...');
-      // Redirecionar imediatamente para resultados com loading
       setIsCalculatingScore(true);
       setFinalScore({
         score: { total: 0, average: 0, count: 0, points: 0 },
@@ -511,134 +471,112 @@ function App() {
     // Processar tudo em background (upload, LRC, cálculo de pontuação)
     try {
       console.log('📤 Iniciando upload da gravação...');
-      // Fazer upload da gravação
       const recordingId = await uploadRecording(audioBlob, selectedSong, startTime);
       
-        if (!recordingId) {
+      if (!recordingId) {
         console.error('❌ Upload falhou: recordingId é null');
         if (isPresentationMode) {
-          setIsCalculatingScore(false);
-          setViewMode('home');
-          setFinalScore(null);
-          await alert('Erro ao fazer upload da gravação', {
-            type: 'error',
-            title: 'Erro'
-          });
+          await handlePresentationError('Erro ao fazer upload da gravação');
         } else {
-          await alert('Erro ao fazer upload da gravação', {
-            type: 'error',
-            title: 'Erro'
-          });
+          await alert('Erro ao fazer upload da gravação', { type: 'error', title: 'Erro' });
         }
         return;
       }
 
       console.log('✅ Upload concluído, recordingId:', recordingId);
-      console.log('🔄 Iniciando geração de LRC...');
       
-      // Gerar LRC da gravação, passando o recordingId explicitamente
+      // No modo config, gerar LRC apenas se a opção estiver habilitada
+      // No modo presentation, sempre gerar LRC para calcular pontuação
+      const shouldGenerateLRC = isPresentationMode || generateLRCAfterRecording;
+      
+      if (!shouldGenerateLRC) {
+        console.log('ℹ️ LRC não será gerado (opção desmarcada no modo config)');
+        // Modo config sem gerar LRC - apenas mostrar mensagem
+        await alert('Gravação enviada com sucesso! LRC não foi gerado (opção desmarcada).', {
+          type: 'success',
+          title: 'Sucesso'
+        });
+        return;
+      }
+
+      console.log('🔄 Iniciando geração de LRC...');
       const lrcPath = await generateLRC(selectedSong, recordingId);
       
-      if (lrcPath) {
-        console.log('✅ LRC gerado com sucesso:', lrcPath);
-        
-        // Guardar recordingId para calcular pontuação depois
-        setRecordingIdForScore(recordingId);
-        
-        // Se estiver no modo presentation, calcular pontuação e atualizar resultados
-        // Se estiver no modo config, apenas mostrar comparação
-        if (isPresentationMode) {
-          // Calcular pontuação em background
-          try {
-            const scoreResult = await calculateScoreFromRecordedLRC(selectedSong, recordingId);
-            
-            if (scoreResult) {
-              // Calcular maxPossiblePoints (total de palavras * 100)
-              const maxPossiblePoints = scoreResult.results.reduce((sum, r) => sum + r.totalWords * 100, 0);
-              
-              // Gerar sessionId único (ou usar algum ID do usuário se disponível)
-              const sessionId = Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9);
-              
-              // Salvar pontuação
-              console.log('💾 Salvando pontuação...');
-              const savedScore = await scoresService.saveScore(
-                selectedSong,
-                scoreResult.results,
-                maxPossiblePoints,
-                sessionId
-              );
-              
-              // Converter para PlayerScore
-              const playerScore: PlayerScore = savedScore.score;
-              
-              console.log('✅ Pontuação salva:', {
-                pontos: playerScore.points,
-                maxPontos: maxPossiblePoints,
-                porcentagem: maxPossiblePoints > 0 ? Math.round((playerScore.points / maxPossiblePoints) * 100) : 0
-              });
-              
-              // Atualizar pontuação final e parar loading
-              setFinalScore({
-                score: playerScore,
-                maxPoints: maxPossiblePoints
-              });
-              setIsCalculatingScore(false);
-            } else {
-              // Se não conseguiu calcular, voltar para home
-              setIsCalculatingScore(false);
-              setViewMode('home');
-              setFinalScore(null);
-              await alert('Não foi possível calcular a pontuação. Comparação de letras disponível na tela de configuração.', {
-                type: 'warning',
-                title: 'Aviso'
-              });
-            }
-          } catch (scoreError: any) {
-            console.error('❌ Erro ao calcular pontuação:', scoreError);
-            setIsCalculatingScore(false);
-            setViewMode('home');
-            setFinalScore(null);
-            await alert('Erro ao calcular pontuação: ' + scoreError.message, {
-              type: 'error',
-              title: 'Erro'
-            });
-          }
-        } else {
-          // Modo config: apenas mostrar comparação
-          setLrcRefreshKey(prev => prev + 1);
-          setShowLRCComparison(true);
-          await alert('Gravação processada! Comparação de letras disponível.', {
-            type: 'success',
-            title: 'Sucesso'
-          });
-        }
-      } else {
+      if (!lrcPath) {
         console.error('❌ Geração de LRC falhou: lrcPath é null');
-        if (viewMode === 'presentation') {
-          setIsCalculatingScore(false);
-          setViewMode('home');
-          setFinalScore(null);
-          await alert('Erro ao gerar o LRC. Verifique o console do backend.', {
-            type: 'warning',
-            title: 'Aviso'
-          });
+        if (isPresentationMode) {
+          await handlePresentationError('Erro ao gerar o LRC. Verifique o console do backend.', 'Aviso');
         } else {
           await alert('Gravação salva, mas houve erro ao gerar o LRC. Verifique o console do backend.', {
             type: 'warning',
             title: 'Aviso'
           });
         }
+        return;
+      }
+
+      console.log('✅ LRC gerado com sucesso:', lrcPath);
+      setRecordingIdForScore(recordingId);
+      
+      if (isPresentationMode) {
+        // Calcular pontuação em background
+        try {
+          const scoreResult = await calculateScoreFromRecordedLRC(selectedSong, recordingId);
+          
+          if (!scoreResult) {
+            await handlePresentationError(
+              'Não foi possível calcular a pontuação. Comparação de letras disponível na tela de configuração.',
+              'Aviso'
+            );
+            return;
+          }
+
+          // Calcular maxPossiblePoints (total de palavras * 100)
+          const maxPossiblePoints = scoreResult.results.reduce((sum, r) => sum + r.totalWords * 100, 0);
+          
+          // Gerar sessionId único
+          const sessionId = Date.now().toString() + '-' + Math.random().toString(36).substr(2, 9);
+          
+          // Salvar pontuação
+          console.log('💾 Salvando pontuação...');
+          const savedScore = await scoresService.saveScore(
+            selectedSong,
+            scoreResult.results,
+            maxPossiblePoints,
+            sessionId
+          );
+          
+          const playerScore: PlayerScore = savedScore.score;
+          
+          console.log('✅ Pontuação salva:', {
+            pontos: playerScore.points,
+            maxPontos: maxPossiblePoints,
+            porcentagem: maxPossiblePoints > 0 ? Math.round((playerScore.points / maxPossiblePoints) * 100) : 0
+          });
+          
+          // Atualizar pontuação final e parar loading
+          setFinalScore({
+            score: playerScore,
+            maxPoints: maxPossiblePoints
+          });
+          setIsCalculatingScore(false);
+        } catch (scoreError: any) {
+          console.error('❌ Erro ao calcular pontuação:', scoreError);
+          await handlePresentationError('Erro ao calcular pontuação: ' + scoreError.message);
+        }
+      } else {
+        // Modo config: apenas mostrar comparação
+        setLrcRefreshKey(prev => prev + 1);
+        setShowLRCComparison(true);
+        await alert('Gravação processada! Comparação de letras disponível.', {
+          type: 'success',
+          title: 'Sucesso'
+        });
       }
     } catch (error: any) {
       console.error('❌ Erro ao processar gravação:', error);
-      if (viewMode === 'presentation') {
-        setIsCalculatingScore(false);
-        setViewMode('home');
-        setFinalScore(null);
-        await alert('Erro ao processar gravação: ' + error.message, {
-          type: 'error',
-          title: 'Erro'
-        });
+      if (isPresentationMode) {
+        await handlePresentationError('Erro ao processar gravação: ' + error.message);
       } else {
         await alert('Erro ao processar gravação: ' + error.message, {
           type: 'error',
@@ -646,7 +584,7 @@ function App() {
         });
       }
     }
-  }, [selectedSong, uploadRecording, generateLRC, alert, calculateScoreFromRecordedLRC, viewMode]);
+  }, [selectedSong, uploadRecording, generateLRC, alert, calculateScoreFromRecordedLRC, viewMode, handlePresentationError, generateLRCAfterRecording]);
 
   // Se estiver no modo de resultados, mostrar a tela de resultados
   if (viewMode === 'results' && finalScore) {
@@ -844,13 +782,6 @@ function App() {
                 }}
               />
 
-              {/* Indicador de gravação/processamento */}
-              {(isUploading || isProcessing) && (
-                <div className="recording-status">
-                  {isUploading && <span>📤 Enviando gravação...</span>}
-                  {isProcessing && <span>🔄 Gerando LRC...</span>}
-                </div>
-              )}
 
               {recordingError && (
                 <div className="recording-error">
@@ -877,6 +808,25 @@ function App() {
                       instrumentalVolume={instrumentalVolume}
                       onVocalsVolumeChange={setVocalsVolume}
                       onInstrumentalVolumeChange={setInstrumentalVolume}
+                      generateLRCAfterRecording={generateLRCAfterRecording}
+                      onGenerateLRCChange={async (enabled: boolean) => {
+                        setGenerateLRCAfterRecording(enabled);
+                        
+                        // Salvar no banco de dados se houver música selecionada
+                        if (selectedSong) {
+                          try {
+                            await songsService.update(selectedSong, {
+                              generateLRCAfterRecording: enabled
+                            });
+                            
+                            // Atualização granular em vez de reload completo
+                            await updateSongInList(selectedSong);
+                          } catch (error: any) {
+                            console.error('Error saving generateLRCAfterRecording:', error);
+                            // Não mostrar alerta para não interromper a experiência do usuário
+                          }
+                        }
+                      }}
                     />
                     <AudioPlayer
                       isPlaying={isPlaying}

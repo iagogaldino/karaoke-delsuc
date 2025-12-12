@@ -9,6 +9,8 @@ interface AudioControlsProps {
   instrumentalVolume: number;
   onVocalsVolumeChange: (volume: number) => void;
   onInstrumentalVolumeChange: (volume: number) => void;
+  generateLRCAfterRecording?: boolean;
+  onGenerateLRCChange?: (enabled: boolean) => void;
 }
 
 export default function AudioControls({
@@ -17,7 +19,9 @@ export default function AudioControls({
   vocalsVolume,
   instrumentalVolume,
   onVocalsVolumeChange,
-  onInstrumentalVolumeChange
+  onInstrumentalVolumeChange,
+  generateLRCAfterRecording = true,
+  onGenerateLRCChange
 }: AudioControlsProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -61,6 +65,22 @@ export default function AudioControls({
           </button>
         </div>
       </div>
+
+      {onGenerateLRCChange && (
+        <div className="lrc-generation-option">
+          <label className="lrc-checkbox-label">
+            <input
+              type="checkbox"
+              checked={generateLRCAfterRecording}
+              onChange={(e) => {
+                const newValue = e.target.checked;
+                onGenerateLRCChange(newValue);
+              }}
+            />
+            <span>Gerar LRC após gravação</span>
+          </label>
+        </div>
+      )}
 
       {showAdvanced && (
         <div className="volume-controls">

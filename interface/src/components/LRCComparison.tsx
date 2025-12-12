@@ -3,7 +3,7 @@ import './LRCComparison.css';
 import { LyricsLine } from '../types/index.js';
 import { recordingService } from '../services/recordingService.js';
 import { formatTime } from '../utils/formatters.js';
-import { alignLRCLinesByTextOnly } from '../utils/textUtils.js';
+import { alignLRCLinesByTextOnly, parseLRC } from '../utils/textUtils.js';
 
 interface LRCComparisonProps {
   songId: string;
@@ -119,29 +119,6 @@ export default function LRCComparison({
     };
   }, [scrollSync]);
 
-  // Parse LRC content
-  const parseLRC = (lrcContent: string): LyricsLine[] => {
-    const lines: LyricsLine[] = [];
-    const lrcLines = lrcContent.split('\n');
-
-    for (const line of lrcLines) {
-      // Formato LRC: [mm:ss.xx]texto
-      const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2})\](.*)/);
-      if (match) {
-        const minutes = parseInt(match[1], 10);
-        const seconds = parseInt(match[2], 10);
-        const centiseconds = parseInt(match[3], 10);
-        const time = minutes * 60 + seconds + centiseconds / 100;
-        const text = match[4].trim();
-
-        if (text) {
-          lines.push({ time, text });
-        }
-      }
-    }
-
-    return lines.sort((a, b) => a.time - b.time);
-  };
 
   if (isLoading) {
     return (

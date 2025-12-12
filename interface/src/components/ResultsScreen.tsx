@@ -142,7 +142,6 @@ export default function ResultsScreen({
           <div className="results-loading">
             <div className="results-loading-spinner"></div>
             <h2 className="results-loading-text">Processando gravação...</h2>
-            <p className="results-loading-subtext">Aguarde enquanto geramos o LRC e calculamos sua pontuação</p>
           </div>
         </div>
       </div>

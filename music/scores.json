@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-11T19:54:05.551Z",
+  "lastUpdated": "2025-12-12T19:34:06.596Z",
   "scores": [
     {
       "songId": "miurk9ti-c4wnra",
@@ -1710,6 +1710,153 @@
       "maxPossiblePoints": 900,
       "createdAt": "2025-12-11T19:54:05.551Z",
       "updatedAt": "2025-12-11T19:54:05.551Z"
+    },
+    {
+      "songId": "mivt6z6u-6p8677",
+      "sessionId": "1765552050193-v8xm56u1f",
+      "results": [
+        {
+          "lyric": "1, 2, 3, 4, 5, 6, 1, 2, 3...",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 9
+        }
+      ],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 1,
+        "points": 0
+      },
+      "maxPossiblePoints": 900,
+      "createdAt": "2025-12-12T15:07:30.204Z",
+      "updatedAt": "2025-12-12T15:07:30.204Z"
+    },
+    {
+      "songId": "mivt6z6u-6p8677",
+      "sessionId": "1765552144750-4eedkxktl",
+      "results": [
+        {
+          "lyric": "1, 2, 3, 4, 5, 6, 1, 2, 3...",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 9
+        }
+      ],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 1,
+        "points": 0
+      },
+      "maxPossiblePoints": 900,
+      "createdAt": "2025-12-12T15:09:04.758Z",
+      "updatedAt": "2025-12-12T15:09:04.758Z"
+    },
+    {
+      "songId": "mivt6z6u-6p8677",
+      "sessionId": "1765566799338-3b3hqceq3",
+      "results": [
+        {
+          "lyric": "1, 2, 3, 4, 5, 6, 1, 2, 3...",
+          "score": 9,
+          "percentage": 100,
+          "totalWords": 9
+        }
+      ],
+      "score": {
+        "total": 100,
+        "average": 100,
+        "count": 1,
+        "points": 900
+      },
+      "maxPossiblePoints": 900,
+      "createdAt": "2025-12-12T19:13:19.349Z",
+      "updatedAt": "2025-12-12T19:13:19.349Z"
+    },
+    {
+      "songId": "mivt6z6u-6p8677",
+      "sessionId": "1765567267261-ug1tlyw94",
+      "results": [
+        {
+          "lyric": "1, 2, 3, 4, 5, 6, 1, 2, 3...",
+          "score": 6,
+          "percentage": 67,
+          "totalWords": 9
+        }
+      ],
+      "score": {
+        "total": 67,
+        "average": 67,
+        "count": 1,
+        "points": 600
+      },
+      "maxPossiblePoints": 900,
+      "createdAt": "2025-12-12T19:21:07.279Z",
+      "updatedAt": "2025-12-12T19:21:07.279Z"
+    },
+    {
+      "songId": "mivt6z6u-6p8677",
+      "sessionId": "1765567464072-n0nb94k3q",
+      "results": [
+        {
+          "lyric": "1, 2, 3, 4, 5, 6, 1, 2, 3...",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 9
+        }
+      ],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 1,
+        "points": 0
+      },
+      "maxPossiblePoints": 900,
+      "createdAt": "2025-12-12T19:24:24.088Z",
+      "updatedAt": "2025-12-12T19:24:24.088Z"
+    },
+    {
+      "songId": "mivt6z6u-6p8677",
+      "sessionId": "1765567506448-llk6m08hu",
+      "results": [
+        {
+          "lyric": "1, 2, 3, 4, 5, 6, 1, 2, 3...",
+          "score": 9,
+          "percentage": 100,
+          "totalWords": 9
+        }
+      ],
+      "score": {
+        "total": 100,
+        "average": 100,
+        "count": 1,
+        "points": 900
+      },
+      "maxPossiblePoints": 900,
+      "createdAt": "2025-12-12T19:25:06.463Z",
+      "updatedAt": "2025-12-12T19:25:06.463Z"
+    },
+    {
+      "songId": "mivt6z6u-6p8677",
+      "sessionId": "1765568046574-gapw00fd5",
+      "results": [
+        {
+          "lyric": "1, 2, 3, 4, 5, 6, 1, 2, 3...",
+          "score": 9,
+          "percentage": 100,
+          "totalWords": 9
+        }
+      ],
+      "score": {
+        "total": 100,
+        "average": 100,
+        "count": 1,
+        "points": 900
+      },
+      "maxPossiblePoints": 900,
+      "createdAt": "2025-12-12T19:34:06.596Z",
+      "updatedAt": "2025-12-12T19:34:06.596Z"
     }
   ]
 }

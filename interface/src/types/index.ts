@@ -23,6 +23,7 @@ export interface Song {
   };
   video?: VideoInfo;
   audioMode?: AudioMode;
+  generateLRCAfterRecording?: boolean;
   category?: string; // ID da categoria/pasta
   band?: string; // ID da banda/artista
 }
