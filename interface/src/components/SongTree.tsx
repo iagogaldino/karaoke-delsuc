@@ -14,6 +14,7 @@ interface SongTreeProps {
   editedSongName: string;
   processingVideo: { [songId: string]: boolean };
   generatingLRC: { [songId: string]: boolean };
+  activeProcessings?: { [fileId: string]: { status: any; songId?: string } };
   onSongSelect: (songId: string) => void;
   onEditSongName: (song: Song, e: React.MouseEvent) => void;
   onSaveSongName: (songId: string) => void;
@@ -36,6 +37,7 @@ function SongTree({
   editedSongName,
   processingVideo,
   generatingLRC,
+  activeProcessings = {},
   onSongSelect,
   onEditSongName,
   onSaveSongName,
@@ -50,6 +52,17 @@ function SongTree({
   onSongsMoved,
   onBandUpdated
 }: SongTreeProps) {
+  
+  // Helper para encontrar o status de processamento de uma música
+  const getSongProcessingStatus = (songId: string) => {
+    for (const fileId in activeProcessings) {
+      const processing = activeProcessings[fileId];
+      if (processing.songId === songId) {
+        return processing.status;
+      }
+    }
+    return null;
+  };
   const [editingBand, setEditingBand] = useState<string | null>(null);
   const [editedBandName, setEditedBandName] = useState<string>('');
   const [editedBandDesc, setEditedBandDesc] = useState<string>('');
@@ -503,16 +516,29 @@ function SongTree({
   const renderSong = (song: Song) => {
     const isSelected = selectedSong === song.id;
     const isEditing = editingSongName === song.id;
+    const processingStatus = getSongProcessingStatus(song.id);
+    const isBeingProcessed = processingStatus !== null && processingStatus.status !== 'completed' && processingStatus.status !== 'error';
+    
+    // Debug
+    if (processingStatus) {
+      console.log(`🎵 Música ${song.name} (${song.id}): processando = ${isBeingProcessed}`, processingStatus);
+    }
 
     return (
       <div
         key={song.id}
-        className={`song-tree-item ${isSelected ? 'active' : ''} ${song.status.ready ? 'ready' : 'processing'}`}
+        className={`song-tree-item ${isSelected ? 'active' : ''} ${song.status.ready ? 'ready' : 'processing'} ${isBeingProcessed ? 'processing-active' : ''}`}
         onClick={() => !isEditing && onSongSelect(song.id)}
-        draggable={!isEditing}
+        draggable={!isEditing && !isBeingProcessed}
         onDragStart={(e) => handleDragStart(e, song)}
         onDragEnd={handleDragEnd}
-        title={song.status.ready ? 'Pronta para tocar (arraste para mover)' : 'Processamento incompleto'}
+        title={
+          isBeingProcessed 
+            ? `${processingStatus.step} (${processingStatus.progress}%)` 
+            : song.status.ready 
+              ? 'Pronta para tocar (arraste para mover)' 
+              : 'Processamento incompleto'
+        }
       >
         {isEditing ? (
           <div className="song-name-edit" onClick={(e) => e.stopPropagation()}>
@@ -553,16 +579,24 @@ function SongTree({
             </button>
           </div>
         ) : (
-          <div className="song-name-container">
-            <span className="song-name">{song.displayName || song.name}</span>
-            <button
-              className="edit-name-btn"
-              onClick={(e) => onEditSongName(song, e)}
-              title="Editar nome"
-            >
-              <i className="fas fa-edit"></i>
-            </button>
-          </div>
+          <>
+            <div className="song-name-container">
+              <span className="song-name">{song.displayName || song.name}</span>
+              <button
+                className="edit-name-btn"
+                onClick={(e) => onEditSongName(song, e)}
+                title="Editar nome"
+              >
+                <i className="fas fa-edit"></i>
+              </button>
+            </div>
+            {isBeingProcessed && (
+              <span className="song-processing-indicator" title={`${processingStatus.step} (${processingStatus.progress}%)`}>
+                <i className="fas fa-spinner fa-spin"></i>
+                <span className="processing-progress-text">{processingStatus.progress}%</span>
+              </span>
+            )}
+          </>
         )}
         <div className="song-actions">
           {song.status.ready && (

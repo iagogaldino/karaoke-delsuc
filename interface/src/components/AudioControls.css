@@ -18,6 +18,41 @@
   font-size: 1.2rem;
 }
 
+.audio-controls-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.presentation-btn-inline {
+  background: var(--accent-primary, #4a90e2);
+  border: none;
+  border-radius: 8px;
+  color: var(--text-primary, #ffffff);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.presentation-btn-inline:hover {
+  background: var(--accent-primary-hover, #5aa0f2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary, 0 4px 8px rgba(74, 144, 226, 0.3));
+}
+
+.presentation-btn-inline:active {
+  transform: translateY(0);
+}
+
+.presentation-btn-inline i {
+  font-size: 1rem;
+}
+
 .toggle-advanced {
   background: rgba(255, 255, 255, 0.2);
   border: none;

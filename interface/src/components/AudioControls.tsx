@@ -11,6 +11,8 @@ interface AudioControlsProps {
   onInstrumentalVolumeChange: (volume: number) => void;
   generateLRCAfterRecording?: boolean;
   onGenerateLRCChange?: (enabled: boolean) => void;
+  onPresentationClick?: () => void;
+  showPresentationButton?: boolean;
 }
 
 export default function AudioControls({
@@ -21,7 +23,9 @@ export default function AudioControls({
   onVocalsVolumeChange,
   onInstrumentalVolumeChange,
   generateLRCAfterRecording = true,
-  onGenerateLRCChange
+  onGenerateLRCChange,
+  onPresentationClick,
+  showPresentationButton = false
 }: AudioControlsProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -29,13 +33,25 @@ export default function AudioControls({
     <div className="audio-controls">
       <div className="audio-controls-header">
         <h3>Configurações de Áudio</h3>
-        <button
-          className="toggle-advanced"
-          onClick={() => setShowAdvanced(!showAdvanced)}
-        >
-          <i className={`fas ${showAdvanced ? 'fa-chevron-down' : 'fa-chevron-right'}`}></i>
-          <span>{showAdvanced ? 'Ocultar' : 'Avançado'}</span>
-        </button>
+        <div className="audio-controls-header-actions">
+          {showPresentationButton && onPresentationClick && (
+            <button
+              className="presentation-btn-inline"
+              onClick={onPresentationClick}
+              title="Ir para tela de apresentação"
+            >
+              <i className="fas fa-tv"></i>
+              <span>Apresentação</span>
+            </button>
+          )}
+          <button
+            className="toggle-advanced"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+          >
+            <i className={`fas ${showAdvanced ? 'fa-chevron-down' : 'fa-chevron-right'}`}></i>
+            <span>{showAdvanced ? 'Ocultar' : 'Avançado'}</span>
+          </button>
+        </div>
       </div>
 
       <div className="mode-selector">

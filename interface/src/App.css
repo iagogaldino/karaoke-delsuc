@@ -61,10 +61,22 @@
 
 .sidebar-header {
   display: flex;
-  align-items: center;
-  gap: 0.75rem;
+  align-items: flex-start;
+  gap: 0.5rem;
   margin-bottom: 0.5rem;
   flex-wrap: wrap;
+}
+
+.sidebar-header > * {
+  flex-shrink: 0;
+}
+
+.sidebar-header-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  min-width: 0;
 }
 
 .presentation-btn {
@@ -79,8 +91,9 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-left: auto;
   font-weight: 500;
+  width: 100%;
+  justify-content: center;
 }
 
 .presentation-btn:hover {
@@ -95,6 +108,38 @@
 
 .presentation-btn i {
   font-size: 1rem;
+}
+
+.recording-test-btn {
+  background: var(--accent-primary);
+  border: none;
+  border-radius: 8px;
+  color: var(--text-primary);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  white-space: nowrap;
+  width: 100%;
+  justify-content: center;
+}
+
+.recording-test-btn:hover {
+  background: var(--accent-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-primary);
+}
+
+.recording-test-btn:active {
+  transform: translateY(0);
+}
+
+.recording-test-btn i {
+  font-size: 0.85rem;
 }
 
 .add-music-btn i {

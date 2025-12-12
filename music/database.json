@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-12T19:40:21.219Z",
+  "lastUpdated": "2025-12-12T20:44:14.977Z",
   "songs": [
     {
       "id": "miunnkaj-c6z8aq",
@@ -709,6 +709,285 @@
       },
       "band": "band-1765424132911-2gzofrbpn",
       "category": "cat-rock-001"
+    },
+    {
+      "id": "mj3aa6t6-dkhspy",
+      "name": "Máquina do Tempo",
+      "displayName": "Máquina do Tempo",
+      "artist": "Unknown",
+      "duration": 230.41160997732428,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-12T19:52:24.575Z",
+        "lastProcessed": "2025-12-12T19:58:00.715Z"
+      },
+      "band": "band-1765387655192-y1kuhcl2x",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "ZPcG9PCfagM",
+        "title": "Matuê - Máquina do Tempo",
+        "url": "https://www.youtube.com/watch?v=ZPcG9PCfagM",
+        "thumbnail": "https://i.ytimg.com/vi_webp/ZPcG9PCfagM/maxresdefault.webp",
+        "duration": 230,
+        "uploader": "30PRAUM",
+        "view_count": 185893326,
+        "file": "video.mp4"
+      },
+      "category": "cat-trap-001"
+    },
+    {
+      "id": "mj3auh6x-8szt8g",
+      "name": "Anos Luz",
+      "displayName": "Anos Luz",
+      "artist": "Unknown",
+      "duration": 264.03410430839,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-12T20:08:11.146Z",
+        "lastProcessed": "2025-12-12T20:15:17.830Z"
+      },
+      "band": "band-1765387655192-y1kuhcl2x",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "m226f2reF28",
+        "title": "Matuê - Anos Luz 🌠",
+        "url": "https://www.youtube.com/watch?v=m226f2reF28",
+        "thumbnail": "https://i.ytimg.com/vi/m226f2reF28/maxresdefault.jpg",
+        "duration": 264,
+        "uploader": "30PRAUM",
+        "view_count": 303577772,
+        "file": "video.mp4"
+      },
+      "category": "cat-trap-001"
+    },
+    {
+      "id": "mj3b0xox-bu5xiv",
+      "name": "A Morte Do Autotune",
+      "displayName": "A Morte Do Autotune",
+      "artist": "Unknown",
+      "duration": 316.8362811791383,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-12T20:13:12.474Z",
+        "lastProcessed": "2025-12-12T20:21:53.250Z"
+      },
+      "band": "band-1765387655192-y1kuhcl2x",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "JCOXgXNdTbM",
+        "title": "A Morte Do Autotune (Versão Refeita)",
+        "url": "https://www.youtube.com/watch?v=JCOXgXNdTbM",
+        "thumbnail": "https://i.ytimg.com/vi/JCOXgXNdTbM/maxresdefault.jpg",
+        "duration": 317,
+        "uploader": "30praum Batata ",
+        "view_count": 1862253,
+        "file": "video.mp4"
+      },
+      "category": "cat-trap-001"
+    },
+    {
+      "id": "mj3b7lq1-94huo1",
+      "name": "Quem ama não machuca",
+      "displayName": "Quem ama não machuca",
+      "artist": "Unknown",
+      "duration": 207.23809523809524,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-12T20:18:23.552Z",
+        "lastProcessed": "2025-12-12T20:25:08.845Z"
+      },
+      "band": "band-1765570699939-3nvf2fnoj",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "OqcHxX7DqKs",
+        "title": "Pablo - Quem ama não machuca (No Camarim)",
+        "url": "https://www.youtube.com/watch?v=OqcHxX7DqKs",
+        "thumbnail": "https://i.ytimg.com/vi_webp/OqcHxX7DqKs/maxresdefault.webp",
+        "duration": 207,
+        "uploader": "Pablo Oficial",
+        "view_count": 37572828,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "mj3bd2o8-fxjji9",
+      "name": "Sábado a Noite",
+      "displayName": "Sábado a Noite",
+      "artist": "Unknown",
+      "duration": 197.6714739229025,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-12T20:22:38.803Z",
+        "lastProcessed": "2025-12-12T20:31:27.907Z"
+      },
+      "band": "band-1765570948595-3q3u6zisk",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "category": "cat-1765422412612-nagkvabzf",
+      "video": {
+        "id": "Uk8cKlgviN4",
+        "title": "Xand Avião - Sábado a Noite (DVD: Errejota) [Clipe Oficial]",
+        "url": "https://www.youtube.com/watch?v=Uk8cKlgviN4",
+        "thumbnail": "https://i.ytimg.com/vi_webp/Uk8cKlgviN4/sddefault.webp",
+        "duration": 198,
+        "uploader": "Xand Avião",
+        "view_count": 46022282,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "mj3bgagj-9k2wto",
+      "name": "Sábado a Noite",
+      "displayName": "Sábado a Noite",
+      "artist": "Unknown",
+      "duration": 197.6714739229025,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-12T20:25:08.853Z",
+        "lastProcessed": "2025-12-12T20:33:14.205Z"
+      },
+      "band": "band-1765570948595-3q3u6zisk",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "Uk8cKlgviN4",
+        "title": "Xand Avião - Sábado a Noite (DVD: Errejota) [Clipe Oficial]",
+        "url": "https://www.youtube.com/watch?v=Uk8cKlgviN4",
+        "thumbnail": "https://i.ytimg.com/vi_webp/Uk8cKlgviN4/sddefault.webp",
+        "duration": 198,
+        "uploader": "Xand Avião",
+        "view_count": 46022282,
+        "file": "video.mp4"
+      },
+      "category": "cat-1765422412612-nagkvabzf"
+    },
+    {
+      "id": "mj3brr4p-6e48kl",
+      "name": "São Gonça",
+      "displayName": "São Gonça",
+      "artist": "Unknown",
+      "duration": 269.30503401360545,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-12T20:34:03.674Z",
+        "lastProcessed": "2025-12-12T20:40:24.951Z"
+      },
+      "band": "band-1765392755908-wznu326iw",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "Ll99lcYLMIU",
+        "title": "Seu Jorge - São Gonça (Ao Vivo)",
+        "url": "https://www.youtube.com/watch?v=Ll99lcYLMIU",
+        "thumbnail": "https://i.ytimg.com/vi_webp/Ll99lcYLMIU/maxresdefault.webp",
+        "duration": 269,
+        "uploader": "anacarolina",
+        "view_count": 27546643,
+        "file": "video.mp4"
+      },
+      "category": "cat-1765392930731-2qaxe7spb"
     }
   ],
   "categories": [
@@ -758,6 +1037,12 @@
       "name": "Forró",
       "createdAt": "2025-12-11T03:06:52.612Z",
       "updatedAt": "2025-12-11T03:06:52.612Z"
+    },
+    {
+      "id": "cat-1765572216823-9en3mni93",
+      "name": "Arrocha",
+      "createdAt": "2025-12-12T20:43:36.823Z",
+      "updatedAt": "2025-12-12T20:43:36.823Z"
     }
   ],
   "bands": [
@@ -807,7 +1092,7 @@
       "id": "band-1765392755908-wznu326iw",
       "name": "Seu Jorge",
       "createdAt": "2025-12-10T18:52:35.908Z",
-      "updatedAt": "2025-12-10T18:58:22.496Z",
+      "updatedAt": "2025-12-12T20:42:05.683Z",
       "category": "cat-1765392930731-2qaxe7spb"
     },
     {
@@ -879,6 +1164,19 @@
       "createdAt": "2025-12-11T03:35:32.911Z",
       "updatedAt": "2025-12-11T03:43:47.795Z",
       "category": "cat-rock-001"
+    },
+    {
+      "id": "band-1765570699939-3nvf2fnoj",
+      "name": "Pablo",
+      "createdAt": "2025-12-12T20:18:19.939Z",
+      "updatedAt": "2025-12-12T20:18:19.939Z"
+    },
+    {
+      "id": "band-1765570948595-3q3u6zisk",
+      "name": "Xand Avião",
+      "createdAt": "2025-12-12T20:22:28.595Z",
+      "updatedAt": "2025-12-12T20:44:14.977Z",
+      "category": "cat-1765422412612-nagkvabzf"
     }
   ]
 }

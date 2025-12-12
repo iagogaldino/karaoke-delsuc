@@ -5,20 +5,21 @@ import { bandsService } from '../services/bandsService.js';
 import { isValidAudioFile, isValidMusicName, isValidYouTubeUrl } from '../utils/validators.js';
 import { getFileNameWithoutExtension } from '../utils/textUtils.js';
 import { formatFileSize } from '../utils/formatters.js';
-import { Band } from '../types/index.js';
+import { Band, ProcessingStatus } from '../types/index.js';
 
 interface MusicProcessorProps {
   onProcessComplete?: (songId: string) => void;
+  onProcessingStart?: (fileId: string, songId: string, musicName: string) => void;
+  activeProcessings?: { [fileId: string]: { status: ProcessingStatus; songId?: string } };
 }
 
 type ProcessingMode = 'upload' | 'youtube';
 
-export default function MusicProcessor({ onProcessComplete }: MusicProcessorProps) {
+export default function MusicProcessor({ onProcessComplete, onProcessingStart, activeProcessings = {} }: MusicProcessorProps) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingStep, setProcessingStep] = useState<string>('');
+  const [currentFileId, setCurrentFileId] = useState<string | null>(null);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [musicName, setMusicName] = useState<string>('');
-  const [progress, setProgress] = useState(0);
   const [mode, setMode] = useState<ProcessingMode>('upload');
   const [youtubeUrl, setYoutubeUrl] = useState<string>('');
   const [bands, setBands] = useState<Band[]>([]);
@@ -26,6 +27,14 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
   const [showCreateBand, setShowCreateBand] = useState(false);
   const [newBandName, setNewBandName] = useState<string>('');
   const [newBandDesc, setNewBandDesc] = useState<string>('');
+
+  // Obter status do processamento atual a partir do estado global
+  const currentProcessing = currentFileId ? activeProcessings[currentFileId] : null;
+  const processingStep = currentProcessing?.status?.step || '';
+  const progress = currentProcessing?.status?.progress || 0;
+  const isProcessingActive = currentProcessing && 
+    currentProcessing.status.status !== 'completed' && 
+    currentProcessing.status.status !== 'error';
 
   // Carregar bandas
   useEffect(() => {
@@ -39,6 +48,23 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
     };
     loadBands();
   }, []);
+
+  // Monitorar quando o processamento atual terminar
+  useEffect(() => {
+    if (currentFileId && currentProcessing) {
+      const status = currentProcessing.status;
+      if (status.status === 'completed') {
+        // Processamento concluído
+        if (onProcessComplete && currentProcessing.songId) {
+          onProcessComplete(currentProcessing.songId);
+          setCurrentFileId(null);
+        }
+      } else if (status.status === 'error') {
+        // Erro no processamento
+        setCurrentFileId(null);
+      }
+    }
+  }, [currentFileId, currentProcessing, onProcessComplete]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -89,8 +115,6 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
       }
 
       setIsProcessing(true);
-      setProcessingStep('Iniciando processamento...');
-      setProgress(0);
 
       try {
         // Primeiro fazer upload do arquivo
@@ -108,34 +132,25 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
           bandId: selectedBandId || undefined,
         });
 
-        // Polling do status usando o serviço
-        await processingService.pollStatus(newFileId, (status) => {
-          setProcessingStep(status.step);
-          setProgress(status.progress);
-        });
+        // Notificar início do processamento (para rastreamento em background)
+        if (onProcessingStart) {
+          onProcessingStart(newFileId, songId, musicName.trim());
+        }
+        setCurrentFileId(newFileId);
 
-        // Processamento concluído
-        setIsProcessing(false);
+        // O processamento agora continua em background
+        // O App.tsx faz o polling e atualiza activeProcessings
+        // Este componente mostra o progresso enquanto o modal estiver aberto
+        setIsProcessing(false); // Permitir fechar o modal
         setUploadedFile(null);
         setMusicName('');
-        setProgress(0);
         
-        if (onProcessComplete) {
-          // Buscar songId do status final
-          processingService.getStatus(newFileId).then((finalStatus) => {
-            if (finalStatus.songId && onProcessComplete) {
-              onProcessComplete(finalStatus.songId);
-            }
-          });
-        }
-        
-        alert('Música processada com sucesso!');
+        // Não limpar currentFileId - manter para mostrar status se modal reabrir
+        // O indicador na lista aparecerá imediatamente via activeProcessings
       } catch (error: any) {
         console.error('Erro ao processar música:', error);
         alert('Erro ao processar música: ' + (error.message || 'Erro desconhecido'));
         setIsProcessing(false);
-        setProcessingStep('');
-        setProgress(0);
       }
     } else {
       // Modo YouTube
@@ -155,8 +170,6 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
       }
 
       setIsProcessing(true);
-      setProcessingStep('Iniciando download do YouTube...');
-      setProgress(0);
 
       try {
         // Iniciar processamento do YouTube
@@ -169,44 +182,31 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
 
         const fileId = response.fileId;
 
-        // Polling do status usando o serviço
-        await processingService.pollStatus(fileId, (status) => {
-          setProcessingStep(status.step);
-          setProgress(status.progress);
-        });
+        // Notificar início do processamento (para rastreamento em background)
+        if (onProcessingStart) {
+          // Para YouTube, o songId pode não estar disponível ainda, vamos usar o fileId temporariamente
+          onProcessingStart(fileId, fileId, musicName.trim());
+        }
+        setCurrentFileId(fileId);
 
-        // Processamento concluído
-        setIsProcessing(false);
+        // O processamento agora continua em background
+        // O App.tsx faz o polling e atualiza activeProcessings
+        setIsProcessing(false); // Permitir fechar o modal
         setYoutubeUrl('');
         setMusicName('');
-        setProgress(0);
         
-        if (onProcessComplete) {
-          // Buscar songId do status final
-          processingService.getStatus(fileId).then((finalStatus) => {
-            if (finalStatus.songId && onProcessComplete) {
-              onProcessComplete(finalStatus.songId);
-            }
-          });
-        }
-        
-        alert('Música processada com sucesso!');
+        // Não limpar currentFileId - manter para mostrar status se modal reabrir
+        // O indicador na lista aparecerá imediatamente via activeProcessings
       } catch (error: any) {
         console.error('Erro ao processar música do YouTube:', error);
         alert('Erro ao processar música: ' + (error.message || 'Erro desconhecido'));
         setIsProcessing(false);
-        setProcessingStep('');
-        setProgress(0);
       }
     }
   };
 
   return (
     <div className="music-processor">
-      <div className="processor-header">
-        <h3>Processar Nova Música</h3>
-      </div>
-
       {/* Toggle entre Upload e YouTube */}
       <div className="mode-toggle">
         <button
@@ -350,24 +350,28 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
                   className="name-input"
                   autoFocus
                 />
-                <button
-                  type="button"
-                  onClick={handleCreateBand}
-                  className="create-band-confirm-btn"
-                >
-                  <i className="fas fa-check"></i>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCreateBand(false);
-                    setNewBandName('');
-                    setNewBandDesc('');
-                  }}
-                  className="create-band-cancel-btn"
-                >
-                  <i className="fas fa-times"></i>
-                </button>
+                <div className="create-band-buttons">
+                  <button
+                    type="button"
+                    onClick={handleCreateBand}
+                    className="create-band-confirm-btn"
+                    title="Confirmar"
+                  >
+                    <i className="fas fa-check"></i>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateBand(false);
+                      setNewBandName('');
+                      setNewBandDesc('');
+                    }}
+                    className="create-band-cancel-btn"
+                    title="Cancelar"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -395,7 +399,7 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
         </>
       )}
 
-      {isProcessing && processingStep && (
+      {(isProcessingActive || isProcessing) && processingStep && (
         <div className="processing-status">
           <div className="processing-spinner"></div>
           <div className="processing-info">
@@ -407,6 +411,9 @@ export default function MusicProcessor({ onProcessComplete }: MusicProcessorProp
               ></div>
             </div>
             <p className="progress-text">{progress}%</p>
+            {!isProcessing && (
+              <p className="processing-note">Você pode fechar esta janela e acompanhar o progresso na lista de músicas</p>
+            )}
           </div>
         </div>
       )}

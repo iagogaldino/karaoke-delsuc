@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AudioPlayer from './components/AudioPlayer';
 import LyricsDisplay from './components/LyricsDisplay';
 import AudioControls from './components/AudioControls';
 import MusicProcessor from './components/MusicProcessor';
+import ProcessingNotification from './components/ProcessingNotification';
 import KaraokeView from './components/KaraokeView';
 import HomeScreen from './components/HomeScreen.js';
 import SongTree from './components/SongTree.js';
@@ -20,7 +21,7 @@ import { bandsService } from './services/bandsService.js';
 import { categoriesService } from './services/categoriesService.js';
 import { recordingService } from './services/recordingService.js';
 import { scoresService } from './services/scoresService.js';
-import { Song, AudioMode, Band, Category, PlayerScore } from './types/index.js';
+import { Song, AudioMode, Band, Category, PlayerScore, ProcessingStatus } from './types/index.js';
 import { useScoreCalculation } from './hooks/useScoreCalculation.js';
 import './App.css';
 
@@ -39,6 +40,8 @@ function App() {
   const [isLoadingSongs, setIsLoadingSongs] = useState(true);
   const [processingVideo, setProcessingVideo] = useState<{ [songId: string]: boolean }>({});
   const [generatingLRC, setGeneratingLRC] = useState<{ [songId: string]: boolean }>({});
+  const [activeProcessings, setActiveProcessings] = useState<{ [fileId: string]: { status: ProcessingStatus; songId?: string; musicName?: string } }>({});
+  const processingIntervalsRef = useRef<{ [fileId: string]: NodeJS.Timeout }>({});
   const [editingSongName, setEditingSongName] = useState<string | null>(null);
   const [editedSongName, setEditedSongName] = useState<string>('');
   const [showLRCComparison, setShowLRCComparison] = useState(false);
@@ -80,9 +83,184 @@ function App() {
     // As atualizações serão feitas de forma granular via callbacks
   }, []);
 
+  // Atualização granular: atualiza apenas uma música específica
+  const updateSongInList = useCallback(async (songId: string) => {
+    try {
+      const updatedSong = await songsService.getById(songId);
+      if (updatedSong) {
+        setSongs(prevSongs => {
+          const index = prevSongs.findIndex(s => s.id === songId);
+          if (index >= 0) {
+            const newSongs = [...prevSongs];
+            newSongs[index] = updatedSong;
+            return newSongs;
+          }
+          return prevSongs;
+        });
+      }
+    } catch (error) {
+      console.error('Error updating song in list:', error);
+      // Em caso de erro, recarregar todos os dados como fallback
+      try {
+        const [songsData] = await Promise.all([
+          songsService.getAll()
+        ]);
+        setSongs(songsData);
+      } catch (fallbackError) {
+        console.error('Error in fallback reload:', fallbackError);
+      }
+    }
+  }, []);
+
+  // Handler para quando o processamento iniciar
+  const handleProcessingStart = useCallback(async (fileId: string, songId: string, musicName: string) => {
+    console.log('🔄 Processamento iniciado:', { fileId, songId, musicName });
+    
+    // Atualizar estado de processamento ativo
+    setActiveProcessings(prev => {
+      // Se já existe, manter o status atualizado
+      const existing = prev[fileId];
+      const newState = {
+        ...prev,
+        [fileId]: {
+          status: existing?.status || {
+            status: 'processing',
+            step: 'Iniciando processamento...',
+            progress: 0
+          },
+          songId: songId,
+          musicName: musicName
+        }
+      };
+      console.log('📊 activeProcessings atualizado:', newState);
+      return newState;
+    });
+
+    // Recarregar lista de músicas para garantir que a nova música apareça na lista
+    // e o indicador de processamento seja visível
+    try {
+      const updatedSongs = await songsService.getAll();
+      console.log('📝 Lista de músicas recarregada:', updatedSongs.length, 'músicas');
+      setSongs(updatedSongs);
+    } catch (error) {
+      console.error('❌ Erro ao recarregar lista:', error);
+      // Se falhar, tentar buscar apenas a música específica após um delay
+      setTimeout(async () => {
+        try {
+          await updateSongInList(songId);
+        } catch (err) {
+          console.error('❌ Erro ao atualizar música:', err);
+        }
+      }, 1000);
+    }
+  }, [updateSongInList]);
+
+  // Polling em background para processamentos ativos
+  useEffect(() => {
+    const fileIds = Object.keys(activeProcessings);
+    
+    // Limpar intervalos de fileIds que não estão mais em activeProcessings
+    Object.keys(processingIntervalsRef.current).forEach(fileId => {
+      if (!activeProcessings[fileId]) {
+        if (processingIntervalsRef.current[fileId]) {
+          clearInterval(processingIntervalsRef.current[fileId]);
+          delete processingIntervalsRef.current[fileId];
+        }
+      }
+    });
+
+    // Criar intervalos para novos processamentos
+    fileIds.forEach(fileId => {
+      const processing = activeProcessings[fileId];
+      if (!processing || processing.status.status === 'completed' || processing.status.status === 'error') {
+        return; // Pular processamentos já finalizados ou inválidos
+      }
+
+      // Se já existe intervalo para este fileId, não criar outro
+      if (processingIntervalsRef.current[fileId]) {
+        return;
+      }
+
+      processingIntervalsRef.current[fileId] = setInterval(async () => {
+        try {
+          const status = await processingService.getStatus(fileId);
+          
+          setActiveProcessings(prev => {
+            const current = prev[fileId];
+            if (!current) return prev; // Se foi removido, não atualizar
+            
+            return {
+              ...prev,
+              [fileId]: {
+                status: status,
+                songId: status.songId || current.songId,
+                musicName: current.musicName
+              }
+            };
+          });
+
+          // Atualizar songId se ainda não tiver sido definido
+          if (status.songId && !prev[fileId]?.songId) {
+            setActiveProcessings(prevUpdate => ({
+              ...prevUpdate,
+              [fileId]: {
+                ...prevUpdate[fileId],
+                songId: status.songId,
+                musicName: prevUpdate[fileId]?.musicName
+              }
+            }));
+
+            // Tentar atualizar a lista quando o songId for identificado
+            updateSongInList(status.songId).catch(() => {
+              // Ignorar erro - tentará novamente quando completar
+            });
+          }
+
+          // Se completou ou teve erro, limpar interval
+          if (status.status === 'completed' || status.status === 'error') {
+            if (processingIntervalsRef.current[fileId]) {
+              clearInterval(processingIntervalsRef.current[fileId]);
+              delete processingIntervalsRef.current[fileId];
+            }
+
+            // Atualizar lista de músicas
+            if (status.songId) {
+              updateSongInList(status.songId);
+            }
+
+            // Remover do rastreamento após um tempo
+            setTimeout(() => {
+              setActiveProcessings(prev => {
+                const next = { ...prev };
+                delete next[fileId];
+                return next;
+              });
+            }, 3000);
+          }
+        } catch (error) {
+          console.error(`Error checking status for ${fileId}:`, error);
+        }
+      }, 2000); // Verificar a cada 2 segundos
+    });
+
+    return () => {
+      // Cleanup será feito quando activeProcessings mudar
+    };
+  }, [activeProcessings, updateSongInList]);
+
   // Recarregar lista quando uma música for processada
   const handleProcessComplete = useCallback(async (songId: string) => {
-    setShowProcessor(false);
+    // Limpar processamento do rastreamento se existir
+    setActiveProcessings(prev => {
+      const next = { ...prev };
+      Object.keys(next).forEach(fileId => {
+        if (next[fileId].songId === songId) {
+          delete next[fileId];
+        }
+      });
+      return next;
+    });
+
     try {
       // Recarregar lista de músicas, categorias e bandas
       const [updatedSongs, updatedCategories, updatedBands] = await Promise.all([
@@ -100,7 +278,7 @@ function App() {
     } catch (err) {
       console.error('Error reloading data:', err);
     }
-  }, []);
+  }, [updateSongInList]);
 
   // Função para recarregar todas as músicas, categorias e bandas
   const reloadAllData = useCallback(async () => {
@@ -120,20 +298,6 @@ function App() {
       setIsLoadingSongs(false);
     }
   }, []);
-
-  // Atualização granular: atualiza apenas uma música específica
-  const updateSongInList = useCallback(async (songId: string) => {
-    try {
-      const updatedSong = await songsService.getById(songId);
-      if (updatedSong) {
-        setSongs(prev => prev.map(s => s.id === songId ? updatedSong : s));
-      }
-    } catch (error) {
-      console.error('Error updating song:', error);
-      // Se falhar, recarrega tudo como fallback
-      reloadAllData();
-    }
-  }, [reloadAllData]);
 
   // Atualização granular: atualiza apenas uma banda específica
   const updateBandInList = useCallback(async (bandId: string) => {
@@ -682,26 +846,20 @@ function App() {
               <i className={`fas ${showProcessor ? 'fa-times' : 'fa-plus'}`}></i>
             </button>
             {showProcessor && <span className="add-music-label">Processar Nova Música</span>}
-            {selectedSong && (
-              <button
-                className="presentation-btn"
-                onClick={() => setViewMode('presentation')}
-                title="Ir para tela de apresentação"
-              >
-                <i className="fas fa-tv"></i>
-                <span>Apresentação</span>
-              </button>
+            {viewMode === 'config' && (
+              <div className="sidebar-header-buttons">
+                <button
+                  className="recording-test-btn"
+                  onClick={() => setShowRecordingTest(!showRecordingTest)}
+                  title={showRecordingTest ? 'Ocultar teste de gravação' : 'Mostrar teste de gravação'}
+                >
+                  <i className={`fas ${showRecordingTest ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
+                  <span>{showRecordingTest ? 'Ocultar Teste' : 'Teste de Gravação'}</span>
+                </button>
+              </div>
             )}
           </div>
 
-          {showProcessor && (
-            <div className="processor-wrapper">
-              <MusicProcessor 
-                onProcessComplete={handleProcessComplete} 
-              />
-            </div>
-          )}
-          
           {isLoadingSongs ? (
             <div className="songs-loading">
               <p>Carregando músicas...</p>
@@ -721,6 +879,7 @@ function App() {
               editedSongName={editedSongName}
               processingVideo={processingVideo}
               generatingLRC={generatingLRC}
+              activeProcessings={activeProcessings}
               onSongSelect={setSelectedSong}
               onEditSongName={handleEditSongName}
               onSaveSongName={handleSaveSongName}
@@ -738,20 +897,35 @@ function App() {
 
         {/* Área Principal - Karaokê */}
         <main className="karaoke-area">
-          {/* Botão para mostrar/esconder teste de gravação (apenas em modo config) */}
-          {viewMode === 'config' && (
-            <div className="recording-test-controls">
-              <button
-                className="btn-toggle-recording-test"
-                onClick={() => setShowRecordingTest(!showRecordingTest)}
-                title={showRecordingTest ? 'Ocultar teste de gravação' : 'Mostrar teste de gravação'}
-              >
-                <i className={`fas ${showRecordingTest ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
-                {showRecordingTest ? 'Ocultar Teste de Gravação' : 'Teste de Gravação'}
-              </button>
+          {/* Modal de Processar Nova Música */}
+          {showProcessor && (
+            <div className="music-processor-modal-overlay" onClick={() => {
+              // Permitir fechar mesmo se estiver processando (continua em background)
+              setShowProcessor(false);
+            }}>
+              <div className="music-processor-modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="music-processor-modal-header">
+                  <h3>Processar Nova Música</h3>
+                  <button
+                    className="music-processor-close-btn"
+                    onClick={() => setShowProcessor(false)}
+                    title="Fechar (o processamento continuará em background)"
+                  >
+                    <i className="fas fa-times"></i>
+                  </button>
+                </div>
+                <MusicProcessor 
+                  onProcessComplete={(songId) => {
+                    handleProcessComplete(songId);
+                    setShowProcessor(false); // Fechar modal quando completar
+                  }}
+                  onProcessingStart={handleProcessingStart}
+                  activeProcessings={activeProcessings}
+                />
+              </div>
             </div>
           )}
-          
+
           {/* Componente de Teste de Gravação */}
           {viewMode === 'config' && showRecordingTest && <RecordingTest />}
 
@@ -809,6 +983,8 @@ function App() {
                       onVocalsVolumeChange={setVocalsVolume}
                       onInstrumentalVolumeChange={setInstrumentalVolume}
                       generateLRCAfterRecording={generateLRCAfterRecording}
+                      showPresentationButton={!!selectedSong}
+                      onPresentationClick={() => setViewMode('presentation')}
                       onGenerateLRCChange={async (enabled: boolean) => {
                         setGenerateLRCAfterRecording(enabled);
                         
@@ -862,6 +1038,13 @@ function App() {
           )}
         </main>
       </div>
+      
+      {/* Notificação de processamento em background */}
+      <ProcessingNotification 
+        activeProcessings={activeProcessings}
+        songs={songs}
+      />
+      
       {AlertComponent}
       {ConfirmComponent}
     </div>
