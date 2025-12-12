@@ -95,6 +95,7 @@ Ou defina a variável de ambiente diretamente.
         promptValue = promptValue.slice(1, -1);
       }
       options.prompt = promptValue;
+      console.log(`📝 Prompt recebido: ${promptValue.substring(0, 100)}...`);
       i++;
     } else if (currentArg === '--output' && nextArg) {
       let outputValue = nextArg.trim();

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-11T03:44:06.786Z",
+  "lastUpdated": "2025-12-11T19:54:05.551Z",
   "scores": [
     {
       "songId": "miurk9ti-c4wnra",
@@ -1654,6 +1654,62 @@
       "maxPossiblePoints": 13800,
       "createdAt": "2025-12-11T03:44:06.786Z",
       "updatedAt": "2025-12-11T03:44:06.786Z"
+    },
+    {
+      "songId": "mivt6z6u-6p8677",
+      "sessionId": "1765481204394-tk0ir4iks",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 900,
+      "createdAt": "2025-12-11T19:26:44.412Z",
+      "updatedAt": "2025-12-11T19:26:44.412Z"
+    },
+    {
+      "songId": "mivt6z6u-6p8677",
+      "sessionId": "1765481367966-1qetfszpa",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 900,
+      "createdAt": "2025-12-11T19:29:28.015Z",
+      "updatedAt": "2025-12-11T19:29:28.015Z"
+    },
+    {
+      "songId": "mivt6z6u-6p8677",
+      "sessionId": "1765482656162-o5wo9qdkf",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 900,
+      "createdAt": "2025-12-11T19:50:56.178Z",
+      "updatedAt": "2025-12-11T19:50:56.178Z"
+    },
+    {
+      "songId": "mivt6z6u-6p8677",
+      "sessionId": "1765482845543-pjbl3umek",
+      "results": [],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 0,
+        "points": 0
+      },
+      "maxPossiblePoints": 900,
+      "createdAt": "2025-12-11T19:54:05.551Z",
+      "updatedAt": "2025-12-11T19:54:05.551Z"
     }
   ]
 }

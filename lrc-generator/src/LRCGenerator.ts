@@ -168,17 +168,39 @@ export class LRCGenerator {
       // Combina o prompt padrão com o prompt do usuário (se fornecido)
       const finalPrompt = this.getDefaultPrompt(options?.prompt);
 
+      // Log do prompt para debug
+      if (finalPrompt) {
+        console.log(`📝 Usando prompt: ${finalPrompt.substring(0, 150)}...`);
+      } else {
+        console.log(`⚠️ Nenhum prompt fornecido`);
+      }
+
+      // Log do tamanho do arquivo
+      console.log(`📊 Tamanho do arquivo de áudio: ${audioFile.size} bytes`);
+
       // Usa a API de transcrição com timestamps detalhados
+      // Adicionar temperature=0 para tornar a transcrição mais determinística e precisa
       const transcription = await this.openai.audio.transcriptions.create({
         file: audioFile,
         model: 'whisper-1',
-        language: options?.language,
-        prompt: finalPrompt,
+        language: options?.language || 'pt',
+        prompt: finalPrompt || undefined,
+        temperature: 0, // Tornar a transcrição mais determinística
         response_format: 'verbose_json', // Retorna timestamps detalhados
         timestamp_granularities: ['segment'], // Timestamps por segmento
       });
 
       console.log('✅ Transcrição concluída');
+      
+      // Log dos primeiros segmentos para debug
+      if ('segments' in transcription && Array.isArray(transcription.segments)) {
+        const firstSegments = transcription.segments.slice(0, 3);
+        console.log(`📝 Primeiros segmentos transcritos:`, firstSegments.map(s => ({
+          start: s.start,
+          end: s.end,
+          text: s.text.substring(0, 50)
+        })));
+      }
 
       // Se for verbose_json, já temos os segments
       if ('segments' in transcription && Array.isArray(transcription.segments)) {
@@ -268,10 +290,15 @@ export class LRCGenerator {
         if (!fs.existsSync(outputPath)) {
           fs.mkdirSync(outputPath, { recursive: true });
         }
-        // Se for um diretório de música (contém 'music' no caminho), usa 'lyrics.lrc'
-        // Caso contrário, usa o nome do áudio
+        // Se for um diretório de música (contém 'music' no caminho)
+        // Verificar se é o diretório recordings/ ou scoring/ para usar recording-lyrics.lrc
         const isMusicDir = outputPath.toLowerCase().includes('music');
-        const fileName = isMusicDir ? 'lyrics.lrc' : `${audioName}.lrc`;
+        const isRecordingsDir = outputPath.toLowerCase().includes('recordings');
+        const isScoringDir = outputPath.toLowerCase().includes('scoring');
+        // Se for diretório de recordings ou scoring, usar recording-lyrics.lrc
+        // Se for diretório de música normal, usar lyrics.lrc
+        // Caso contrário, usa o nome do áudio
+        const fileName = (isRecordingsDir || isScoringDir) ? 'recording-lyrics.lrc' : (isMusicDir ? 'lyrics.lrc' : `${audioName}.lrc`);
         finalOutputPath = path.join(outputPath, fileName);
       } else {
         // É um caminho completo de arquivo

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-11T03:43:47.795Z",
+  "lastUpdated": "2025-12-12T02:32:13.918Z",
   "songs": [
     {
       "id": "miunnkaj-c6z8aq",
@@ -112,7 +112,8 @@
         "lyrics": true,
         "ready": true
       },
-      "category": "cat-hiphop-001"
+      "category": "cat-hiphop-001",
+      "audioMode": "vocals-only"
     },
     {
       "id": "miw0l4fs-a9vixn",

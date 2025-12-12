@@ -8,6 +8,7 @@ interface LRCComparisonProps {
   songId: string;
   originalLyrics: LyricsLine[];
   onClose?: () => void;
+  refreshKey?: number | string; // Chave para forçar recarregamento
 }
 
 interface ComparisonLine {
@@ -22,6 +23,7 @@ export default function LRCComparison({
   songId,
   originalLyrics,
   onClose,
+  refreshKey,
 }: LRCComparisonProps) {
   const [recordedLyrics, setRecordedLyrics] = useState<LyricsLine[]>([]);
   const [comparisonLines, setComparisonLines] = useState<ComparisonLine[]>([]);
@@ -52,7 +54,7 @@ export default function LRCComparison({
     if (songId) {
       loadRecordedLRC();
     }
-  }, [songId]);
+  }, [songId, refreshKey]); // Recarregar quando refreshKey mudar
 
   // Criar linhas de comparação
   useEffect(() => {

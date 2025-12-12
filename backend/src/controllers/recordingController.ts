@@ -51,12 +51,12 @@ export const uploadRecording = asyncHandler(async (req: Request, res: Response) 
     };
   }
 
-  // Criar diretório de gravações para esta música
-  const musicDir = join(PATHS.MUSIC_DIR, songId);
-  const recordingsDir = join(musicDir, 'recordings');
+  // Criar diretório de gravações para esta música (fora de music/)
+  const recordingsDir = join(PATHS.RECORDINGS_DIR, songId);
   
   if (!existsSync(recordingsDir)) {
     mkdirSync(recordingsDir, { recursive: true });
+    console.log(`📁 Diretório de gravações criado: ${recordingsDir}`);
   }
 
   // Gerar nome único para a gravação
@@ -136,11 +136,17 @@ export const generateLRC = asyncHandler(async (req: Request, res: Response) => {
     } as any;
   }
 
-  const musicDir = join(PATHS.MUSIC_DIR, songId);
-  const recordingsDir = join(musicDir, 'recordings');
+  // Diretório de gravações - FORA da pasta music
+  const recordingsDir = join(PATHS.RECORDINGS_DIR, songId);
 
   if (!existsSync(recordingsDir)) {
     return res.status(404).json({ error: 'Nenhuma gravação encontrada para esta música' });
+  }
+
+  // Criar diretório de gravações se não existir
+  if (!existsSync(recordingsDir)) {
+    mkdirSync(recordingsDir, { recursive: true });
+    console.log(`📁 Diretório de gravações criado: ${recordingsDir}`);
   }
 
   // Encontrar a gravação mais recente ou a especificada
@@ -338,11 +344,19 @@ export const generateLRC = asyncHandler(async (req: Request, res: Response) => {
   // Verificar tamanho do arquivo de áudio final
   const audioStats = fs.statSync(audioForLRC);
   console.log(`📊 Arquivo de áudio final: ${(audioStats.size / 1024).toFixed(2)} KB`);
+  console.log(`📊 Duração estimada (assumindo 128kbps): ${((audioStats.size * 8) / 128000).toFixed(2)} segundos`);
   
   if (audioStats.size < 1024) { // Menos de 1KB
     console.warn(`⚠️ Arquivo de áudio muito pequeno (${(audioStats.size / 1024).toFixed(2)} KB). A gravação pode ser muito curta.`);
     console.warn(`⚠️ Tentando gerar LRC mesmo assim...`);
   }
+  
+  // IMPORTANTE: Log de aviso sobre possível captura de música de fundo
+  console.log(`⚠️ AVISO: Se o LRC contiver texto que não foi falado, pode ser que:`);
+  console.log(`   1. O microfone esteja capturando música das caixas de som (feedback acústico)`);
+  console.log(`   2. O sistema de áudio esteja capturando áudio do sistema em vez de apenas o microfone`);
+  console.log(`   3. Há música de fundo sendo capturada junto com a voz`);
+  console.log(`   Solução: Use fones de ouvido em vez de caixas de som para evitar feedback acústico`);
 
   // Verificar se o LRC Generator existe
   const lrcScript = join(PROJECT_ROOT, 'lrc-generator', 'src', 'index.ts');
@@ -362,7 +376,34 @@ export const generateLRC = asyncHandler(async (req: Request, res: Response) => {
     console.warn(`⚠️ Certifique-se de que OPENAI_API_KEY está configurada`);
   }
   
+  // Salvar LRC de pontuação no diretório recordings/
+  // IMPORTANTE: Sempre usar o mesmo nome para substituir o arquivo anterior
   const outputLrcPath = join(recordingsDir, 'recording-lyrics.lrc');
+  
+  // Remover arquivo LRC antigo se existir (para garantir substituição)
+  if (existsSync(outputLrcPath)) {
+    console.log(`🗑️ Removendo LRC antigo: ${outputLrcPath}`);
+    try {
+      const fs = await import('fs/promises');
+      await fs.unlink(outputLrcPath);
+      console.log(`✅ LRC antigo removido`);
+    } catch (err) {
+      console.warn(`⚠️ Erro ao remover LRC antigo:`, err);
+    }
+  }
+  
+  // Também remover lyrics.lrc se existir (pode ser um arquivo antigo)
+  const oldLyricsPath = join(recordingsDir, 'lyrics.lrc');
+  if (existsSync(oldLyricsPath)) {
+    console.log(`🗑️ Removendo lyrics.lrc antigo: ${oldLyricsPath}`);
+    try {
+      const fs = await import('fs/promises');
+      await fs.unlink(oldLyricsPath);
+      console.log(`✅ lyrics.lrc antigo removido`);
+    } catch (err) {
+      console.warn(`⚠️ Erro ao remover lyrics.lrc antigo:`, err);
+    }
+  }
   
   console.log(`📝 Preparando para gerar LRC:`);
   console.log(`   Script: ${lrcScript}`);
@@ -376,6 +417,7 @@ export const generateLRC = asyncHandler(async (req: Request, res: Response) => {
     
     // Garantir que o output-dir termina com separador para que o LRCGenerator entenda como diretório
     // Normalizar caminho para evitar problemas com barras
+    // Usar o diretório de gravações
     const normalizedRecordingsDir = recordingsDir.replace(/\\/g, '/');
     const outputDirWithSeparator = normalizedRecordingsDir.endsWith('/') 
       ? normalizedRecordingsDir 
@@ -384,13 +426,29 @@ export const generateLRC = asyncHandler(async (req: Request, res: Response) => {
     // Construir comando de forma mais segura
     // No Windows, usar caminhos com barras normais e garantir espaços entre argumentos
     // Evitar problemas de parsing usando caminhos sem espaços extras
+    // Adicionar prompt para focar apenas na voz do usuário e ignorar música de fundo
+    // O prompt ajuda o Whisper a focar na voz do usuário e ignorar a música de fundo
+    // Este é um áudio de karaokê onde há música de fundo e uma pessoa cantando
+    // O Whisper deve transcrever APENAS o que a pessoa está cantando, não a música original
+    // Prompt mais direto e específico para evitar transcrições incorretas
+    // IMPORTANTE: Este áudio contém música de fundo tocando. O Whisper deve IGNORAR completamente
+    // a música e transcrever APENAS a voz da pessoa que está cantando sobre a música.
+    const prompt = "Este áudio contém música de fundo de karaokê. Transcreva APENAS a voz da pessoa cantando. IGNORE completamente a música de fundo, instrumentais, vocais da música original, números, textos de vídeos, anúncios, ou qualquer outro som que não seja a voz humana da pessoa que está cantando. Se você ouvir música ou outros sons, NÃO os transcreva. Transcreva SOMENTE as palavras cantadas pela pessoa.";
+    
+    console.log(`📝 Prompt que será usado: ${prompt}`);
+    
     let command: string;
     if (isWindows) {
       // No Windows, usar formato que funcione melhor com cmd
       // Separar claramente cada argumento
-      command = `cd /d "${lrcGeneratorDir}" && npx tsx "${lrcScript}" "${audioForLRC}" --output-dir "${outputDirWithSeparator}" --language pt`;
+      // No Windows cmd, precisamos escapar aspas de forma diferente
+      // Vamos usar uma abordagem mais segura: passar o prompt sem aspas e deixar o parser lidar
+      const escapedPrompt = prompt.replace(/"/g, '\\"'); // Escapar para PowerShell/cmd
+      command = `cd /d "${lrcGeneratorDir}" && npx tsx "${lrcScript}" "${audioForLRC}" --output-dir "${outputDirWithSeparator}" --language pt --prompt "${escapedPrompt}"`;
     } else {
-      command = `cd "${lrcGeneratorDir}" && npx tsx "${lrcScript}" "${audioForLRC}" --output-dir "${outputDirWithSeparator}" --language pt`;
+      // Escapar aspas do prompt corretamente para Unix/Linux
+      const escapedPrompt = prompt.replace(/"/g, '\\"');
+      command = `cd "${lrcGeneratorDir}" && npx tsx "${lrcScript}" "${audioForLRC}" --output-dir "${outputDirWithSeparator}" --language pt --prompt "${escapedPrompt}"`;
     }
 
     console.log(`📝 Executando comando: ${command}`);
@@ -419,7 +477,7 @@ export const generateLRC = asyncHandler(async (req: Request, res: Response) => {
     // Aguardar um pouco para garantir que o arquivo foi escrito
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Procurar arquivo LRC gerado
+    // Procurar arquivo LRC gerado no diretório de gravações
     const fs = await import('fs/promises');
     let files: string[];
     try {
@@ -436,45 +494,39 @@ export const generateLRC = asyncHandler(async (req: Request, res: Response) => {
     
     // O LRCGenerator pode gerar com diferentes nomes dependendo do nome do áudio
     // Procurar por: recording-lyrics.lrc, lyrics.lrc, ou qualquer outro .lrc
+    // IMPORTANTE: Priorizar recording-lyrics.lrc, mas aceitar lyrics.lrc também
     let lrcFile = allLrcFiles.find(f => f === 'recording-lyrics.lrc');
     if (!lrcFile) {
       lrcFile = allLrcFiles.find(f => f === 'lyrics.lrc');
     }
-    if (!lrcFile) {
-      // Pegar qualquer arquivo .lrc que não seja o que estamos procurando
-      lrcFile = allLrcFiles.find(f => f !== 'recording-lyrics.lrc');
+    if (!lrcFile && allLrcFiles.length > 0) {
+      // Pegar o arquivo .lrc mais recente (por timestamp no nome ou data de modificação)
+      lrcFile = allLrcFiles[0];
     }
 
-    if (lrcFile && lrcFile !== 'recording-lyrics.lrc') {
-      console.log(`📝 Arquivo LRC encontrado: ${lrcFile}, renomeando para recording-lyrics.lrc`);
+    // Se encontrou um arquivo LRC, garantir que está com o nome correto
+    if (lrcFile) {
       const generatedLrcPath = join(recordingsDir, lrcFile);
-      // Verificar se o arquivo existe antes de renomear
-      if (existsSync(generatedLrcPath)) {
-        // Se o arquivo de destino já existe, removê-lo primeiro
-        if (existsSync(outputLrcPath)) {
-          await fs.unlink(outputLrcPath);
+      
+      if (lrcFile !== 'recording-lyrics.lrc') {
+        console.log(`📝 Arquivo LRC encontrado: ${lrcFile}, renomeando para recording-lyrics.lrc`);
+        // Verificar se o arquivo existe antes de renomear
+        if (existsSync(generatedLrcPath)) {
+          // Se o arquivo de destino já existe, removê-lo primeiro
+          if (existsSync(outputLrcPath)) {
+            await fs.unlink(outputLrcPath);
+            console.log(`🗑️ Arquivo recording-lyrics.lrc antigo removido`);
+          }
+          await fs.rename(generatedLrcPath, outputLrcPath);
+          console.log(`✅ Arquivo renomeado com sucesso de ${lrcFile} para recording-lyrics.lrc`);
+        } else {
+          console.warn(`⚠️ Arquivo ${lrcFile} não existe mais`);
         }
-        await fs.rename(generatedLrcPath, outputLrcPath);
-        console.log(`✅ Arquivo renomeado com sucesso de ${lrcFile} para recording-lyrics.lrc`);
       } else {
-        console.warn(`⚠️ Arquivo ${lrcFile} não existe mais`);
-      }
-    } else if (allLrcFiles.includes('recording-lyrics.lrc')) {
-      console.log(`✅ Arquivo recording-lyrics.lrc já existe`);
-    } else if (allLrcFiles.length > 0) {
-      // Se encontrou algum arquivo LRC mas não é o esperado, usar o primeiro
-      const firstLrc = allLrcFiles[0];
-      console.log(`📝 Usando arquivo LRC encontrado: ${firstLrc}`);
-      const firstLrcPath = join(recordingsDir, firstLrc);
-      if (existsSync(firstLrcPath) && firstLrc !== 'recording-lyrics.lrc') {
-        if (existsSync(outputLrcPath)) {
-          await fs.unlink(outputLrcPath);
-        }
-        await fs.rename(firstLrcPath, outputLrcPath);
-        console.log(`✅ Arquivo renomeado para recording-lyrics.lrc`);
+        console.log(`✅ Arquivo recording-lyrics.lrc já existe e está atualizado`);
       }
     } else {
-      console.warn(`⚠️ Nenhum arquivo LRC encontrado no diretório`);
+      console.warn(`⚠️ Nenhum arquivo LRC encontrado no diretório de gravações`);
       console.warn(`⚠️ Verifique se o LRC Generator foi executado corretamente`);
       console.warn(`⚠️ Verifique se a OPENAI_API_KEY está configurada no arquivo .env do lrc-generator`);
       console.warn(`⚠️ Verifique os logs do LRC Generator acima para mais detalhes`);
@@ -521,28 +573,58 @@ export const getRecordingLRC = asyncHandler(async (req: Request, res: Response) 
     return res.status(400).json({ error: 'songId é obrigatório' });
   }
 
-  const musicDir = join(PATHS.MUSIC_DIR, songId);
-  const recordingsDir = join(musicDir, 'recordings');
+  // Diretório de gravações - FORA da pasta music
+  const recordingsDir = join(PATHS.RECORDINGS_DIR, songId);
 
   if (!existsSync(recordingsDir)) {
-    return res.status(404).json({ error: 'Nenhuma gravação encontrada' });
+    return res.status(404).json({ error: 'LRC de pontuação não encontrado' });
   }
 
-  // Tentar encontrar o LRC
+  // Tentar encontrar o LRC no diretório de gravações
   let lrcPath: string;
 
   if (recordingId) {
+    // Se houver recordingId, verificar primeiro no diretório de gravações
     lrcPath = join(recordingsDir, `${recordingId}-lyrics.lrc`);
+    // Se não existir, verificar no diretório antigo (compatibilidade)
+    if (!existsSync(lrcPath)) {
+      const oldMusicDir = join(PATHS.MUSIC_DIR, songId);
+      const oldRecordingsDir = join(oldMusicDir, 'recordings');
+      const oldLrcPath = join(oldRecordingsDir, `${recordingId}-lyrics.lrc`);
+      if (existsSync(oldLrcPath)) {
+        lrcPath = oldLrcPath;
+      }
+      // Também verificar no diretório scoring antigo (compatibilidade)
+      if (!existsSync(lrcPath)) {
+        const oldScoringDir = join(PATHS.SCORING_DIR, songId);
+        const oldScoringLrcPath = join(oldScoringDir, `${recordingId}-lyrics.lrc`);
+        if (existsSync(oldScoringLrcPath)) {
+          lrcPath = oldScoringLrcPath;
+        }
+      }
+    }
   } else {
-    // Buscar o LRC mais recente
+    // Buscar o LRC de pontuação no diretório de gravações
     lrcPath = join(recordingsDir, 'recording-lyrics.lrc');
+    // Se não existir, verificar no diretório scoring antigo (compatibilidade)
+    if (!existsSync(lrcPath)) {
+      const oldScoringDir = join(PATHS.SCORING_DIR, songId);
+      const oldScoringLrcPath = join(oldScoringDir, 'recording-lyrics.lrc');
+      if (existsSync(oldScoringLrcPath)) {
+        lrcPath = oldScoringLrcPath;
+      }
+    }
   }
 
   if (!existsSync(lrcPath)) {
     return res.status(404).json({ error: 'LRC da gravação não encontrado' });
   }
 
+  // Adicionar cache-busting para garantir que sempre pega a versão mais recente
   const lrcContent = readFileSync(lrcPath, 'utf-8');
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
   res.send(lrcContent);
 });

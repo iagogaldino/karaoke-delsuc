@@ -59,14 +59,12 @@ export default function AudioRecorder({
     const startRecording = async () => {
       // Evitar iniciar se já está iniciando ou gravando
       if (isStartingRef.current || isRecording || mediaRecorderRef.current?.state === 'recording') {
-        console.log('⏭️ Ignorando início de gravação (já está iniciando ou gravando)');
         return;
       }
 
       // Evitar iniciar se acabou de parar (aguardar pelo menos 1 segundo)
       const timeSinceLastStop = Date.now() - lastStopTimestampRef.current;
       if (timeSinceLastStop < 1000 && lastStopTimestampRef.current > 0) {
-        console.log(`⏭️ Ignorando início de gravação (acabou de parar há ${timeSinceLastStop}ms)`);
         return;
       }
 
@@ -87,13 +85,37 @@ export default function AudioRecorder({
           streamRef.current = null;
         }
 
+        // Configuração de áudio para capturar APENAS a voz do usuário
+        // echoCancellation: remove feedback acústico (música das caixas)
+        // noiseSuppression: remove ruídos de fundo
+        // autoGainControl: ajusta volume automaticamente
+        // sampleRate: qualidade do áudio
         const stream = await navigator.mediaDevices.getUserMedia({
           audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
+            echoCancellation: true, // CRÍTICO: Remove feedback acústico da música
+            noiseSuppression: true,  // Remove ruídos de fundo
+            autoGainControl: true,  // Ajusta volume automaticamente
+            sampleRate: 44100,       // Qualidade de áudio
+            channelCount: 1,        // Mono (apenas um canal)
+            // Não usar googEchoCancellation ou outras flags específicas do navegador
+            // para garantir compatibilidade
           },
         });
+        
+        // Log das configurações do stream para debug
+        const audioTracks = stream.getAudioTracks();
+        if (audioTracks.length > 0) {
+          const settings = audioTracks[0].getSettings();
+          console.log('🎤 Configurações de captura de áudio:', {
+            deviceId: settings.deviceId,
+            echoCancellation: settings.echoCancellation,
+            noiseSuppression: settings.noiseSuppression,
+            autoGainControl: settings.autoGainControl,
+            sampleRate: settings.sampleRate,
+            channelCount: settings.channelCount,
+            groupId: settings.groupId,
+          });
+        }
 
         streamRef.current = stream;
 
@@ -119,23 +141,21 @@ export default function AudioRecorder({
         isStoppedRef.current = false;
 
         mediaRecorder.ondataavailable = (event) => {
-          console.log(`📥 ondataavailable chamado: size=${event.data?.size || 0}, isStopped=${isStoppedRef.current}, state=${mediaRecorder.state}`);
           // Processar chunks se tiver dados, mesmo que já tenha parado (pode ser chunk final)
           if (event.data && event.data.size > 0) {
             // Só ignorar se explicitamente marcado como parado E já tiver chunks (para evitar chunks duplicados após parar)
             if (!isStoppedRef.current || chunksRef.current.length === 0) {
               chunksRef.current.push(event.data);
-              console.log(`📦 Chunk recebido: ${(event.data.size / 1024).toFixed(2)} KB (total: ${chunksRef.current.length})`);
-            } else {
-              console.log(`⏭️ Chunk ignorado (já parado e tem chunks): isStopped=${isStoppedRef.current}, size=${event.data?.size || 0}`);
+              // Log apenas a cada 50 chunks (ou seja, a cada ~5 segundos de gravação) para não poluir o console
+              if (chunksRef.current.length % 50 === 0) {
+                console.log(`📦 Gravação em andamento: ${chunksRef.current.length} chunks coletados (~${(chunksRef.current.length * 0.1).toFixed(1)}s)`);
+              }
             }
-          } else {
-            console.log(`⏭️ Chunk vazio ignorado: size=${event.data?.size || 0}`);
           }
         };
 
         mediaRecorder.onstop = () => {
-          console.log(`🛑 onstop chamado. Chunks coletados até agora: ${chunksRef.current.length}`);
+          console.log(`🛑 Gravação parada. Chunks coletados: ${chunksRef.current.length}`);
           
           // NÃO marcar como parado ainda - aguardar processar os chunks primeiro
           // isStoppedRef.current = true; // Movido para depois de processar
@@ -144,8 +164,6 @@ export default function AudioRecorder({
           
           // Aguardar um pouco mais para garantir que todos os chunks foram coletados
           setTimeout(() => {
-            console.log(`⏱️ Após timeout, chunks coletados: ${chunksRef.current.length}`);
-            
             // AGORA marcar como parado para evitar mais chunks
             isStoppedRef.current = true;
             
@@ -230,9 +248,11 @@ export default function AudioRecorder({
 
         console.log(`🎤 Gravação iniciada (state: ${mediaRecorder.state}, mimeType: ${mediaRecorder.mimeType})`);
         
-        // Verificar se está realmente gravando após um pequeno delay
+        // Verificar se está realmente gravando após um pequeno delay (apenas se houver problema)
         setTimeout(() => {
-          console.log(`🔍 Verificação após 200ms: state=${mediaRecorderRef.current?.state}, chunks=${chunksRef.current.length}`);
+          if (mediaRecorderRef.current?.state !== 'recording') {
+            console.warn(`⚠️ Gravação não iniciou corretamente após 200ms: state=${mediaRecorderRef.current?.state}`);
+          }
         }, 200);
       } catch (error: any) {
         console.error('Erro ao iniciar gravação:', error);
@@ -248,12 +268,10 @@ export default function AudioRecorder({
     const stopRecording = () => {
       // Evitar parar múltiplas vezes
       if (isStoppingRef.current) {
-        console.log('⏭️ Ignorando parada de gravação (já está parando)');
         return;
       }
 
       if (!isRecording && mediaRecorderRef.current?.state !== 'recording') {
-        console.log('⏭️ Ignorando parada (não está gravando)');
         return;
       }
 
@@ -312,8 +330,7 @@ export default function AudioRecorder({
     // Só iniciar/parar se realmente mudou o estado de isPlaying
     const isPlayingChanged = isPlaying !== lastIsPlayingRef.current;
     
-    console.log(`🔍 Estado: isPlaying=${isPlaying}, isPlayingChanged=${isPlayingChanged}, isRecording=${isRecording}, state=${mediaRecorderRef.current?.state}`);
-    
+    // Log apenas quando há mudança significativa
     if (isPlayingChanged) {
       console.log(`🔄 Mudança detectada: isPlaying mudou de ${lastIsPlayingRef.current} para ${isPlaying}`);
       lastIsPlayingRef.current = isPlaying;
@@ -332,8 +349,6 @@ export default function AudioRecorder({
 
     // Cleanup ao desmontar ou mudar música
     return () => {
-      console.log(`🧹 Cleanup executado: isPlaying=${isPlaying}, isRecording=${isRecording}, state=${mediaRecorderRef.current?.state}`);
-      
       // NÃO parar a gravação no cleanup se isPlaying ainda está true
       // Isso pode causar problemas se o effect for re-executado rapidamente
       if (!isPlaying) {
@@ -345,7 +360,7 @@ export default function AudioRecorder({
           try {
             // Parar gravação se estiver ativa
             if (mediaRecorderRef.current.state === 'recording') {
-              console.log(`🧹 Parando gravação no cleanup (isPlaying=false)`);
+              console.log(`🧹 Parando gravação no cleanup (música parou)`);
               mediaRecorderRef.current.stop();
             }
           } catch (err) {
@@ -354,7 +369,6 @@ export default function AudioRecorder({
         }
       } else {
         // Se ainda está tocando, apenas resetar flags, mas não parar a gravação
-        console.log(`🧹 Cleanup ignorado (isPlaying ainda está true)`);
         isStartingRef.current = false;
         isStoppingRef.current = false;
       }

@@ -38,6 +38,7 @@ function App() {
   const [editingSongName, setEditingSongName] = useState<string | null>(null);
   const [editedSongName, setEditedSongName] = useState<string>('');
   const [showLRCComparison, setShowLRCComparison] = useState(false);
+  const [lrcRefreshKey, setLrcRefreshKey] = useState(0);
   const [showRecordingTest, setShowRecordingTest] = useState(false);
   const [songDuration, setSongDuration] = useState<number>(0);
   const { currentTime, isPlaying, play, pause, seek } = useSyncWebSocket();
@@ -451,6 +452,10 @@ function App() {
       
       if (lrcPath) {
         console.log('✅ LRC gerado com sucesso:', lrcPath);
+        // Forçar recarregamento do LRCComparison
+        setLrcRefreshKey(prev => prev + 1);
+        // Aguardar um pouco para garantir que o arquivo foi salvo
+        await new Promise(resolve => setTimeout(resolve, 500));
         // Mostrar comparação
         setShowLRCComparison(true);
         await alert('Gravação processada! Comparação de letras disponível.', {
@@ -686,6 +691,7 @@ function App() {
                     songId={selectedSong}
                     originalLyrics={lyrics}
                     onClose={() => setShowLRCComparison(false)}
+                    refreshKey={lrcRefreshKey}
                   />
                 </div>
               ) : (
