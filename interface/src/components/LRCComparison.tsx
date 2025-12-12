@@ -3,6 +3,7 @@ import './LRCComparison.css';
 import { LyricsLine } from '../types/index.js';
 import { recordingService } from '../services/recordingService.js';
 import { formatTime } from '../utils/formatters.js';
+import { alignLRCLinesByTextOnly } from '../utils/textUtils.js';
 
 interface LRCComparisonProps {
   songId: string;
@@ -16,7 +17,8 @@ interface ComparisonLine {
   originalText: string;
   recordedText: string;
   hasDifference: boolean;
-  timeDifference?: number;
+  timeDifference?: number; // Deprecated - mantido apenas para compatibilidade de exibição
+  similarity?: number; // Similaridade entre textos (0-1)
 }
 
 export default function LRCComparison({
@@ -56,78 +58,29 @@ export default function LRCComparison({
     }
   }, [songId, refreshKey]); // Recarregar quando refreshKey mudar
 
-  // Criar linhas de comparação
+  // Criar linhas de comparação usando alinhamento apenas por texto (SEM TIMESTAMP)
   useEffect(() => {
     if (originalLyrics.length === 0 && recordedLyrics.length === 0) {
       setComparisonLines([]);
       return;
     }
 
-    const lines: ComparisonLine[] = [];
-    const TOLERANCE = 0.5; // Segundos de tolerância para considerar mesma linha
+    // Usar alinhamento apenas por texto - IGNORA TIMESTAMPS
+    const alignments = alignLRCLinesByTextOnly(originalLyrics, recordedLyrics, 0.3);
 
-    // Criar mapa de tempos para busca rápida
-    const originalMap = new Map<number, string>();
-    originalLyrics.forEach((line) => {
-      originalMap.set(line.time, line.text);
-    });
+    // Converter alinhamentos para formato de comparação
+    const lines: ComparisonLine[] = alignments.map(alignment => {
+      const time = alignment.originalTime ?? alignment.recordedTime ?? 0;
+      const hasDifference = alignment.similarity < 0.9 || alignment.recordedText === '';
 
-    const recordedMap = new Map<number, string>();
-    recordedLyrics.forEach((line) => {
-      recordedMap.set(line.time, line.text);
-    });
-
-    // Combinar todos os tempos únicos
-    const allTimes = new Set<number>();
-    originalLyrics.forEach((line) => allTimes.add(line.time));
-    recordedLyrics.forEach((line) => allTimes.add(line.time));
-
-    // Ordenar tempos
-    const sortedTimes = Array.from(allTimes).sort((a, b) => a - b);
-
-    // Criar linhas de comparação
-    sortedTimes.forEach((time) => {
-      const originalText = originalMap.get(time) || '';
-      const recordedText = recordedMap.get(time) || '';
-
-      // Verificar se há diferença
-      const hasDifference = originalText !== recordedText || 
-        (originalText === '' && recordedText !== '') ||
-        (originalText !== '' && recordedText === '');
-
-      // Encontrar diferença de tempo mais próxima
-      let timeDifference: number | undefined;
-      if (originalText === '' && recordedText !== '') {
-        // Texto gravado sem correspondente original - encontrar mais próximo
-        const closestOriginal = originalLyrics.reduce((closest, line) => {
-          const diff = Math.abs(line.time - time);
-          const closestDiff = closest ? Math.abs(closest.time - time) : Infinity;
-          return diff < closestDiff ? line : closest;
-        }, null as LyricsLine | null);
-
-        if (closestOriginal) {
-          timeDifference = time - closestOriginal.time;
-        }
-      } else if (originalText !== '' && recordedText === '') {
-        // Texto original sem correspondente gravado
-        const closestRecorded = recordedLyrics.reduce((closest, line) => {
-          const diff = Math.abs(line.time - time);
-          const closestDiff = closest ? Math.abs(closest.time - time) : Infinity;
-          return diff < closestDiff ? line : closest;
-        }, null as LyricsLine | null);
-
-        if (closestRecorded) {
-          timeDifference = time - closestRecorded.time;
-        }
-      }
-
-      lines.push({
+      return {
         time,
-        originalText,
-        recordedText,
+        originalText: alignment.originalText,
+        recordedText: alignment.recordedText,
         hasDifference,
-        timeDifference,
-      });
+        timeDifference: undefined, // Removido - não usamos mais diferença de tempo para comparação
+        similarity: alignment.similarity,
+      };
     });
 
     setComparisonLines(lines);
@@ -276,10 +229,9 @@ export default function LRCComparison({
                 <span className="lrc-text">
                   {line.recordedText || <em className="empty-text">(sem texto)</em>}
                 </span>
-                {line.timeDifference !== undefined && (
-                  <span className="time-diff">
-                    {line.timeDifference > 0 ? '+' : ''}
-                    {line.timeDifference.toFixed(2)}s
+                {line.similarity !== undefined && line.similarity > 0 && line.similarity < 1 && (
+                  <span className="time-diff" title="Similaridade de texto">
+                    {Math.round(line.similarity * 100)}%
                   </span>
                 )}
               </div>

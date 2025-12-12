@@ -431,9 +431,10 @@ export const generateLRC = asyncHandler(async (req: Request, res: Response) => {
     // Este é um áudio de karaokê onde há música de fundo e uma pessoa cantando
     // O Whisper deve transcrever APENAS o que a pessoa está cantando, não a música original
     // Prompt mais direto e específico para evitar transcrições incorretas
-    // IMPORTANTE: Este áudio contém música de fundo tocando. O Whisper deve IGNORAR completamente
-    // a música e transcrever APENAS a voz da pessoa que está cantando sobre a música.
-    const prompt = "Este áudio contém música de fundo de karaokê. Transcreva APENAS a voz da pessoa cantando. IGNORE completamente a música de fundo, instrumentais, vocais da música original, números, textos de vídeos, anúncios, ou qualquer outro som que não seja a voz humana da pessoa que está cantando. Se você ouvir música ou outros sons, NÃO os transcreva. Transcreva SOMENTE as palavras cantadas pela pessoa.";
+    // IMPORTANTE: Prompt deve ser curto e sem instruções que possam ser transcritas
+    // O Whisper pode confundir o prompt com texto a ser transcrito se for muito explícito
+    // Usar apenas contexto simples sobre o tipo de áudio
+    const prompt = "Karaoke: apenas voz do cantor";
     
     console.log(`📝 Prompt que será usado: ${prompt}`);
     
