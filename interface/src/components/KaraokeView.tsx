@@ -5,6 +5,7 @@ import AudioPlayer from './AudioPlayer';
 import SongSelectorModal from './SongSelectorModal';
 import MusicAnimation from './MusicAnimation';
 import StageLights from './StageLights';
+import FallingMusicSymbols from './FallingMusicSymbols';
 import { AudioMode, LyricsLine, SyncMessage } from '../types/index.js';
 import { songsService } from '../services/songsService.js';
 import { lyricsService } from '../services/lyricsService.js';
@@ -492,6 +493,7 @@ export default function KaraokeView({
       {/* Área de letras */}
       <div className="karaoke-lyrics-area">
         <StageLights isPlaying={isPlaying} variant="lyrics" />
+        <FallingMusicSymbols isPlaying={isPlaying} />
         <LyricsDisplay
           lyrics={lyrics}
           currentTime={currentTime}

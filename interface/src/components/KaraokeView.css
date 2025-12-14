@@ -687,6 +687,15 @@
   border-top-left-radius: 50%;
 }
 
+/* Permitir que símbolos musicais caiam além dos limites */
+.karaoke-lyrics-area .falling-music-symbols {
+  overflow: visible;
+}
+
+.karaoke-lyrics-area .falling-music-symbols .music-symbol {
+  position: absolute;
+}
+
 /* Remover scrollbar na área de letras do modo jogador */
 .karaoke-lyrics-area::-webkit-scrollbar,
 .karaoke-lyrics-area *::-webkit-scrollbar {
