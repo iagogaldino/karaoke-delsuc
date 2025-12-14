@@ -671,7 +671,7 @@
 /* Área de letras */
 .karaoke-lyrics-area {
   width: 100%;
-  max-height: 40%;
+  max-height: 48%;
   min-height: 200px;
   background: rgba(0, 0, 0, 0.85); /* Semi-transparente para o vídeo aparecer levemente */
   padding: 2rem;
@@ -683,6 +683,8 @@
   position: relative;
   backdrop-filter: blur(5px); /* Efeito de desfoque para o vídeo atrás */
   margin-top: auto; /* Empurra para o bottom */
+  border-top-right-radius: 50%;
+  border-top-left-radius: 50%;
 }
 
 /* Remover scrollbar na área de letras do modo jogador */

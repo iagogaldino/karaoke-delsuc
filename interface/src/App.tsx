@@ -200,7 +200,7 @@ function App() {
           });
 
           // Atualizar songId se ainda não tiver sido definido
-          if (status.songId && !prev[fileId]?.songId) {
+          if (status.songId && !current?.songId) {
             setActiveProcessings(prevUpdate => ({
               ...prevUpdate,
               [fileId]: {

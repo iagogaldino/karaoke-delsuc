@@ -1,4 +1,4 @@
-import { useState, useMemo, memo } from 'react';
+import { useState, useMemo, memo, useEffect } from 'react';
 import { Song, Category, Band } from '../types/index.js';
 import CreateBandButton from './CreateBandButton.js';
 import CreateCategoryButton from './CreateCategoryButton.js';
@@ -72,7 +72,44 @@ function SongTree({
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [expandedBands, setExpandedBands] = useState<Set<string>>(new Set());
   const [expandedAll, setExpandedAll] = useState(false);
+  const [filterText, setFilterText] = useState<string>('');
   const { alert, confirm, AlertComponent, ConfirmComponent } = useAlert();
+
+  // Filtrar músicas baseado no texto de filtro
+  const filteredSongs = useMemo(() => {
+    if (!filterText.trim()) {
+      return songs;
+    }
+    
+    const searchText = filterText.toLowerCase().trim();
+    return songs.filter(song => {
+      const songName = (song.displayName || song.name).toLowerCase();
+      
+      // Buscar nome da banda
+      let bandName = '';
+      if (song.band) {
+        const band = bands.find(b => b.id === song.band);
+        bandName = band ? band.name.toLowerCase() : '';
+      }
+      
+      // Buscar nome da categoria
+      let categoryName = '';
+      if (song.category) {
+        if (song.category === 'uncategorized') {
+          categoryName = 'sem categoria';
+        } else {
+          const category = categories.find(c => c.id === song.category);
+          categoryName = category ? category.name.toLowerCase() : '';
+        }
+      } else {
+        categoryName = 'sem categoria';
+      }
+      
+      return songName.includes(searchText) || 
+             bandName.includes(searchText) || 
+             categoryName.includes(searchText);
+    });
+  }, [songs, filterText, bands, categories]);
 
   // Separar músicas sem banda e agrupar as restantes por categoria e banda
   const { songsWithoutBand, songsByCategoryAndBand } = useMemo(() => {
@@ -93,8 +130,8 @@ function SongTree({
       grouped.uncategorized[band.id] = [];
     });
 
-    // Agrupar músicas
-    songs.forEach(song => {
+    // Agrupar músicas filtradas
+    filteredSongs.forEach(song => {
       // Se a música não tem banda, adiciona à lista separada
       if (!song.band) {
         songsWithoutBandList.push(song);
@@ -120,7 +157,7 @@ function SongTree({
 
     // Adicionar bandas sem músicas na categoria padrão delas
     bands.forEach(band => {
-      const bandSongs = songs.filter(s => s.band === band.id);
+      const bandSongs = filteredSongs.filter(s => s.band === band.id);
       const hasCategorizedSongs = bandSongs.some(s => s.category && s.category !== 'uncategorized');
       
       // Se a banda não tem músicas categorizadas
@@ -146,7 +183,31 @@ function SongTree({
     });
 
     return { songsWithoutBand: songsWithoutBandList, songsByCategoryAndBand: grouped };
-  }, [songs, categories, bands]);
+  }, [filteredSongs, categories, bands]);
+
+  // Expandir automaticamente categorias e bandas quando há filtro ativo
+  useEffect(() => {
+    if (filterText.trim()) {
+      const categoriesToExpand = new Set<string>();
+      const bandsToExpand = new Set<string>();
+      
+      // Encontrar categorias e bandas que contêm músicas filtradas
+      filteredSongs.forEach(song => {
+        const categoryId = song.category || 'uncategorized';
+        categoriesToExpand.add(categoryId);
+        
+        if (song.band) {
+          const bandKey = `${categoryId}-${song.band}`;
+          bandsToExpand.add(bandKey);
+        } else {
+          bandsToExpand.add('all-noband');
+        }
+      });
+      
+      setExpandedCategories(categoriesToExpand);
+      setExpandedBands(bandsToExpand);
+    }
+  }, [filterText, filteredSongs]);
 
   const toggleCategory = (categoryId: string) => {
     setExpandedCategories(prev => {
@@ -681,10 +742,46 @@ function SongTree({
           </button>
         </div>
       </div>
+      
+      <div className="song-tree-filter">
+        <div className="song-tree-filter-input-wrapper">
+          <i className="fas fa-search song-tree-filter-icon"></i>
+          <input
+            type="text"
+            className="song-tree-filter-input"
+            placeholder="Filtrar músicas..."
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+          />
+          {filterText && (
+            <button
+              className="song-tree-filter-clear"
+              onClick={() => setFilterText('')}
+              title="Limpar filtro"
+            >
+              <i className="fas fa-times"></i>
+            </button>
+          )}
+        </div>
+      </div>
 
       <div className="song-tree-content">
-        {/* Músicas sem banda - pasta única no topo */}
-        {songsWithoutBand.length > 0 && (
+        {/* Se há filtro ativo, mostrar apenas lista simples de músicas filtradas */}
+        {filterText.trim() ? (
+          <div className="song-tree-songs">
+            {filteredSongs.length > 0 ? (
+              filteredSongs.map(song => renderSong(song))
+            ) : (
+              <div className="songs-empty">
+                <p>Nenhuma música encontrada</p>
+                <p className="songs-empty-hint">Tente ajustar o filtro</p>
+              </div>
+            )}
+          </div>
+        ) : (
+          <>
+            {/* Músicas sem banda - pasta única no topo */}
+            {songsWithoutBand.length > 0 && (
           <div className="song-tree-band drop-zone"
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -1042,12 +1139,14 @@ function SongTree({
           );
         })}
 
-        {/* Se não houver músicas */}
-        {songs.length === 0 && categories.length === 0 && (
-          <div className="songs-empty">
-            <p>Nenhuma música encontrada</p>
-            <p className="songs-empty-hint">Processe uma música para começar</p>
-          </div>
+            {/* Se não houver músicas */}
+            {songs.length === 0 && categories.length === 0 && (
+              <div className="songs-empty">
+                <p>Nenhuma música encontrada</p>
+                <p className="songs-empty-hint">Processe uma música para começar</p>
+              </div>
+            )}
+          </>
         )}
       </div>
       {AlertComponent}

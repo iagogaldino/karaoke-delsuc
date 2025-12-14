@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-12T20:55:40.570Z",
+  "lastUpdated": "2025-12-14T14:00:52.563Z",
   "songs": [
     {
       "id": "miunnkaj-c6z8aq",
@@ -871,46 +871,6 @@
       }
     },
     {
-      "id": "mj3bd2o8-fxjji9",
-      "name": "Sábado a Noite",
-      "displayName": "Sábado a Noite",
-      "artist": "Unknown",
-      "duration": 197.6714739229025,
-      "files": {
-        "original": "original.wav",
-        "vocals": "vocals.wav",
-        "instrumental": "instrumental.wav",
-        "waveform": "waveform.json",
-        "lyrics": "lyrics.lrc",
-        "video": "video.mp4"
-      },
-      "metadata": {
-        "sampleRate": 44100,
-        "format": "wav",
-        "createdAt": "2025-12-12T20:22:38.803Z",
-        "lastProcessed": "2025-12-12T20:31:27.907Z"
-      },
-      "band": "band-1765570948595-3q3u6zisk",
-      "status": {
-        "vocals": true,
-        "instrumental": true,
-        "waveform": true,
-        "lyrics": true,
-        "ready": true
-      },
-      "category": "cat-1765422412612-nagkvabzf",
-      "video": {
-        "id": "Uk8cKlgviN4",
-        "title": "Xand Avião - Sábado a Noite (DVD: Errejota) [Clipe Oficial]",
-        "url": "https://www.youtube.com/watch?v=Uk8cKlgviN4",
-        "thumbnail": "https://i.ytimg.com/vi_webp/Uk8cKlgviN4/sddefault.webp",
-        "duration": 198,
-        "uploader": "Xand Avião",
-        "view_count": 46022282,
-        "file": "video.mp4"
-      }
-    },
-    {
       "id": "mj3bgagj-9k2wto",
       "name": "Sábado a Noite",
       "displayName": "Sábado a Noite",
@@ -989,6 +949,75 @@
         "file": "video.mp4"
       },
       "category": "cat-1765392930731-2qaxe7spb"
+    },
+    {
+      "id": "mj5s1aqy-84hhuf",
+      "name": "Vamos Fugir",
+      "displayName": "Vamos Fugir",
+      "artist": "Unknown",
+      "duration": 239.6067120181406,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-14T13:44:55.217Z",
+        "lastProcessed": "2025-12-14T13:51:29.478Z"
+      },
+      "band": "band-1765719885215-pqvwasjoh",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "XLpdc_uVSgY",
+        "title": "Skank - Vamos Fugir (Lyric Video)",
+        "url": "https://www.youtube.com/watch?v=XLpdc_uVSgY",
+        "thumbnail": "https://i.ytimg.com/vi/XLpdc_uVSgY/maxresdefault.jpg",
+        "duration": 240,
+        "uploader": "Skank",
+        "view_count": 26649987,
+        "file": "video.mp4"
+      },
+      "category": "cat-rock-001"
+    },
+    {
+      "id": "mj5sjn08-69t6m8",
+      "name": "Coração de Gelo",
+      "displayName": "Coração de Gelo",
+      "artist": "Unknown",
+      "duration": 0,
+      "files": {
+        "original": "",
+        "vocals": "vocals.wav",
+        "instrumental": "",
+        "waveform": "",
+        "lyrics": "",
+        "video": ""
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-14T13:59:10.905Z",
+        "lastProcessed": "2025-12-14T14:00:52.563Z"
+      },
+      "band": "band-1765720726309-eahgdivkc",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      }
     }
   ],
   "categories": [
@@ -1178,6 +1207,19 @@
       "createdAt": "2025-12-12T20:22:28.595Z",
       "updatedAt": "2025-12-12T20:44:14.977Z",
       "category": "cat-1765422412612-nagkvabzf"
+    },
+    {
+      "id": "band-1765719885215-pqvwasjoh",
+      "name": "Skank",
+      "createdAt": "2025-12-14T13:44:45.215Z",
+      "updatedAt": "2025-12-14T13:53:43.622Z",
+      "category": "cat-rock-001"
+    },
+    {
+      "id": "band-1765720726309-eahgdivkc",
+      "name": "Will",
+      "createdAt": "2025-12-14T13:58:46.309Z",
+      "updatedAt": "2025-12-14T13:58:46.309Z"
     }
   ]
 }

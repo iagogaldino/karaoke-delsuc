@@ -17,6 +17,71 @@
   gap: 0.5rem;
 }
 
+.song-tree-filter {
+  margin-bottom: 0.75rem;
+}
+
+.song-tree-filter-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.song-tree-filter-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.song-tree-filter-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.375rem;
+  background: rgba(255, 255, 255, 0.03);
+  color: white;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+  outline: none;
+}
+
+.song-tree-filter-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.song-tree-filter-input:focus {
+  border-color: rgba(74, 144, 226, 0.5);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.song-tree-filter-clear {
+  position: absolute;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  font-size: 0.75rem;
+  width: 24px;
+  height: 24px;
+}
+
+.song-tree-filter-clear:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
 .song-tree-header h3 {
   font-size: 0.9rem;
   font-weight: 600;
