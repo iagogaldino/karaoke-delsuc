@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-14T14:00:52.563Z",
+  "lastUpdated": "2025-12-14T14:56:19.191Z",
   "songs": [
     {
       "id": "miunnkaj-c6z8aq",
@@ -995,20 +995,20 @@
       "name": "Coração de Gelo",
       "displayName": "Coração de Gelo",
       "artist": "Unknown",
-      "duration": 0,
+      "duration": 186.52589569160997,
       "files": {
-        "original": "",
+        "original": "original.wav",
         "vocals": "vocals.wav",
-        "instrumental": "",
-        "waveform": "",
-        "lyrics": "",
-        "video": ""
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
       },
       "metadata": {
         "sampleRate": 44100,
         "format": "wav",
         "createdAt": "2025-12-14T13:59:10.905Z",
-        "lastProcessed": "2025-12-14T14:00:52.563Z"
+        "lastProcessed": "2025-12-14T14:04:12.741Z"
       },
       "band": "band-1765720726309-eahgdivkc",
       "status": {
@@ -1017,6 +1017,212 @@
         "waveform": true,
         "lyrics": true,
         "ready": true
+      },
+      "video": {
+        "id": "p03BWB5SN4M",
+        "title": "WIU - Coração de Gelo",
+        "url": "https://www.youtube.com/watch?v=p03BWB5SN4M",
+        "thumbnail": "https://i.ytimg.com/vi_webp/p03BWB5SN4M/maxresdefault.webp",
+        "duration": 187,
+        "uploader": "30PRAUM",
+        "view_count": 228663507,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "mj5t74kc-2bbur6",
+      "name": "Can't Stop",
+      "displayName": "Can't Stop",
+      "artist": "Unknown",
+      "duration": 277.96607709750566,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-14T14:17:26.750Z",
+        "lastProcessed": "2025-12-14T14:23:37.693Z"
+      },
+      "band": "band-1765721835129-ljileeyfq",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "8DyziWtkfBw",
+        "title": "Red Hot Chili Peppers - Can't Stop [Official Music Video]",
+        "url": "https://www.youtube.com/watch?v=8DyziWtkfBw",
+        "thumbnail": "https://i.ytimg.com/vi/8DyziWtkfBw/maxresdefault.jpg",
+        "duration": 278,
+        "uploader": "Red Hot Chili Peppers",
+        "view_count": 450105544,
+        "file": "video.mp4"
+      },
+      "category": "cat-rock-001"
+    },
+    {
+      "id": "mj5tke2k-9utqvf",
+      "name": "Californication",
+      "displayName": "Californication",
+      "artist": "Unknown",
+      "duration": 321.0623129251701,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-14T14:27:45.599Z",
+        "lastProcessed": "2025-12-14T14:38:08.439Z"
+      },
+      "band": "band-1765385326587-6yup2hc7z",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "YlUKcNNmywk",
+        "title": "Red Hot Chili Peppers - Californication (Official Music Video) [HD UPGRADE]",
+        "url": "https://www.youtube.com/watch?v=YlUKcNNmywk",
+        "thumbnail": "https://i.ytimg.com/vi/YlUKcNNmywk/maxresdefault.jpg",
+        "duration": 321,
+        "uploader": "Red Hot Chili Peppers",
+        "view_count": 1320153961,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "mj5u2s7a-vrzer",
+      "name": "Flor Do Reggae",
+      "displayName": "Flor Do Reggae",
+      "artist": "Unknown",
+      "duration": 250.0324716553288,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-14T14:42:03.721Z",
+        "lastProcessed": "2025-12-14T14:53:55.035Z"
+      },
+      "band": "band-1765723317195-xoy2f7gbn",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "IkPCnb00oZ4",
+        "title": "Ivete Sangalo - Flor Do Reggae / Não Precisa Mudar | Ivete Clareou (Vídeo Oficial)",
+        "url": "https://www.youtube.com/watch?v=IkPCnb00oZ4",
+        "thumbnail": "https://i.ytimg.com/vi_webp/IkPCnb00oZ4/maxresdefault.webp",
+        "duration": 250,
+        "uploader": "Ivete Sangalo",
+        "view_count": 29911,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "mj5u44x6-e5k038",
+      "name": "Você Virou Saudade",
+      "displayName": "Você Virou Saudade",
+      "artist": "Unknown",
+      "duration": 322.94312925170067,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-14T14:43:06.862Z",
+        "lastProcessed": "2025-12-14T14:56:19.188Z"
+      },
+      "band": "band-1765723372275-c2wd8s3p0",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "PHS1GcN6GOM",
+        "title": "Alexandre Pires - Você Virou Saudade (O Baile Do Nêgo Véio-Ao Vivo em Jurerê Internacional Vol. II)",
+        "url": "https://www.youtube.com/watch?v=PHS1GcN6GOM",
+        "thumbnail": "https://i.ytimg.com/vi_webp/PHS1GcN6GOM/maxresdefault.webp",
+        "duration": 323,
+        "uploader": "Alexandre Pires ",
+        "view_count": 51266913,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "mj5u79qb-784pn0",
+      "name": "Naquela Mesa",
+      "displayName": "Naquela Mesa",
+      "artist": "Unknown",
+      "duration": 182.48562358276644,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-14T14:45:33.069Z",
+        "lastProcessed": "2025-12-14T14:54:49.732Z"
+      },
+      "band": "band-1765723524666-1g4gfiuaz",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "ePW8z08IfdQ",
+        "title": "Nelson Gonçalves - Naquela Mesa (Pseudo Video) (Pseudo Video)",
+        "url": "https://www.youtube.com/watch?v=ePW8z08IfdQ",
+        "thumbnail": "https://i.ytimg.com/vi/ePW8z08IfdQ/maxresdefault.jpg",
+        "duration": 183,
+        "uploader": "Nelson Gonçalves",
+        "view_count": 33852126,
+        "file": "video.mp4"
       }
     }
   ],
@@ -1220,6 +1426,31 @@
       "name": "Will",
       "createdAt": "2025-12-14T13:58:46.309Z",
       "updatedAt": "2025-12-14T13:58:46.309Z"
+    },
+    {
+      "id": "band-1765721835129-ljileeyfq",
+      "name": "Red Hot",
+      "createdAt": "2025-12-14T14:17:15.129Z",
+      "updatedAt": "2025-12-14T14:24:22.344Z",
+      "category": "cat-rock-001"
+    },
+    {
+      "id": "band-1765723317195-xoy2f7gbn",
+      "name": "Ivete Sangalo",
+      "createdAt": "2025-12-14T14:41:57.195Z",
+      "updatedAt": "2025-12-14T14:41:57.195Z"
+    },
+    {
+      "id": "band-1765723372275-c2wd8s3p0",
+      "name": "Alexandre Pires",
+      "createdAt": "2025-12-14T14:42:52.275Z",
+      "updatedAt": "2025-12-14T14:42:52.275Z"
+    },
+    {
+      "id": "band-1765723524666-1g4gfiuaz",
+      "name": "Nelson Gonçalves",
+      "createdAt": "2025-12-14T14:45:24.666Z",
+      "updatedAt": "2025-12-14T14:45:24.666Z"
     }
   ]
 }
