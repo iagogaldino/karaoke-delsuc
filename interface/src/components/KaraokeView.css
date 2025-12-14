@@ -673,12 +673,20 @@
   width: 100%;
   max-height: 48%;
   min-height: 200px;
-  background: rgba(0, 0, 0, 0.85); /* Semi-transparente para o vídeo aparecer levemente */
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.1) 10%,
+    rgba(0, 0, 0, 0.3) 25%,
+    rgba(0, 0, 0, 0.6) 50%,
+    rgba(0, 0, 0, 0.85) 75%,
+    rgba(0, 0, 0, 0.95) 100%
+  );
   padding: 2rem;
   padding-bottom: calc(2rem + 8px); /* Adicionar espaço para a barra de progresso no bottom */
   overflow-y: auto;
   overflow-x: hidden;
-  border-top: 2px solid rgba(255, 255, 255, 0.1);
+  border-top: none; /* Remover borda para transição mais suave */
   z-index: 5;
   position: relative;
   backdrop-filter: blur(5px); /* Efeito de desfoque para o vídeo atrás */
@@ -774,6 +782,54 @@
   border: none;
   background: transparent;
   box-shadow: none;
+  position: relative;
+}
+
+/* Linha brilhante embaixo da linha ativa na área de karaoke */
+.karaoke-lyrics-area .lyric-line.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 10%;
+  right: 10%;
+  height: 4px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(74, 144, 226, 0.6) 15%,
+    rgba(74, 144, 226, 1) 50%,
+    rgba(74, 144, 226, 0.6) 85%,
+    transparent 100%
+  );
+  box-shadow: 
+    0 0 15px rgba(74, 144, 226, 0.9),
+    0 0 30px rgba(74, 144, 226, 0.7),
+    0 0 45px rgba(74, 144, 226, 0.5),
+    0 0 60px rgba(74, 144, 226, 0.3);
+  animation: karaoke-active-line-glow 2s ease-in-out infinite;
+  z-index: 1;
+  border-radius: 2px;
+}
+
+@keyframes karaoke-active-line-glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 
+      0 0 15px rgba(74, 144, 226, 0.9),
+      0 0 30px rgba(74, 144, 226, 0.7),
+      0 0 45px rgba(74, 144, 226, 0.5),
+      0 0 60px rgba(74, 144, 226, 0.3);
+    transform: scaleX(1);
+  }
+  50% {
+    opacity: 0.95;
+    box-shadow: 
+      0 0 20px rgba(74, 144, 226, 1),
+      0 0 40px rgba(74, 144, 226, 0.9),
+      0 0 60px rgba(74, 144, 226, 0.7),
+      0 0 80px rgba(74, 144, 226, 0.5);
+    transform: scaleX(1.05);
+  }
 }
 
 .karaoke-lyrics-area .lyric-line.past {
@@ -946,10 +1002,11 @@
 /* Caixas de som nas extremidades */
 .speaker {
   position: fixed;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 5%;
   z-index: 6; /* Acima da área de letras (z-index 5) */
   pointer-events: none;
+  perspective: 1200px;
+  transform-style: preserve-3d;
 }
 
 .speaker-left {
@@ -962,22 +1019,43 @@
 
 .speaker-body {
   width: 120px;
-  height: 200px;
+  height: 300px;
   background: linear-gradient(
-    to bottom,
-    rgba(30, 30, 35, 0.95) 0%,
-    rgba(20, 20, 25, 0.98) 30%,
-    rgba(15, 15, 20, 1) 60%,
+    135deg,
+    rgba(40, 40, 45, 0.95) 0%,
+    rgba(30, 30, 35, 0.95) 25%,
+    rgba(20, 20, 25, 0.98) 50%,
+    rgba(15, 15, 20, 1) 75%,
     rgba(10, 10, 15, 1) 100%
   );
   border-radius: 15px 15px 8px 8px;
   box-shadow: 
-    0 0 20px rgba(0, 0, 0, 0.8),
-    inset 0 0 30px rgba(0, 0, 0, 0.5),
-    inset 0 5px 10px rgba(255, 255, 255, 0.1);
+    /* Sombra externa profunda */
+    0 10px 30px rgba(0, 0, 0, 0.9),
+    0 5px 15px rgba(0, 0, 0, 0.7),
+    /* Sombra interna para profundidade */
+    inset -5px -5px 20px rgba(0, 0, 0, 0.8),
+    inset 5px 5px 20px rgba(255, 255, 255, 0.05),
+    /* Destaque superior */
+    inset 0 -10px 30px rgba(0, 0, 0, 0.6),
+    inset 0 10px 20px rgba(255, 255, 255, 0.08);
   position: relative;
   border: 2px solid rgba(60, 60, 70, 0.8);
+  border-top: 3px solid rgba(80, 80, 90, 0.9);
+  border-bottom: 1px solid rgba(20, 20, 25, 1);
   overflow: visible;
+  transform: perspective(1000px) rotateY(-5deg);
+  transform-style: preserve-3d;
+}
+
+/* Efeito 3D para caixa esquerda */
+.speaker-left .speaker-body {
+  transform: perspective(1000px) rotateY(5deg);
+}
+
+/* Efeito 3D para caixa direita */
+.speaker-right .speaker-body {
+  transform: perspective(1000px) rotateY(-5deg);
 }
 
 /* Cone do alto-falante principal */
@@ -985,23 +1063,34 @@
   position: absolute;
   top: 20px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateZ(10px);
   width: 80px;
   height: 80px;
   background: radial-gradient(
-    circle,
-    rgba(50, 50, 55, 1) 0%,
-    rgba(30, 30, 35, 0.9) 40%,
-    rgba(15, 15, 20, 0.8) 70%,
+    circle at 30% 30%,
+    rgba(60, 60, 65, 1) 0%,
+    rgba(50, 50, 55, 1) 20%,
+    rgba(30, 30, 35, 0.9) 50%,
+    rgba(15, 15, 20, 0.8) 80%,
     rgba(10, 10, 15, 1) 100%
   );
   border-radius: 50%;
   box-shadow: 
-    inset 0 0 20px rgba(0, 0, 0, 0.8),
-    inset 0 5px 15px rgba(255, 255, 255, 0.1),
-    0 0 10px rgba(0, 0, 0, 0.5);
+    /* Sombra interna profunda */
+    inset -10px -10px 30px rgba(0, 0, 0, 0.9),
+    inset 10px 10px 20px rgba(255, 255, 255, 0.1),
+    /* Destaque superior */
+    inset 0 -15px 25px rgba(0, 0, 0, 0.7),
+    /* Sombra externa 3D */
+    0 8px 20px rgba(0, 0, 0, 0.8),
+    0 4px 10px rgba(0, 0, 0, 0.6),
+    /* Brilho sutil */
+    0 0 5px rgba(255, 255, 255, 0.05);
   border: 3px solid rgba(40, 40, 45, 0.9);
+  border-top: 2px solid rgba(70, 70, 75, 0.6);
+  border-bottom: 4px solid rgba(20, 20, 25, 1);
   transition: all 0.1s ease-out;
+  transform-style: preserve-3d;
 }
 
 /* Efeito quando o alto-falante está tocando - movimento do cone */
@@ -1016,16 +1105,16 @@
 
 @keyframes speaker-vibrate {
   0%, 100% {
-    transform: translateX(-50%) translateY(0) scale(1);
+    transform: translateX(-50%) translateY(0) translateZ(10px) scale(1);
   }
   25% {
-    transform: translateX(-50%) translateY(-2px) scale(1.02);
+    transform: translateX(-50%) translateY(-2px) translateZ(12px) scale(1.02);
   }
   50% {
-    transform: translateX(-50%) translateY(0) scale(1.05);
+    transform: translateX(-50%) translateY(0) translateZ(15px) scale(1.05);
   }
   75% {
-    transform: translateX(-50%) translateY(2px) scale(1.02);
+    transform: translateX(-50%) translateY(2px) translateZ(12px) scale(1.02);
   }
 }
 
@@ -1034,34 +1123,39 @@
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) translateZ(15px);
   width: 20px;
   height: 20px;
   background: radial-gradient(
-    circle,
-    rgba(74, 144, 226, 0.8) 0%,
-    rgba(74, 144, 226, 0.4) 50%,
+    circle at 30% 30%,
+    rgba(74, 144, 226, 1) 0%,
+    rgba(74, 144, 226, 0.8) 30%,
+    rgba(74, 144, 226, 0.4) 60%,
     transparent 100%
   );
   border-radius: 50%;
   animation: cone-pulse 0.2s ease-in-out infinite alternate;
-  box-shadow: 0 0 10px rgba(74, 144, 226, 0.6);
+  box-shadow: 
+    0 0 10px rgba(74, 144, 226, 0.8),
+    0 0 20px rgba(74, 144, 226, 0.5),
+    inset 0 0 10px rgba(74, 144, 226, 0.3);
+  transform-style: preserve-3d;
 }
 
 @keyframes cone-pulse {
   0% {
-    transform: translate(-50%, -50%) scale(0.8);
+    transform: translate(-50%, -50%) translateZ(15px) scale(0.8);
     opacity: 0.6;
   }
   100% {
-    transform: translate(-50%, -50%) scale(1.3);
+    transform: translate(-50%, -50%) translateZ(20px) scale(1.3);
     opacity: 1;
   }
 }
 
 /* Cone pequeno (tweeter) */
 .speaker-cone-small {
-  top: 25px;
+  top: 120px;
   width: 30px;
   height: 30px;
   background: radial-gradient(
@@ -1082,10 +1176,10 @@
 
 @keyframes speaker-tweeter-vibrate {
   0%, 100% {
-    transform: translateX(-50%) translateY(0) scale(1);
+    transform: translateX(-50%) translateY(0) translateZ(5px) scale(1);
   }
   50% {
-    transform: translateX(-50%) translateY(-1px) scale(1.05);
+    transform: translateX(-50%) translateY(-1px) translateZ(7px) scale(1.05);
   }
 }
 
@@ -1095,16 +1189,42 @@
   position: absolute;
   top: 20px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateZ(12px);
   width: 80px;
   height: 80px;
   background-image: 
-    radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.4) 30%, rgba(0, 0, 0, 0.4) 35%, transparent 35%),
-    radial-gradient(circle, transparent 25%, rgba(0, 0, 0, 0.3) 25%, rgba(0, 0, 0, 0.3) 30%, transparent 30%);
+    radial-gradient(circle, transparent 30%, rgba(0, 0, 0, 0.5) 30%, rgba(0, 0, 0, 0.5) 35%, transparent 35%),
+    radial-gradient(circle, transparent 25%, rgba(0, 0, 0, 0.4) 25%, rgba(0, 0, 0, 0.4) 30%, transparent 30%);
   background-size: 100% 100%;
   border-radius: 50%;
   z-index: 1;
   pointer-events: none;
+  box-shadow: 
+    inset 0 0 10px rgba(0, 0, 0, 0.6),
+    0 2px 5px rgba(0, 0, 0, 0.3);
+  transform-style: preserve-3d;
+}
+
+/* Adicionar base 3D na parte inferior */
+.speaker-body::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 5%;
+  width: 90%;
+  height: 15px;
+  background: linear-gradient(
+    to bottom,
+    rgba(10, 10, 15, 1) 0%,
+    rgba(5, 5, 10, 1) 50%,
+    rgba(0, 0, 0, 1) 100%
+  );
+  border-radius: 0 0 8px 8px;
+  box-shadow: 
+    0 5px 15px rgba(0, 0, 0, 0.8),
+    inset 0 2px 5px rgba(255, 255, 255, 0.05);
+  transform: translateZ(-5px);
+  transform-style: preserve-3d;
 }
 
 

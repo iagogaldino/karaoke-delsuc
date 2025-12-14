@@ -130,6 +130,31 @@
   overflow-y: hidden;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  position: relative;
+}
+
+/* Linha brilhante embaixo da linha ativa */
+.lyric-line.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(74, 144, 226, 0.5) 10%,
+    rgba(74, 144, 226, 1) 50%,
+    rgba(74, 144, 226, 0.5) 90%,
+    transparent 100%
+  );
+  box-shadow: 
+    0 0 10px rgba(74, 144, 226, 0.8),
+    0 0 20px rgba(74, 144, 226, 0.6),
+    0 0 30px rgba(74, 144, 226, 0.4);
+  animation: active-line-glow 2s ease-in-out infinite;
+  z-index: 1;
 }
 
 .lyric-line.active::-webkit-scrollbar {
@@ -616,6 +641,26 @@
   }
   75% {
     transform: translateX(5px);
+  }
+}
+
+/* Animação para linha brilhante embaixo da linha ativa */
+@keyframes active-line-glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 
+      0 0 10px rgba(74, 144, 226, 0.8),
+      0 0 20px rgba(74, 144, 226, 0.6),
+      0 0 30px rgba(74, 144, 226, 0.4);
+    transform: scaleX(1);
+  }
+  50% {
+    opacity: 0.9;
+    box-shadow: 
+      0 0 15px rgba(74, 144, 226, 1),
+      0 0 30px rgba(74, 144, 226, 0.8),
+      0 0 45px rgba(74, 144, 226, 0.6);
+    transform: scaleX(1.02);
   }
 }
 
