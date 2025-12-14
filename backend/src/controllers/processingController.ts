@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { join, extname } from 'path';
 import { existsSync, mkdirSync, renameSync, statSync } from 'fs';
-import { getSongById, updateSong } from '../utils/database.js';
+import { getSongById, updateSong, getBandById } from '../utils/database.js';
 import multer from 'multer';
 import { PROJECT_ROOT, PATHS, PROCESSING_CONFIG, MEDIA_CONFIG } from '../config/index.js';
 import { asyncHandler } from '../middlewares/errorHandler.js';
@@ -467,30 +467,18 @@ async function generateLRCForSong(
   if (!status) return;
 
   try {
-    status.step = 'Localizando arquivo de áudio...';
+    status.step = 'Localizando arquivo de vocais...';
     status.progress = 10;
 
-    // Encontrar arquivo de áudio (pode ser original, temp_audio, ou vocals)
-    let audioPath: string | null = null;
-    const possibleAudioFiles = [
-      join(musicDir, 'temp_audio.wav'),
-      join(musicDir, 'original.wav'),
-      join(musicDir, 'original.mp3'),
-      join(musicDir, 'original.m4a'),
-      join(musicDir, 'vocals.wav')
-    ];
+    // Usar apenas vocals.wav (voz isolada do vocalista)
+    const vocalsPath = join(musicDir, 'vocals.wav');
 
-    for (const audioFile of possibleAudioFiles) {
-      if (existsSync(audioFile)) {
-        audioPath = audioFile;
-        console.log(`[${processId}] ✅ Arquivo de áudio encontrado: ${audioPath}`);
-        break;
-      }
+    if (!existsSync(vocalsPath)) {
+      throw new Error('Arquivo vocals.wav não encontrado. É necessário processar a música primeiro para extrair os vocais.');
     }
 
-    if (!audioPath) {
-      throw new Error('Nenhum arquivo de áudio encontrado para gerar LRC');
-    }
+    const audioPath = vocalsPath;
+    console.log(`[${processId}] ✅ Usando arquivo de vocais isolados: ${audioPath}`);
 
     status.step = 'Verificando tamanho do arquivo...';
     status.progress = 20;
@@ -552,8 +540,37 @@ async function generateLRCForSong(
     const lyricsPath = join(musicDir, 'lyrics.lrc');
     const lrcScript = join(PROJECT_ROOT, 'lrc-generator', 'src', 'index.ts');
     
+    // Criar prompt contextual com o nome da música e da banda para melhorar a transcrição
+    const songName = song.displayName || song.name || '';
+    let bandName = '';
+    
+    // Buscar nome da banda se a música tiver uma banda associada
+    if (song.band) {
+      const band = getBandById(song.band);
+      if (band) {
+        bandName = band.name;
+      }
+    }
+    
+    // Construir prompt contextual em inglês para não influenciar a detecção de idioma
+    // O prompt em inglês ajuda o Whisper a detectar corretamente o idioma original da música
+    let contextualPrompt = '';
+    if (bandName && songName) {
+      contextualPrompt = `This is the song ${songName} by ${bandName}. Transcribe the lyrics exactly as they are being sung, preserving the original language.`;
+    } else if (songName) {
+      contextualPrompt = `This is the song ${songName}. Transcribe the lyrics exactly as they are being sung, preserving the original language.`;
+    } else if (bandName) {
+      contextualPrompt = `This is a song by ${bandName}. Transcribe the lyrics exactly as they are being sung, preserving the original language.`;
+    } else {
+      contextualPrompt = 'Transcribe the lyrics exactly as they are being sung, preserving the original language.';
+    }
+    
+    // Escapar aspas e caracteres especiais no prompt para evitar problemas na linha de comando
+    // Usar aspas simples no Windows para evitar problemas de escape
+    const escapedPrompt = contextualPrompt.replace(/"/g, "'").replace(/\$/g, '\\$');
+    
     await execPython(
-      `cd "${join(PROJECT_ROOT, 'lrc-generator')}" && npx tsx "${lrcScript}" "${audioForLRC}" --output-dir "${musicDir}"`, 
+      `cd "${join(PROJECT_ROOT, 'lrc-generator')}" && npx tsx "${lrcScript}" "${audioForLRC}" --output-dir "${musicDir}" --prompt "${escapedPrompt}"`, 
       join(PROJECT_ROOT, 'lrc-generator'), 
       `${processId} [LRC Generator]`,
       (progress: number) => {

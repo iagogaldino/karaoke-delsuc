@@ -445,11 +445,11 @@ export const generateLRC = asyncHandler(async (req: Request, res: Response) => {
       // No Windows cmd, precisamos escapar aspas de forma diferente
       // Vamos usar uma abordagem mais segura: passar o prompt sem aspas e deixar o parser lidar
       const escapedPrompt = prompt.replace(/"/g, '\\"'); // Escapar para PowerShell/cmd
-      command = `cd /d "${lrcGeneratorDir}" && npx tsx "${lrcScript}" "${audioForLRC}" --output-dir "${outputDirWithSeparator}" --language pt --prompt "${escapedPrompt}"`;
+      command = `cd /d "${lrcGeneratorDir}" && npx tsx "${lrcScript}" "${audioForLRC}" --output-dir "${outputDirWithSeparator}" --prompt "${escapedPrompt}"`;
     } else {
       // Escapar aspas do prompt corretamente para Unix/Linux
       const escapedPrompt = prompt.replace(/"/g, '\\"');
-      command = `cd "${lrcGeneratorDir}" && npx tsx "${lrcScript}" "${audioForLRC}" --output-dir "${outputDirWithSeparator}" --language pt --prompt "${escapedPrompt}"`;
+      command = `cd "${lrcGeneratorDir}" && npx tsx "${lrcScript}" "${audioForLRC}" --output-dir "${outputDirWithSeparator}" --prompt "${escapedPrompt}"`;
     }
 
     console.log(`📝 Executando comando: ${command}`);

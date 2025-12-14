@@ -112,13 +112,14 @@ export class LRCGenerator {
    * Gera o prompt padrão com instruções para símbolos sonoros e palavras arrastadas
    */
   private getDefaultPrompt(userPrompt?: string): string {
-    // Prompt muito curto e direto - apenas contexto, sem instruções explícitas
-    // O Whisper pode transcrever partes do prompt se for muito detalhado
-    const defaultInstructions = userPrompt || '';
-
-    // Retorna apenas o contexto do usuário, sem instruções que possam ser transcritas
-    // As instruções sobre símbolos e hífens serão aplicadas pós-processamento se necessário
-    return defaultInstructions;
+    // Se o usuário forneceu um prompt, usa ele
+    if (userPrompt && userPrompt.trim()) {
+      return userPrompt.trim();
+    }
+    
+    // Prompt padrão quando não há prompt do usuário
+    // Em inglês para não influenciar a detecção de idioma
+    return 'This is a song. Transcribe the lyrics exactly as they are being sung, preserving the original language.';
   }
 
   /**
@@ -180,10 +181,11 @@ export class LRCGenerator {
 
       // Usa a API de transcrição com timestamps detalhados
       // Adicionar temperature=0 para tornar a transcrição mais determinística e precisa
+      // Não especificar language para que o Whisper detecte automaticamente o idioma original
       const transcription = await this.openai.audio.transcriptions.create({
         file: audioFile,
         model: 'whisper-1',
-        language: options?.language || 'pt',
+        language: options?.language || undefined, // Deixar undefined para detecção automática
         prompt: finalPrompt || undefined,
         temperature: 0, // Tornar a transcrição mais determinística
         response_format: 'verbose_json', // Retorna timestamps detalhados
@@ -291,14 +293,13 @@ export class LRCGenerator {
           fs.mkdirSync(outputPath, { recursive: true });
         }
         // Se for um diretório de música (contém 'music' no caminho)
-        // Verificar se é o diretório recordings/ ou scoring/ para usar recording-lyrics.lrc
+        // Verificar se é o diretório scoring/ para usar recording-lyrics.lrc
         const isMusicDir = outputPath.toLowerCase().includes('music');
-        const isRecordingsDir = outputPath.toLowerCase().includes('recordings');
         const isScoringDir = outputPath.toLowerCase().includes('scoring');
-        // Se for diretório de recordings ou scoring, usar recording-lyrics.lrc
+        // Se for diretório de scoring, usar recording-lyrics.lrc
         // Se for diretório de música normal, usar lyrics.lrc
         // Caso contrário, usa o nome do áudio
-        const fileName = (isRecordingsDir || isScoringDir) ? 'recording-lyrics.lrc' : (isMusicDir ? 'lyrics.lrc' : `${audioName}.lrc`);
+        const fileName = isScoringDir ? 'recording-lyrics.lrc' : (isMusicDir ? 'lyrics.lrc' : `${audioName}.lrc`);
         finalOutputPath = path.join(outputPath, fileName);
       } else {
         // É um caminho completo de arquivo
