@@ -162,12 +162,13 @@
   padding: 1.25rem 1.5rem;
   margin: 0.5rem 0;
   border: none;
-  white-space: nowrap;
-  overflow-x: auto;
+  white-space: normal;
+  overflow-x: hidden;
   overflow-y: hidden;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
   position: relative;
+  max-width: 100%;
 }
 
 /* Linha brilhante embaixo da linha ativa */
@@ -335,16 +336,22 @@
 }
 
 .lyric-line.active .lyric-text {
-  white-space: nowrap;
+  white-space: normal;
   display: inline-block;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .lyric-line.active .lyric-content {
   display: flex;
   align-items: center;
   gap: 1rem;
-  white-space: nowrap;
-  flex-shrink: 0;
+  white-space: normal;
+  flex-wrap: wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .lyric-actions {
@@ -567,6 +574,8 @@
   transition: all 0.15s ease-out;
   display: inline;
   position: relative;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .karaoke-pending {
@@ -574,6 +583,8 @@
   font-weight: 400;
   transition: color 0.2s ease-out;
   display: inline;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 /* Estilo para palavra ativa (sendo cantada no momento) - formato palavra por palavra */
@@ -589,6 +600,20 @@
   animation: active-word-pulse 1s ease-in-out infinite;
 }
 
+/* Estilo para prévia das próximas palavras no modo jogador */
+.karaoke-preview-word {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+  background: rgba(74, 144, 226, 0.1);
+  padding: 0.1rem 0.2rem;
+  border-radius: 4px;
+  transition: all 0.3s ease-out;
+  display: inline-block;
+  border: 1px dashed rgba(74, 144, 226, 0.3);
+  animation: preview-word-glow 2s ease-in-out infinite;
+  opacity: 0.7;
+}
+
 @keyframes active-word-pulse {
   0%, 100% {
     background: rgba(255, 215, 0, 0.15);
@@ -597,6 +622,19 @@
   50% {
     background: rgba(255, 215, 0, 0.25);
     text-shadow: 0 0 12px rgba(255, 215, 0, 0.8);
+  }
+}
+
+@keyframes preview-word-glow {
+  0%, 100% {
+    opacity: 0.7;
+    border-color: rgba(74, 144, 226, 0.3);
+    background: rgba(74, 144, 226, 0.1);
+  }
+  50% {
+    opacity: 0.9;
+    border-color: rgba(74, 144, 226, 0.5);
+    background: rgba(74, 144, 226, 0.15);
   }
 }
 

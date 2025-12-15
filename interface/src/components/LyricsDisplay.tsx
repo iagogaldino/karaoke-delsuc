@@ -59,7 +59,7 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
     }
   }, [currentTime, lyrics, activeIndex]);
 
-  // Ajustar tamanho da fonte da linha ativa para caber em uma linha
+  // Ajustar tamanho da fonte da linha ativa para caber no container
   useEffect(() => {
     if (activeRef.current && activeTextRef.current && activeIndex >= 0 && editingIndex === null) {
       const activeElement = activeRef.current;
@@ -70,18 +70,77 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
       
       // Aguardar próximo frame para medir
       requestAnimationFrame(() => {
-        const containerWidth = activeElement.offsetWidth - 120; // Margem para padding e timestamp
-        const textWidth = textElement.scrollWidth;
+        // No modo de apresentação (showUpcomingLines), permitir quebra de linha
+        // No modo normal, tentar ajustar para caber em uma linha
+        const isPresentationMode = showUpcomingLines;
         
-        if (textWidth > containerWidth && containerWidth > 0) {
-          const baseFontSize = 1.4; // 1.4rem
-          const ratio = containerWidth / textWidth;
-          const newFontSize = Math.max(0.8, baseFontSize * ratio * 0.95); // Mínimo 0.8rem
-          textElement.style.fontSize = `${newFontSize}rem`;
+        if (isPresentationMode) {
+          // Modo jogador: calcular tamanho proporcional ao número de palavras
+          const activeLyric = localLyrics[activeIndex];
+          if (activeLyric) {
+            const wordCount = activeLyric.text.split(/\s+/).filter(w => w.length > 0).length;
+            
+            // Obter dimensões do container de letras
+            const lyricsContainer = lyricsRef.current;
+            const containerWidth = lyricsContainer ? lyricsContainer.offsetWidth - 80 : activeElement.offsetWidth - 80; // Margem para padding
+            const containerHeight = lyricsContainer ? lyricsContainer.offsetHeight : window.innerHeight * 0.4; // Altura estimada
+            
+            // Calcular tamanho base baseado no número de palavras
+            // Mais palavras = fonte menor, menos palavras = fonte maior
+            const maxWords = 25; // Número máximo de palavras esperado para referência
+            const minFontSize = 1.0; // Tamanho mínimo em rem
+            const maxFontSize = 3.5; // Tamanho máximo em rem (para poucas palavras)
+            
+            // Calcular tamanho proporcional inverso ao número de palavras
+            let calculatedFontSize;
+            if (wordCount <= 3) {
+              calculatedFontSize = maxFontSize;
+            } else if (wordCount >= maxWords) {
+              calculatedFontSize = minFontSize;
+            } else {
+              // Interpolação linear entre min e max baseada no número de palavras
+              const ratio = (wordCount - 3) / (maxWords - 3);
+              calculatedFontSize = maxFontSize - (maxFontSize - minFontSize) * ratio;
+            }
+            
+            // Aplicar tamanho inicial baseado no número de palavras
+            textElement.style.fontSize = `${calculatedFontSize}rem`;
+            
+            // Aguardar próximo frame para medir após aplicar o tamanho
+            requestAnimationFrame(() => {
+              const textWidth = textElement.scrollWidth;
+              const textHeight = textElement.scrollHeight;
+              
+              // Ajustar baseado na largura
+              let adjustedFontSize = calculatedFontSize;
+              if (textWidth > containerWidth && containerWidth > 0) {
+                const widthRatio = containerWidth / textWidth;
+                adjustedFontSize = Math.max(minFontSize, calculatedFontSize * widthRatio * 0.95);
+              }
+              
+              // Ajustar baseado na altura também (caso o texto quebre em múltiplas linhas)
+              if (textHeight > containerHeight && containerHeight > 0) {
+                const heightRatio = containerHeight / textHeight;
+                adjustedFontSize = Math.max(minFontSize, Math.min(adjustedFontSize, calculatedFontSize * heightRatio * 0.9));
+              }
+              
+              textElement.style.fontSize = `${adjustedFontSize}rem`;
+            });
+          }
+        } else {
+          // Modo normal: tentar ajustar para caber em uma linha
+          const containerWidth = activeElement.offsetWidth - 120; // Margem para padding e timestamp
+          const textWidth = textElement.scrollWidth;
+          if (textWidth > containerWidth && containerWidth > 0) {
+            const baseFontSize = 1.4; // 1.4rem
+            const ratio = containerWidth / textWidth;
+            const newFontSize = Math.max(0.8, baseFontSize * ratio * 0.95); // Mínimo 0.8rem
+            textElement.style.fontSize = `${newFontSize}rem`;
+          }
         }
       });
     }
-  }, [activeIndex, editingIndex, localLyrics]);
+  }, [activeIndex, editingIndex, localLyrics, showUpcomingLines, lyricsRef]);
 
   // Scroll automático para linha ativa
   useEffect(() => {
@@ -452,6 +511,20 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
     
     // Se tiver palavras individuais com timestamps, usar destaque palavra por palavra
     if (line.words && line.words.length > 0) {
+      // Configurações para modo jogador (showUpcomingLines)
+      const isPlayerMode = showUpcomingLines && !allowEdit;
+      const PREVIEW_COUNT = 4; // Número de palavras para mostrar como prévia
+      
+      // Encontrar índice da palavra atual
+      let currentWordIndex = -1;
+      for (let i = 0; i < line.words.length; i++) {
+        if (currentTime >= line.words[i].time) {
+          currentWordIndex = i;
+        } else {
+          break;
+        }
+      }
+      
       return (
         <span>
           {line.words.map((word, wordIndex) => {
@@ -463,6 +536,39 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
             const isHighlighted = currentTime >= wordStartTime;
             const isActive = currentTime >= wordStartTime && currentTime < wordEndTime;
             
+            // Lógica para modo jogador: esconder palavras antigas e mostrar prévia
+            if (isPlayerMode) {
+              // Uma palavra já foi cantada se passou do tempo de término
+              const wordHasEnded = currentTime > wordEndTime;
+              const isOldWord = wordHasEnded && wordIndex <= currentWordIndex;
+              const isPreviewWord = wordIndex > currentWordIndex && wordIndex <= currentWordIndex + PREVIEW_COUNT;
+              const isFutureWord = wordIndex > currentWordIndex + PREVIEW_COUNT;
+              
+              // Esconder palavras já cantadas (exceto a palavra ativa que ainda está sendo cantada)
+              if (isOldWord && !isActive) {
+                return null;
+              }
+              
+              // Mostrar prévia das próximas palavras
+              if (isPreviewWord) {
+                return (
+                  <span
+                    key={wordIndex}
+                    className="karaoke-preview-word"
+                  >
+                    {word.word}
+                    {wordIndex < line.words!.length - 1 && ' '}
+                  </span>
+                );
+              }
+              
+              // Esconder palavras futuras que não são prévia
+              if (isFutureWord) {
+                return null;
+              }
+            }
+            
+            // Comportamento padrão para modo normal
             return (
               <span
                 key={wordIndex}
@@ -727,6 +833,19 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
           const upcomingOffset = index - activeIndex;
           const isUpcoming = showUpcomingLines && !allowEdit && activeIndex >= 0 && upcomingOffset > 0 && upcomingOffset <= 3;
           const upcomingClass = isUpcoming ? `upcoming upcoming-${Math.min(upcomingOffset, 3)}` : '';
+
+          // No modo jogador, esconder linhas antigas (já cantadas) e linhas futuras que não são prévia
+          const isPlayerMode = showUpcomingLines && !allowEdit;
+          if (isPlayerMode) {
+            // Esconder linhas antigas (já cantadas)
+            if (isPast && !isActive) {
+              return null;
+            }
+            // Esconder linhas futuras que não são prévia
+            if (isFuture && !isUpcoming) {
+              return null;
+            }
+          }
 
           return (
             <div
