@@ -64,6 +64,9 @@ export interface ProcessingStatus {
   progress: number;
   error?: string;
   songId?: string;
+  oldLyrics?: string; // Conteúdo do LRC antigo (para comparação)
+  newLyrics?: string; // Conteúdo do novo LRC gerado
+  needsComparison?: boolean; // Se precisa mostrar comparação antes de salvar
 }
 
 export interface AudioInfo {

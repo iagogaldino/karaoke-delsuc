@@ -9,5 +9,6 @@ router.post('/start-youtube', processingController.startYouTubeProcessing);
 router.get('/status/:fileId', processingController.getStatus);
 router.post('/download-video/:songId', processingController.downloadVideo);
 router.post('/generate-lrc/:songId', processingController.generateLRC);
+router.post('/save-lrc/:songId', processingController.saveLRC);
 
 export { router as processingRoutes };

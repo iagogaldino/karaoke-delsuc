@@ -83,6 +83,13 @@ export const processingService = {
   },
 
   /**
+   * Save the chosen LRC (old or new)
+   */
+  async saveLRC(songId: string, useNew: boolean): Promise<{ success: boolean; message: string }> {
+    return apiService.post(`${API_CONFIG.ENDPOINTS.PROCESSING}/save-lrc/${songId}`, { useNew });
+  },
+
+  /**
    * Poll processing status until completion
    */
   async pollStatus(

@@ -538,7 +538,20 @@ async function generateLRCForSong(
     status.progress = 30;
 
     const lyricsPath = join(musicDir, 'lyrics.lrc');
+    const newLyricsPath = join(musicDir, 'lyrics_new.lrc'); // Arquivo temporário para o novo LRC
     const lrcScript = join(PROJECT_ROOT, 'lrc-generator', 'src', 'index.ts');
+    
+    // Salvar conteúdo do LRC antigo se existir
+    const fs = await import('fs/promises');
+    let oldLyricsContent = '';
+    if (existsSync(lyricsPath)) {
+      try {
+        oldLyricsContent = await fs.readFile(lyricsPath, 'utf-8');
+        console.log(`[${processId}] 📝 LRC antigo encontrado (${oldLyricsContent.split('\n').length} linhas)`);
+      } catch (err) {
+        console.warn(`[${processId}] ⚠️  Erro ao ler LRC antigo:`, err);
+      }
+    }
     
     // Criar prompt contextual com o nome da música e da banda para melhorar a transcrição
     const songName = song.displayName || song.name || '';
@@ -552,25 +565,17 @@ async function generateLRCForSong(
       }
     }
     
-    // Construir prompt contextual em inglês para não influenciar a detecção de idioma
-    // O prompt em inglês ajuda o Whisper a detectar corretamente o idioma original da música
-    let contextualPrompt = '';
-    if (bandName && songName) {
-      contextualPrompt = `This is the song ${songName} by ${bandName}. Transcribe the lyrics exactly as they are being sung, preserving the original language.`;
-    } else if (songName) {
-      contextualPrompt = `This is the song ${songName}. Transcribe the lyrics exactly as they are being sung, preserving the original language.`;
-    } else if (bandName) {
-      contextualPrompt = `This is a song by ${bandName}. Transcribe the lyrics exactly as they are being sung, preserving the original language.`;
-    } else {
-      contextualPrompt = 'Transcribe the lyrics exactly as they are being sung, preserving the original language.';
-    }
+    // Não usar prompt - o Whisper funciona muito bem sem ele
+    // O prompt do Whisper deve conter palavras que aparecem no áudio para melhorar a precisão
+    // Mas se o prompt não corresponder exatamente ao que está no áudio, pode causar problemas
+    // Como não sabemos exatamente quais palavras aparecem no áudio, é melhor não usar prompt
+    // O Whisper detecta automaticamente o idioma e transcreve com alta precisão sem prompt
     
-    // Escapar aspas e caracteres especiais no prompt para evitar problemas na linha de comando
-    // Usar aspas simples no Windows para evitar problemas de escape
-    const escapedPrompt = contextualPrompt.replace(/"/g, "'").replace(/\$/g, '\\$');
+    // Construir comando sem prompt - salvar em arquivo temporário
+    const lrcCommand = `cd "${join(PROJECT_ROOT, 'lrc-generator')}" && npx tsx "${lrcScript}" "${audioForLRC}" --output-dir "${musicDir}"`;
     
     await execPython(
-      `cd "${join(PROJECT_ROOT, 'lrc-generator')}" && npx tsx "${lrcScript}" "${audioForLRC}" --output-dir "${musicDir}" --prompt "${escapedPrompt}"`, 
+      lrcCommand, 
       join(PROJECT_ROOT, 'lrc-generator'), 
       `${processId} [LRC Generator]`,
       (progress: number) => {
@@ -581,46 +586,78 @@ async function generateLRCForSong(
     );
 
     // Procurar arquivo de letras gerado
-    const fs = await import('fs/promises');
     let foundLyricsFile: string | null = null;
     
     try {
       const files = await fs.readdir(musicDir);
-      const lrcFile = files.find((f: string) => f.toLowerCase().endsWith('.lrc'));
+      const lrcFile = files.find((f: string) => f.toLowerCase().endsWith('.lrc') && f !== 'lyrics_new.lrc');
       
       if (lrcFile) {
         foundLyricsFile = join(musicDir, lrcFile);
-        if (lrcFile !== 'lyrics.lrc') {
-          console.log(`[${processId}] 📝 Renomeando: ${lrcFile} -> lyrics.lrc`);
-          await fs.rename(foundLyricsFile, lyricsPath);
-          foundLyricsFile = lyricsPath;
+        // Mover para arquivo temporário ao invés de substituir diretamente
+        if (lrcFile !== 'lyrics_new.lrc') {
+          console.log(`[${processId}] 📝 Movendo novo LRC para arquivo temporário: ${lrcFile} -> lyrics_new.lrc`);
+          await fs.rename(foundLyricsFile, newLyricsPath);
+          foundLyricsFile = newLyricsPath;
         }
       }
     } catch (err) {
       console.error(`[${processId}] ⚠️  Erro ao procurar arquivo de letras:`, err);
     }
 
-    if (!foundLyricsFile || !existsSync(lyricsPath)) {
+    if (!foundLyricsFile || !existsSync(newLyricsPath)) {
       throw new Error('Arquivo de letras não foi gerado');
     }
 
-    status.step = 'Atualizando banco de dados...';
+    // Pós-processar LRC para melhorar precisão (detectar palavras arrastadas e remover silêncios)
+    // IMPORTANTE: Usar o mesmo arquivo de áudio que foi usado para gerar o LRC
+    // Isso garante que os timestamps do LRC correspondam ao áudio analisado
+    status.step = 'Pós-processando LRC...';
+    status.progress = 90;
+
+    const postProcessScript = join(PROJECT_ROOT, 'lrc-post-processor', 'post_process_lrc.py');
+    
+    if (existsSync(postProcessScript)) {
+      try {
+        console.log(`[${processId}] 🔧 Pós-processando LRC...`);
+        console.log(`[${processId}] 📁 Usando áudio para pós-processamento: ${audioForLRC}`);
+        
+        // Usar o mesmo arquivo de áudio que foi usado para gerar o LRC
+        // Se foi usado MP3 comprimido, usar o MP3. Se foi usado WAV, usar WAV.
+        // Pós-processar o arquivo temporário
+        await execPython(
+          `python "${postProcessScript}" "${newLyricsPath}" "${audioForLRC}" "${newLyricsPath}"`,
+          undefined,
+          `${processId} [LRC Post-Processor]`
+        );
+        console.log(`[${processId}] ✅ LRC pós-processado com sucesso`);
+      } catch (postProcessError: any) {
+        // Não falhar o processo se o pós-processamento der erro
+        console.warn(`[${processId}] ⚠️  Erro no pós-processamento (continuando com LRC original):`, postProcessError.message);
+      }
+    } else {
+      console.warn(`[${processId}] ⚠️  Script de pós-processamento não encontrado, pulando etapa`);
+    }
+
+    status.step = 'Preparando comparação...';
     status.progress = 95;
 
-    // Atualizar banco de dados
-    const updatedSong = getSongById(song.id);
-    if (updatedSong) {
-      const updatedFiles = { ...updatedSong.files, lyrics: 'lyrics.lrc' };
-      updateSong(song.id, {
-        ...updatedSong,
-        files: updatedFiles,
-        metadata: {
-          ...updatedSong.metadata,
-          lastProcessed: new Date().toISOString()
-        }
-      });
-      console.log(`[${processId}] ✅ Banco de dados atualizado`);
+    // Ler conteúdo do novo LRC
+    let newLyricsContent = '';
+    try {
+      newLyricsContent = await fs.readFile(newLyricsPath, 'utf-8');
+      console.log(`[${processId}] 📝 Novo LRC gerado (${newLyricsContent.split('\n').length} linhas)`);
+    } catch (err) {
+      console.error(`[${processId}] ⚠️  Erro ao ler novo LRC:`, err);
+      throw new Error('Erro ao ler novo LRC gerado');
     }
+
+    // Armazenar conteúdos no status para comparação
+    status.oldLyrics = oldLyricsContent;
+    status.newLyrics = newLyricsContent;
+    status.needsComparison = oldLyricsContent.length > 0; // Só precisa comparar se havia LRC antigo
+    
+    console.log(`[${processId}] ✅ LRC gerado e pronto para comparação`);
 
     // Limpar arquivos temporários
     try {
@@ -668,3 +705,68 @@ async function generateLRCForSong(
     }, PROCESSING_CONFIG.STATUS_CLEANUP_TIME);
   }
 }
+
+/**
+ * POST /api/processing/save-lrc/:songId
+ * Salva o LRC escolhido (antigo ou novo)
+ */
+export const saveLRC = asyncHandler(async (req: Request, res: Response) => {
+  const { songId } = req.params;
+  const { useNew } = req.body; // true para usar o novo, false para manter o antigo
+
+  if (!songId) {
+    return res.status(400).json({ error: 'Song ID é obrigatório' });
+  }
+
+  const song = getSongById(songId);
+  if (!song) {
+    return res.status(404).json({ error: 'Música não encontrada' });
+  }
+
+  const musicDir = join(PROJECT_ROOT, 'music', song.id);
+  const lyricsPath = join(musicDir, 'lyrics.lrc');
+  const newLyricsPath = join(musicDir, 'lyrics_new.lrc');
+
+  try {
+    const fs = await import('fs/promises');
+
+    if (useNew) {
+      // Usar o novo LRC - substituir o antigo
+      if (!existsSync(newLyricsPath)) {
+        return res.status(404).json({ error: 'Novo LRC não encontrado' });
+      }
+
+      // Substituir o antigo pelo novo
+      await fs.rename(newLyricsPath, lyricsPath);
+      console.log(`[saveLRC] ✅ Novo LRC salvo para música ${songId}`);
+
+      // Atualizar banco de dados
+      const updatedSong = getSongById(song.id);
+      if (updatedSong) {
+        const updatedFiles = { ...updatedSong.files, lyrics: 'lyrics.lrc' };
+        updateSong(song.id, {
+          ...updatedSong,
+          files: updatedFiles,
+          metadata: {
+            ...updatedSong.metadata,
+            lastProcessed: new Date().toISOString()
+          }
+        });
+      }
+    } else {
+      // Manter o antigo - apenas remover o arquivo temporário
+      if (existsSync(newLyricsPath)) {
+        await fs.unlink(newLyricsPath);
+        console.log(`[saveLRC] ✅ Mantido LRC antigo, arquivo temporário removido para música ${songId}`);
+      }
+    }
+
+    res.json({ 
+      success: true, 
+      message: useNew ? 'Novo LRC salvo com sucesso' : 'LRC antigo mantido'
+    });
+  } catch (error: any) {
+    console.error(`[saveLRC] ❌ Erro ao salvar LRC:`, error);
+    res.status(500).json({ error: `Erro ao salvar LRC: ${error.message}` });
+  }
+});

@@ -9,6 +9,7 @@ import HomeScreen from './components/HomeScreen.js';
 import SongTree from './components/SongTree.js';
 import AudioRecorder from './components/AudioRecorder';
 import LRCComparison from './components/LRCComparison';
+import LRCRegenerationComparison from './components/LRCRegenerationComparison';
 import RecordingTest from './components/RecordingTest';
 import ResultsScreen from './components/ResultsScreen';
 import { useSyncWebSocket } from './hooks/useSyncWebSocket';
@@ -46,6 +47,8 @@ function App() {
   const [editedSongName, setEditedSongName] = useState<string>('');
   const [showLRCComparison, setShowLRCComparison] = useState(false);
   const [lrcRefreshKey, setLrcRefreshKey] = useState(0);
+  const [showLRCRegenerationComparison, setShowLRCRegenerationComparison] = useState(false);
+  const [lrcRegenerationData, setLrcRegenerationData] = useState<{ songId: string; oldLyrics: string; newLyrics: string } | null>(null);
   const [showRecordingTest, setShowRecordingTest] = useState(false);
   const [songDuration, setSongDuration] = useState<number>(0);
   const [generateLRCAfterRecording, setGenerateLRCAfterRecording] = useState(true);
@@ -475,14 +478,24 @@ function App() {
       const processId = response.processId;
 
       // Polling do status
-      await processingService.pollStatus(processId, (status) => {
+      const finalStatus = await processingService.pollStatus(processId, (status) => {
         console.log(`Geração de LRC: ${status.step} (${status.progress}%)`);
       });
 
-      // Atualização granular em vez de reload completo
-      await updateSongInList(songId);
-      
-      await alert('Letras LRC geradas com sucesso!', { type: 'success', title: 'Sucesso' });
+      // Verificar se precisa mostrar comparação
+      if (finalStatus.needsComparison && finalStatus.oldLyrics && finalStatus.newLyrics) {
+        // Mostrar modal de comparação
+        setLrcRegenerationData({
+          songId,
+          oldLyrics: finalStatus.oldLyrics,
+          newLyrics: finalStatus.newLyrics,
+        });
+        setShowLRCRegenerationComparison(true);
+      } else {
+        // Não havia LRC antigo, apenas atualizar
+        await updateSongInList(songId);
+        await alert('Letras LRC geradas com sucesso!', { type: 'success', title: 'Sucesso' });
+      }
     } catch (error: any) {
       console.error('Erro ao gerar LRC:', error);
       await alert('Erro ao gerar LRC: ' + (error.message || 'Erro desconhecido'), { type: 'error', title: 'Erro' });
@@ -1047,6 +1060,40 @@ function App() {
       
       {AlertComponent}
       {ConfirmComponent}
+
+      {/* Modal de comparação de regeneração de LRC */}
+      {showLRCRegenerationComparison && lrcRegenerationData && (
+        <div className="modal-overlay" onClick={() => {}}>
+          <div className="modal-content lrc-comparison-modal" onClick={(e) => e.stopPropagation()}>
+            <LRCRegenerationComparison
+              songId={lrcRegenerationData.songId}
+              oldLyrics={lrcRegenerationData.oldLyrics}
+              newLyrics={lrcRegenerationData.newLyrics}
+              onSave={async (useNew: boolean) => {
+                try {
+                  await processingService.saveLRC(lrcRegenerationData.songId, useNew);
+                  await updateSongInList(lrcRegenerationData.songId);
+                  setShowLRCRegenerationComparison(false);
+                  setLrcRegenerationData(null);
+                  await alert(
+                    useNew ? 'Novo LRC salvo com sucesso!' : 'LRC antigo mantido.',
+                    { type: 'success', title: 'Sucesso' }
+                  );
+                } catch (error: any) {
+                  await alert('Erro ao salvar LRC: ' + (error.message || 'Erro desconhecido'), {
+                    type: 'error',
+                    title: 'Erro',
+                  });
+                }
+              }}
+              onClose={() => {
+                setShowLRCRegenerationComparison(false);
+                setLrcRegenerationData(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -735,3 +735,11 @@
   max-width: 1200px;
 }
 
+/* Modal de comparação de regeneração de LRC */
+.lrc-comparison-modal {
+  max-width: 90vw;
+  width: 1200px;
+  height: 80vh;
+  max-height: 800px;
+}
+
