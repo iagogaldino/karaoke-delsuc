@@ -63,43 +63,101 @@ export class LRCGenerator {
   }
 
   /**
-   * Converte a transcrição com timestamps para formato LRC
+   * Converte palavras com timestamps para formato LRC palavra por palavra
+   * Formato: [mm:ss.xx]<mm:ss.xx>palavra <mm:ss.xx>palavra
+   * Detecta pausas >0.5s e cria nova linha
    */
-  private convertToLRC(segments: Array<{ start: number; end: number; text: string }>): string {
-    if (!segments || segments.length === 0) {
-      throw new Error('Nenhum segmento de transcrição encontrado');
+  private convertToLRC(words: Array<{ start: number; end: number; word: string }>): string {
+    if (!words || words.length === 0) {
+      throw new Error('Nenhuma palavra encontrada na transcrição');
     }
 
     const lrcLines: string[] = [];
-    let lastText = '';
+    const PAUSE_THRESHOLD = 0.5; // 0.5 segundos
 
-    for (const segment of segments) {
-      const startTime = this.formatTime(segment.start);
-      const text = this.cleanLyrics(segment.text);
-
-      // Ignora segmentos vazios
-      if (!text) {
+    // Agrupar palavras em linhas baseado em pausas
+    let currentLine: Array<{ start: number; end: number; word: string }> = [];
+    
+    for (let i = 0; i < words.length; i++) {
+      const word = words[i];
+      
+      // Ignorar palavras vazias
+      if (!word.word || !word.word.trim()) {
         continue;
       }
 
-      // Ignorar segmentos duplicados consecutivos (mesmo texto)
-      if (text === lastText) {
-        continue;
+      // Verificar se há pausa antes desta palavra
+      if (currentLine.length > 0) {
+        const previousWord = currentLine[currentLine.length - 1];
+        const pauseDuration = word.start - previousWord.end;
+        
+        // Se houver pausa >0.5s, finalizar linha atual e começar nova
+        if (pauseDuration > PAUSE_THRESHOLD) {
+          // Formatar e adicionar linha atual
+          const lineContent = this.formatWordLine(currentLine);
+          if (lineContent) {
+            lrcLines.push(lineContent);
+          }
+          // Iniciar nova linha
+          currentLine = [word];
+        } else {
+          // Adicionar palavra à linha atual
+          currentLine.push(word);
+        }
+      } else {
+        // Primeira palavra - iniciar nova linha
+        currentLine.push(word);
       }
-
-      lastText = text;
-      lrcLines.push(`${startTime}${text}`);
     }
 
-    // Garante que não há saltos de tempo incorretos
-    // Ordena por tempo de início (caso não esteja ordenado)
-    const sortedLines = lrcLines.sort((a, b) => {
-      const timeA = this.parseLrcTime(a.match(/\[(\d{2}:\d{2}\.\d{2})\]/)?.[1] || '00:00.00');
-      const timeB = this.parseLrcTime(b.match(/\[(\d{2}:\d{2}\.\d{2})\]/)?.[1] || '00:00.00');
-      return timeA - timeB;
-    });
+    // Adicionar última linha se houver palavras
+    if (currentLine.length > 0) {
+      const lineContent = this.formatWordLine(currentLine);
+      if (lineContent) {
+        lrcLines.push(lineContent);
+      }
+    }
 
-    return sortedLines.join('\n');
+    return lrcLines.join('\n');
+  }
+
+  /**
+   * Formata uma linha de palavras no formato LRC palavra por palavra
+   * Primeira palavra: [mm:ss.xx]<mm:ss.xx>palavra
+   * Palavras seguintes: <mm:ss.xx>palavra
+   */
+  private formatWordLine(words: Array<{ start: number; end: number; word: string }>): string {
+    if (words.length === 0) {
+      return '';
+    }
+
+    const firstWord = words[0];
+    const firstWordStart = this.formatTime(firstWord.start);
+    const firstWordStartTag = this.formatTimeTag(firstWord.start);
+    
+    // Primeira palavra: [mm:ss.xx]<mm:ss.xx>palavra
+    let line = `${firstWordStart}${firstWordStartTag}${firstWord.word}`;
+
+    // Palavras seguintes: <mm:ss.xx>palavra
+    for (let i = 1; i < words.length; i++) {
+      const word = words[i];
+      const wordStartTag = this.formatTimeTag(word.start);
+      line += ` ${wordStartTag}${word.word}`;
+    }
+
+    return line;
+  }
+
+  /**
+   * Formata tempo para tag <mm:ss.xx> (sem colchetes externos)
+   */
+  private formatTimeTag(seconds: number): string {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    const secsInt = Math.floor(secs);
+    const centiseconds = Math.floor((secs - secsInt) * 100);
+
+    return `<${String(minutes).padStart(2, '0')}:${String(secsInt).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}>`;
   }
 
   /**
@@ -131,6 +189,7 @@ export class LRCGenerator {
 
   /**
    * Faz upload e transcreve o áudio usando OpenAI Whisper API
+   * Retorna palavras individuais com timestamps precisos
    */
   async transcribeAudio(
     audioFilePath: string,
@@ -139,7 +198,7 @@ export class LRCGenerator {
       prompt?: string;
       responseFormat?: 'json' | 'text' | 'srt' | 'verbose_json' | 'vtt';
     }
-  ): Promise<Array<{ start: number; end: number; text: string }>> {
+  ): Promise<Array<{ start: number; end: number; word: string }>> {
     this.validateAudioFile(audioFilePath);
 
     console.log(`📤 Fazendo upload do arquivo: ${audioFilePath}`);
@@ -186,7 +245,7 @@ export class LRCGenerator {
       // Log do tamanho do arquivo
       console.log(`📊 Tamanho do arquivo de áudio: ${audioFile.size} bytes`);
 
-      // Usa a API de transcrição com timestamps detalhados
+      // Usa a API de transcrição com timestamps por palavra
       // Adicionar temperature=0 para tornar a transcrição mais determinística e precisa
       // Não especificar language para que o Whisper detecte automaticamente o idioma original
       const transcription = await this.openai.audio.transcriptions.create({
@@ -196,47 +255,60 @@ export class LRCGenerator {
         prompt: finalPrompt || undefined,
         temperature: 0, // Tornar a transcrição mais determinística
         response_format: 'verbose_json', // Retorna timestamps detalhados
-        timestamp_granularities: ['segment'], // Timestamps por segmento
+        timestamp_granularities: ['word'], // Timestamps por palavra
       });
 
       console.log('✅ Transcrição concluída');
 
-      // Se for verbose_json, já temos os segments
-      if ('segments' in transcription && Array.isArray(transcription.segments)) {
-        // Filtrar segmentos duplicados consecutivos (mesmo texto)
-        const filteredSegments: any[] = [];
-        let lastText = '';
-        
-        for (const seg of transcription.segments) {
-          const currentText = seg.text.trim();
-          // Só adicionar se for diferente do anterior ou se houver gap significativo (>1s)
-          if (currentText !== lastText || filteredSegments.length === 0 || 
-              (seg.start - filteredSegments[filteredSegments.length - 1].end) > 1.0) {
-            filteredSegments.push(seg);
-            lastText = currentText;
-          }
-        }
-        
-        return filteredSegments.map((seg: any) => ({
-          start: seg.start,
-          end: seg.end,
-          text: seg.text.trim(),
-        }));
+      // Processar palavras retornadas pela API
+      if ('words' in transcription && Array.isArray(transcription.words)) {
+        // Filtrar palavras vazias e retornar array de palavras com timestamps
+        return transcription.words
+          .filter((word: any) => word.word && word.word.trim())
+          .map((word: any) => ({
+            start: word.start,
+            end: word.end,
+            word: word.word.trim(),
+          }));
       }
 
-      // Fallback: se não tiver segments, cria um segmento único
+      // Fallback: se não tiver words, tentar usar segments (compatibilidade)
+      if ('segments' in transcription && Array.isArray(transcription.segments)) {
+        console.warn('⚠️ API não retornou palavras, usando segmentos como fallback');
+        const words: Array<{ start: number; end: number; word: string }> = [];
+        
+        for (const seg of transcription.segments) {
+          // Dividir texto do segmento em palavras aproximadas
+          const text = seg.text.trim();
+          if (!text) continue;
+          
+          const segmentDuration = seg.end - seg.start;
+          const wordsInText = text.split(/\s+/).filter(w => w.trim());
+          const wordDuration = segmentDuration / wordsInText.length;
+          
+          wordsInText.forEach((word, index) => {
+            words.push({
+              start: seg.start + (index * wordDuration),
+              end: seg.start + ((index + 1) * wordDuration),
+              word: word.trim(),
+            });
+          });
+        }
+        
+        return words;
+      }
+
+      // Fallback final: se não tiver words nem segments, cria uma palavra única
       const text = 'text' in transcription ? transcription.text : '';
       if (!text) {
         throw new Error('Transcrição retornou vazia');
       }
 
-      // Tenta obter duração do arquivo para criar um segmento único
-      // Nota: Isso é um fallback, o ideal é sempre usar verbose_json
       return [
         {
           start: 0,
           end: 0, // Será ajustado se necessário
-          text: text,
+          word: text.trim(),
         },
       ];
     } catch (error: any) {
@@ -283,14 +355,14 @@ export class LRCGenerator {
   ): Promise<string> {
     console.log(`🎵 Iniciando geração de LRC para: ${audioFilePath}`);
 
-    // Transcreve o áudio
-    const segments = await this.transcribeAudio(audioFilePath, {
+    // Transcreve o áudio (retorna palavras individuais)
+    const words = await this.transcribeAudio(audioFilePath, {
       ...options,
       responseFormat: 'verbose_json',
     });
 
-    // Converte para formato LRC
-    const lrcContent = this.convertToLRC(segments);
+    // Converte para formato LRC palavra por palavra
+    const lrcContent = this.convertToLRC(words);
 
     // Define o caminho de saída
     const audioName = path.basename(audioFilePath, path.extname(audioFilePath));
@@ -374,19 +446,19 @@ export class LRCGenerator {
     fs.writeFileSync(finalOutputPath, lrcContent, 'utf-8');
 
     console.log(`✅ Arquivo LRC gerado com sucesso: ${finalOutputPath}`);
-    console.log(`📊 Total de segmentos: ${segments.length}`);
+    console.log(`📊 Total de palavras: ${words.length}`);
 
     return finalOutputPath;
   }
 
   /**
-   * Gera LRC a partir de uma transcrição já existente (útil para testes)
+   * Gera LRC a partir de palavras já transcritas (útil para testes)
    */
-  generateLRCFromSegments(
-    segments: Array<{ start: number; end: number; text: string }>,
+  generateLRCFromWords(
+    words: Array<{ start: number; end: number; word: string }>,
     outputPath: string
   ): string {
-    const lrcContent = this.convertToLRC(segments);
+    const lrcContent = this.convertToLRC(words);
     fs.writeFileSync(outputPath, lrcContent, 'utf-8');
     console.log(`✅ Arquivo LRC gerado: ${outputPath}`);
     return outputPath;

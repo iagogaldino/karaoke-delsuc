@@ -241,15 +241,86 @@ export function calculateScoreFromLRCAlignment(
 }
 
 /**
- * Parse LRC content into LyricsLine array
- * Format: [mm:ss.xx]text
+ * Parse LRC timestamp to seconds
  */
-export function parseLRC(lrcContent: string): Array<{ time: number; text: string }> {
-  const lines: Array<{ time: number; text: string }> = [];
+function parseLrcTime(timeStr: string): number {
+  const match = timeStr.match(/(\d{2}):(\d{2})\.(\d{2})/);
+  if (match) {
+    const minutes = parseInt(match[1], 10);
+    const seconds = parseInt(match[2], 10);
+    const centiseconds = parseInt(match[3], 10);
+    return minutes * 60 + seconds + centiseconds / 100;
+  }
+  return 0;
+}
+
+/**
+ * Parse word-by-word LRC format: [mm:ss.xx]<mm:ss.xx>palavra <mm:ss.xx>palavra
+ * Returns words with individual timestamps
+ */
+function parseWordByWordLine(line: string): Array<{ word: string; time: number }> | null {
+  // Match line start: [mm:ss.xx]<mm:ss.xx>palavra
+  const lineMatch = line.match(/\[(\d{2}):(\d{2})\.(\d{2})\](.*)/);
+  if (!lineMatch) {
+    return null;
+  }
+
+  const [, minutes, seconds, centiseconds, rest] = lineMatch;
+  const lineStartTime = parseInt(minutes, 10) * 60 + parseInt(seconds, 10) + parseInt(centiseconds, 10) / 100;
+  
+  // Parse words with timestamps: <mm:ss.xx>palavra
+  const words: Array<{ word: string; time: number }> = [];
+  const wordPattern = /<(\d{2}):(\d{2})\.(\d{2})>([^<]+)/g;
+  let match;
+  
+  while ((match = wordPattern.exec(rest)) !== null) {
+    const [, wMinutes, wSeconds, wCentiseconds, word] = match;
+    const wordTime = parseInt(wMinutes, 10) * 60 + parseInt(wSeconds, 10) + parseInt(wCentiseconds, 10) / 100;
+    words.push({
+      word: word.trim(),
+      time: wordTime
+    });
+  }
+  
+  // If no words found, fallback to old format (plain text after timestamp)
+  if (words.length === 0) {
+    return [{
+      word: rest.trim(),
+      time: lineStartTime
+    }];
+  }
+  
+  return words;
+}
+
+/**
+ * Parse LRC content into LyricsLine array
+ * Supports both formats:
+ * - Old: [mm:ss.xx]text
+ * - New: [mm:ss.xx]<mm:ss.xx>palavra <mm:ss.xx>palavra
+ */
+export function parseLRC(lrcContent: string): Array<{ time: number; text: string; words?: Array<{ word: string; time: number }> }> {
+  const lines: Array<{ time: number; text: string; words?: Array<{ word: string; time: number }> }> = [];
   const lrcLines = lrcContent.split('\n');
 
   for (const line of lrcLines) {
-    // Formato LRC: [mm:ss.xx]texto
+    if (!line.trim()) continue;
+
+    // Try to parse word-by-word format first
+    const words = parseWordByWordLine(line);
+    
+    if (words && words.length > 0) {
+      // Return first word's time as line time, and include all words
+      const text = words.map(w => w.word).join(' ');
+      lines.push({
+        time: words[0].time,
+        text: text,
+        words: words
+      });
+      continue;
+    }
+    
+    // Fallback to old format: [mm:ss.xx]text
     const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2})\](.*)/);
     if (match) {
       const minutes = parseInt(match[1], 10);
@@ -259,7 +330,11 @@ export function parseLRC(lrcContent: string): Array<{ time: number; text: string
       const text = match[4].trim();
 
       if (text) {
-        lines.push({ time, text });
+        lines.push({ 
+          time, 
+          text,
+          words: [{ word: text, time }] // Single word for compatibility
+        });
       }
     }
   }

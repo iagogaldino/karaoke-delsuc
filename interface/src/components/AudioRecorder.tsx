@@ -5,6 +5,7 @@ interface AudioRecorderProps {
   isPlaying: boolean;
   songId: string | null;
   currentTime: number;
+  generateLRCAfterRecording?: boolean; // Se false, não grava áudio
   onRecordingComplete?: (audioBlob: Blob, startTime: number) => void;
   onError?: (error: string) => void;
 }
@@ -13,6 +14,7 @@ export default function AudioRecorder({
   isPlaying,
   songId,
   currentTime,
+  generateLRCAfterRecording = true, // Padrão: true para manter comportamento atual
   onRecordingComplete,
   onError,
 }: AudioRecorderProps) {
@@ -52,6 +54,25 @@ export default function AudioRecorder({
 
   // Iniciar/parar gravação baseado no estado de reprodução
   useEffect(() => {
+    // Se generateLRCAfterRecording estiver desativado, não gravar
+    if (!generateLRCAfterRecording) {
+      // Parar qualquer gravação em andamento diretamente
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+        console.log('🛑 Parando gravação: generateLRCAfterRecording está desativado');
+        try {
+          mediaRecorderRef.current.stop();
+          setIsRecording(false);
+          if (streamRef.current) {
+            streamRef.current.getTracks().forEach((track) => track.stop());
+            streamRef.current = null;
+          }
+        } catch (err) {
+          console.warn('Erro ao parar gravação:', err);
+        }
+      }
+      return;
+    }
+
     if (!hasPermission || !songId) {
       return;
     }
@@ -335,12 +356,15 @@ export default function AudioRecorder({
       console.log(`🔄 Mudança detectada: isPlaying mudou de ${lastIsPlayingRef.current} para ${isPlaying}`);
       lastIsPlayingRef.current = isPlaying;
       
-      if (isPlaying && !isRecording && !isStartingRef.current) {
+      // Só iniciar gravação se generateLRCAfterRecording estiver ativado
+      if (generateLRCAfterRecording && isPlaying && !isRecording && !isStartingRef.current) {
         console.log(`▶️ Iniciando gravação...`);
         startRecording();
       } else if (!isPlaying && (isRecording || mediaRecorderRef.current?.state === 'recording')) {
         console.log(`⏸️ Parando gravação...`);
         stopRecording();
+      } else if (!generateLRCAfterRecording && isPlaying) {
+        console.log(`ℹ️ Gravação desabilitada: generateLRCAfterRecording está desativado`);
       }
     } else {
       // Atualizar referência mesmo se não mudou, para manter sincronizado
@@ -373,7 +397,7 @@ export default function AudioRecorder({
         isStoppingRef.current = false;
       }
     };
-  }, [isPlaying, songId, hasPermission, onRecordingComplete, onError]);
+  }, [isPlaying, songId, hasPermission, generateLRCAfterRecording, onRecordingComplete, onError]);
 
   // Parar gravação quando música mudar
   useEffect(() => {
@@ -388,6 +412,23 @@ export default function AudioRecorder({
       return stopRecording;
     }
   }, [songId, isRecording]);
+
+  // Parar gravação quando generateLRCAfterRecording for desativado
+  useEffect(() => {
+    if (!generateLRCAfterRecording && mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      console.log('🛑 Desativando gravação: generateLRCAfterRecording foi desmarcado');
+      try {
+        mediaRecorderRef.current.stop();
+        setIsRecording(false);
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+        }
+      } catch (err) {
+        console.warn('Erro ao parar gravação ao desativar:', err);
+      }
+    }
+  }, [generateLRCAfterRecording]);
 
   // Não renderizar nada, apenas gerenciar gravação em background
   return null;

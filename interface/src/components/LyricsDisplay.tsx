@@ -20,6 +20,7 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState('');
   const [editTime, setEditTime] = useState('');
+  const [editWords, setEditWords] = useState<Array<{ word: string; time: number }>>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [localLyrics, setLocalLyrics] = useState<LyricsLine[]>(lyrics);
   const [isEditTimeDuplicate, setIsEditTimeDuplicate] = useState(false);
@@ -115,8 +116,18 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
   const handleEdit = (index: number) => {
     if (!allowEdit) return; // Não permitir edição se allowEdit for false
     setEditingIndex(index);
-    setEditText(localLyrics[index].text);
-    setEditTime(formatTime(localLyrics[index].time));
+    const lyric = localLyrics[index];
+    setEditText(lyric.text);
+    setEditTime(formatTime(lyric.time));
+    
+    // Se tiver palavras individuais, inicializar com elas
+    if (lyric.words && lyric.words.length > 0) {
+      setEditWords(lyric.words.map(w => ({ word: w.word, time: w.time })));
+    } else {
+      // Fallback: criar uma palavra única
+      setEditWords([{ word: lyric.text, time: lyric.time }]);
+    }
+    
     setIsEditTimeDuplicate(false);
   };
 
@@ -124,41 +135,66 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
     setEditingIndex(null);
     setEditText('');
     setEditTime('');
+    setEditWords([]);
     setIsEditTimeDuplicate(false);
   };
 
   const handleSave = async (index: number) => {
-    if (!songId || editText.trim() === '' || !editTime.trim()) {
+    if (!songId || editText.trim() === '') {
       return;
     }
 
-    // Parse time input
-    let timeInSeconds = 0;
-    const timeMatch = editTime.trim().match(/^(\d{1,2}):(\d{2})(?:\.(\d{2}))?$/);
-    if (timeMatch) {
-      const minutes = parseInt(timeMatch[1], 10);
-      const seconds = parseInt(timeMatch[2], 10);
-      const centiseconds = timeMatch[3] ? parseInt(timeMatch[3], 10) : 0;
-      timeInSeconds = minutes * 60 + seconds + centiseconds / 100;
+    // Se tiver palavras individuais editadas, usar elas
+    const hasWords = editWords.length > 0 && editWords.some(w => w.word.trim());
+    
+    if (hasWords) {
+      // Validar que todas as palavras têm timestamps válidos
+      const invalidWords = editWords.filter(w => !w.word.trim() || w.time < 0);
+      if (invalidWords.length > 0) {
+        alert('Todas as palavras devem ter texto e timestamp válido');
+        return;
+      }
     } else {
-      alert('Formato de tempo inválido. Use mm:ss.xx ou mm:ss');
-      return;
-    }
-
-    // Verificar se o novo tempo é duplicado (excluindo a linha atual)
-    const TOLERANCE = 0.01;
-    const existingLine = localLyrics.find((lyric, idx) => 
-      idx !== index && Math.abs(lyric.time - timeInSeconds) < TOLERANCE
-    );
-    if (existingLine) {
-      setIsEditTimeDuplicate(true);
-      alert(`Já existe uma linha com o tempo ${formatTime(timeInSeconds)}.\n\nLinha existente: "${existingLine.text}"\n\nPor favor, escolha um tempo diferente.`);
-      return;
+      // Fallback: usar formato antigo com timestamp único
+      if (!editTime.trim()) {
+        return;
+      }
     }
 
     setIsSaving(true);
     try {
-      await lyricsService.updateLine(songId, index, editText.trim(), timeInSeconds);
+      // Se tiver palavras individuais, enviar com palavras
+      if (hasWords) {
+        await lyricsService.updateLine(songId, index, editText.trim(), editWords[0].time, editWords);
+      } else {
+        // Parse time input para formato antigo
+        let timeInSeconds = 0;
+        const timeMatch = editTime.trim().match(/^(\d{1,2}):(\d{2})(?:\.(\d{2}))?$/);
+        if (timeMatch) {
+          const minutes = parseInt(timeMatch[1], 10);
+          const seconds = parseInt(timeMatch[2], 10);
+          const centiseconds = timeMatch[3] ? parseInt(timeMatch[3], 10) : 0;
+          timeInSeconds = minutes * 60 + seconds + centiseconds / 100;
+        } else {
+          alert('Formato de tempo inválido. Use mm:ss.xx ou mm:ss');
+          setIsSaving(false);
+          return;
+        }
+
+        // Verificar se o novo tempo é duplicado (excluindo a linha atual)
+        const TOLERANCE = 0.01;
+        const existingLine = localLyrics.find((lyric, idx) => 
+          idx !== index && Math.abs(lyric.time - timeInSeconds) < TOLERANCE
+        );
+        if (existingLine) {
+          setIsEditTimeDuplicate(true);
+          alert(`Já existe uma linha com o tempo ${formatTime(timeInSeconds)}.\n\nLinha existente: "${existingLine.text}"\n\nPor favor, escolha um tempo diferente.`);
+          setIsSaving(false);
+          return;
+        }
+
+        await lyricsService.updateLine(songId, index, editText.trim(), timeInSeconds);
+      }
 
       // Reload lyrics to get the updated order
       const data = await lyricsService.getJson(songId);
@@ -173,6 +209,7 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
       setEditingIndex(null);
       setEditText('');
       setEditTime('');
+      setEditWords([]);
       setIsEditTimeDuplicate(false);
     } catch (error: any) {
       console.error('Error saving lyrics:', error);
@@ -412,6 +449,35 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
     }
 
     const line = localLyrics[lineIndex];
+    
+    // Se tiver palavras individuais com timestamps, usar destaque palavra por palavra
+    if (line.words && line.words.length > 0) {
+      return (
+        <span>
+          {line.words.map((word, wordIndex) => {
+            const wordStartTime = word.time;
+            const wordEndTime = wordIndex < line.words!.length - 1 
+              ? line.words![wordIndex + 1].time 
+              : wordStartTime + 0.5; // Fallback: 0.5s se for última palavra
+            
+            const isHighlighted = currentTime >= wordStartTime;
+            const isActive = currentTime >= wordStartTime && currentTime < wordEndTime;
+            
+            return (
+              <span
+                key={wordIndex}
+                className={isHighlighted ? (isActive ? 'karaoke-active-word' : 'karaoke-highlighted') : 'karaoke-pending'}
+              >
+                {word.word}
+                {wordIndex < line.words!.length - 1 && ' '}
+              </span>
+            );
+          })}
+        </span>
+      );
+    }
+    
+    // Fallback para formato antigo: destacar por caracteres
     const lineStartTime = line.time;
     const lineDuration = getLineDuration(lineIndex);
     
@@ -670,43 +736,120 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
             >
               {isEditing && allowEdit ? (
                 <div className="lyric-edit-container">
-                  <div className="lyric-edit-inputs">
-                    <input
-                      ref={editInputRef}
-                      type="text"
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                      onKeyDown={(e) => handleKeyDown(e, index)}
-                      className="lyric-edit-text-input"
-                      disabled={isSaving}
-                      placeholder="Texto da letra"
-                    />
-                    <div className="lyric-time-input-wrapper">
-                      <input
-                        type="text"
-                        placeholder="Tempo (mm:ss.xx)"
-                        value={editTime}
-                        onChange={(e) => setEditTime(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            handleSave(index);
-                          } else if (e.key === 'Escape') {
-                            e.preventDefault();
-                            handleCancel();
-                          }
+                  {/* Se tiver palavras individuais, mostrar edição palavra por palavra */}
+                  {editWords.length > 0 && localLyrics[index].words && localLyrics[index].words!.length > 0 ? (
+                    <div className="word-by-word-edit">
+                      <div className="word-edit-list">
+                        {editWords.map((word, wordIndex) => (
+                          <div key={wordIndex} className="word-edit-item">
+                            <input
+                              type="text"
+                              value={word.word}
+                              onChange={(e) => {
+                                const newWords = [...editWords];
+                                newWords[wordIndex].word = e.target.value;
+                                setEditWords(newWords);
+                                setEditText(newWords.map(w => w.word).join(' '));
+                              }}
+                              className="word-edit-text-input"
+                              placeholder="Palavra"
+                              disabled={isSaving}
+                            />
+                            <input
+                              type="text"
+                              value={formatTime(word.time)}
+                              onChange={(e) => {
+                                const timeMatch = e.target.value.trim().match(/^(\d{1,2}):(\d{2})(?:\.(\d{2}))?$/);
+                                if (timeMatch) {
+                                  const minutes = parseInt(timeMatch[1], 10);
+                                  const seconds = parseInt(timeMatch[2], 10);
+                                  const centiseconds = timeMatch[3] ? parseInt(timeMatch[3], 10) : 0;
+                                  const timeInSeconds = minutes * 60 + seconds + centiseconds / 100;
+                                  
+                                  const newWords = [...editWords];
+                                  newWords[wordIndex].time = timeInSeconds;
+                                  setEditWords(newWords);
+                                  setEditTime(formatTime(newWords[0].time));
+                                } else if (e.target.value.trim() === '') {
+                                  // Permitir campo vazio temporariamente
+                                }
+                              }}
+                              className="word-edit-time-input"
+                              placeholder="mm:ss.xx"
+                              disabled={isSaving}
+                            />
+                            {editWords.length > 1 && (
+                              <button
+                                type="button"
+                                className="word-remove-btn"
+                                onClick={() => {
+                                  const newWords = editWords.filter((_, i) => i !== wordIndex);
+                                  setEditWords(newWords);
+                                  setEditText(newWords.map(w => w.word).join(' '));
+                                }}
+                                disabled={isSaving}
+                                title="Remover palavra"
+                              >
+                                <i className="fas fa-times"></i>
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <button
+                        type="button"
+                        className="word-add-btn"
+                        onClick={() => {
+                          const lastWord = editWords[editWords.length - 1];
+                          const newTime = lastWord ? lastWord.time + 0.5 : localLyrics[index].time;
+                          setEditWords([...editWords, { word: '', time: newTime }]);
                         }}
-                        className={`lyric-edit-time-input ${isEditTimeDuplicate ? 'duplicate-time' : ''}`}
                         disabled={isSaving}
-                        title={isEditTimeDuplicate ? `Já existe uma linha com este tempo!` : `Tempo da linha`}
-                      />
+                        title="Adicionar palavra"
+                      >
+                        <i className="fas fa-plus"></i> Adicionar palavra
+                      </button>
                     </div>
-                  </div>
+                  ) : (
+                    /* Fallback: edição simples (formato antigo) */
+                    <div className="lyric-edit-inputs">
+                      <input
+                        ref={editInputRef}
+                        type="text"
+                        value={editText}
+                        onChange={(e) => setEditText(e.target.value)}
+                        onKeyDown={(e) => handleKeyDown(e, index)}
+                        className="lyric-edit-text-input"
+                        disabled={isSaving}
+                        placeholder="Texto da letra"
+                      />
+                      <div className="lyric-time-input-wrapper">
+                        <input
+                          type="text"
+                          placeholder="Tempo (mm:ss.xx)"
+                          value={editTime}
+                          onChange={(e) => setEditTime(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              handleSave(index);
+                            } else if (e.key === 'Escape') {
+                              e.preventDefault();
+                              handleCancel();
+                            }
+                          }}
+                          className={`lyric-edit-time-input ${isEditTimeDuplicate ? 'duplicate-time' : ''}`}
+                          disabled={isSaving}
+                          title={isEditTimeDuplicate ? `Já existe uma linha com este tempo!` : `Tempo da linha`}
+                        />
+                      </div>
+                    </div>
+                  )}
                   <div className="lyric-edit-actions">
                     <button
                       className="lyric-save-btn"
                       onClick={() => handleSave(index)}
-                      disabled={isSaving || editText.trim() === '' || !editTime.trim() || isEditTimeDuplicate}
+                      disabled={isSaving || editText.trim() === '' || (editWords.length === 0 && !editTime.trim()) || isEditTimeDuplicate}
                       title={isEditTimeDuplicate ? "Não é possível salvar: timestamp duplicado" : "Salvar (Enter)"}
                     >
                       {isSaving ? (

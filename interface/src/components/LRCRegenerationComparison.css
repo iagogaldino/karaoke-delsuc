@@ -151,6 +151,42 @@
   font-style: italic;
 }
 
+/* Estilos para exibição palavra por palavra */
+.word-by-word-text {
+  display: inline;
+}
+
+.word-with-time {
+  display: inline-block;
+  margin-right: 0.25rem;
+  padding: 0.15rem 0.3rem;
+  background: rgba(74, 144, 226, 0.1);
+  border-radius: 3px;
+  border: 1px solid rgba(74, 144, 226, 0.2);
+  transition: all 0.2s;
+}
+
+.word-with-time:hover {
+  background: rgba(74, 144, 226, 0.15);
+  border-color: rgba(74, 144, 226, 0.3);
+}
+
+.word-time {
+  font-family: 'Courier New', monospace;
+  font-size: 0.7rem;
+  color: rgba(74, 144, 226, 0.8);
+  margin-right: 0.25rem;
+  font-weight: 500;
+}
+
+.word-text {
+  color: var(--text-color, #ffffff);
+}
+
+.lrc-line.has-words .lrc-text {
+  line-height: 1.8;
+}
+
 .lrc-regeneration-stats {
   display: flex;
   gap: 2rem;

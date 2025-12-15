@@ -5,6 +5,37 @@ import { recordingService } from '../services/recordingService.js';
 import { formatTime } from '../utils/formatters.js';
 import { alignLRCLinesByTextOnly, parseLRC } from '../utils/textUtils.js';
 
+/**
+ * Format time to LRC format [mm:ss.xx]
+ */
+function formatLrcTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  const secsInt = Math.floor(secs);
+  const centiseconds = Math.floor((secs - secsInt) * 100);
+  return `${String(minutes).padStart(2, '0')}:${String(secsInt).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
+}
+
+/**
+ * Render text with word-by-word timestamps if available
+ */
+function renderTextWithWords(text: string, words?: Array<{ word: string; time: number }>): React.ReactNode {
+  if (words && words.length > 0) {
+    return (
+      <span className="word-by-word-text">
+        {words.map((word, idx) => (
+          <span key={idx} className="word-with-time" title={`${formatLrcTime(word.time)}`}>
+            <span className="word-time">{formatLrcTime(word.time)}</span>
+            <span className="word-text">{word.word}</span>
+            {idx < words.length - 1 && ' '}
+          </span>
+        ))}
+      </span>
+    );
+  }
+  return <span>{text}</span>;
+}
+
 interface LRCComparisonProps {
   songId: string;
   originalLyrics: LyricsLine[];
@@ -16,6 +47,8 @@ interface ComparisonLine {
   time: number;
   originalText: string;
   recordedText: string;
+  originalWords?: Array<{ word: string; time: number }>;
+  recordedWords?: Array<{ word: string; time: number }>;
   hasDifference: boolean;
   timeDifference?: number; // Deprecated - mantido apenas para compatibilidade de exibição
   similarity?: number; // Similaridade entre textos (0-1)
@@ -73,10 +106,18 @@ export default function LRCComparison({
       const time = alignment.originalTime ?? alignment.recordedTime ?? 0;
       const hasDifference = alignment.similarity < 0.9 || alignment.recordedText === '';
 
+      // Encontrar palavras individuais das linhas originais
+      const originalLine = originalLyrics.find((_, idx) => idx === alignment.originalIndex);
+      const recordedLine = alignment.recordedIndex !== null 
+        ? recordedLyrics[alignment.recordedIndex] 
+        : null;
+
       return {
         time,
         originalText: alignment.originalText,
         recordedText: alignment.recordedText,
+        originalWords: originalLine && 'words' in originalLine ? originalLine.words : undefined,
+        recordedWords: recordedLine && 'words' in recordedLine ? recordedLine.words : undefined,
         hasDifference,
         timeDifference: undefined, // Removido - não usamos mais diferença de tempo para comparação
         similarity: alignment.similarity,
@@ -178,11 +219,15 @@ export default function LRCComparison({
                 key={`original-${index}`}
                 className={`lrc-line ${line.hasDifference ? 'has-difference' : ''} ${
                   line.originalText === '' ? 'missing' : ''
-                }`}
+                } ${line.originalWords && line.originalWords.length > 0 ? 'has-words' : ''}`}
               >
                 <span className="lrc-time">{formatTime(line.time)}</span>
                 <span className="lrc-text">
-                  {line.originalText || <em className="empty-text">(sem texto)</em>}
+                  {line.originalText ? (
+                    renderTextWithWords(line.originalText, line.originalWords)
+                  ) : (
+                    <em className="empty-text">(sem texto)</em>
+                  )}
                 </span>
               </div>
             ))}
@@ -200,11 +245,15 @@ export default function LRCComparison({
                 key={`recorded-${index}`}
                 className={`lrc-line ${line.hasDifference ? 'has-difference' : ''} ${
                   line.recordedText === '' ? 'missing' : ''
-                }`}
+                } ${line.recordedWords && line.recordedWords.length > 0 ? 'has-words' : ''}`}
               >
                 <span className="lrc-time">{formatTime(line.time)}</span>
                 <span className="lrc-text">
-                  {line.recordedText || <em className="empty-text">(sem texto)</em>}
+                  {line.recordedText ? (
+                    renderTextWithWords(line.recordedText, line.recordedWords)
+                  ) : (
+                    <em className="empty-text">(sem texto)</em>
+                  )}
                 </span>
                 {line.similarity !== undefined && line.similarity > 0 && line.similarity < 1 && (
                   <span className="time-diff" title="Similaridade de texto">

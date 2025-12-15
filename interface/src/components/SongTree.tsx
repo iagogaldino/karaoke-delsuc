@@ -827,8 +827,18 @@ function SongTree({
               }}
             >
               <div
-                className="song-tree-category-header"
+                className="song-tree-category-header drop-zone"
                 onClick={() => toggleCategory('uncategorized')}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDragOver(e);
+                }}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => {
+                  e.stopPropagation();
+                  handleDrop(e, 'uncategorized', null);
+                }}
               >
                 <i className="fas fa-folder-open"></i>
                 <span className="category-name">{getCategoryName('uncategorized')}</span>
@@ -964,9 +974,18 @@ function SongTree({
               }}
             >
               <div
-                className="song-tree-category-header"
+                className="song-tree-category-header drop-zone"
                 onClick={() => toggleCategory(category.id)}
-                onDrop={(e) => e.stopPropagation()}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDragOver(e);
+                }}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => {
+                  e.stopPropagation();
+                  handleDrop(e, category.id, null);
+                }}
               >
                 <i className="fas fa-folder"></i>
                 {editingCategory === category.id ? (

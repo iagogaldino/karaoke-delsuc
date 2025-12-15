@@ -966,6 +966,7 @@ function App() {
           isPlaying={isPlaying}
           songId={selectedSong}
           currentTime={currentTime}
+          generateLRCAfterRecording={generateLRCAfterRecording}
           onRecordingComplete={handleRecordingComplete}
           onError={(error) => {
             console.error('Erro na gravação:', error);
@@ -1111,6 +1112,7 @@ function App() {
                 isPlaying={isPlaying}
                 songId={selectedSong}
                 currentTime={currentTime}
+                generateLRCAfterRecording={generateLRCAfterRecording}
                 onRecordingComplete={handleRecordingComplete}
                 onError={(error) => {
                   console.error('Erro na gravação:', error);

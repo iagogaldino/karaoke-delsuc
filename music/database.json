@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-15T13:48:27.680Z",
+  "lastUpdated": "2025-12-15T14:53:42.249Z",
   "songs": [
     {
       "id": "miunnkaj-c6z8aq",
@@ -813,7 +813,7 @@
         "sampleRate": 44100,
         "format": "wav",
         "createdAt": "2025-12-12T20:13:12.474Z",
-        "lastProcessed": "2025-12-12T20:21:53.250Z"
+        "lastProcessed": "2025-12-15T14:33:58.510Z"
       },
       "band": "band-1765387655192-y1kuhcl2x",
       "status": {
@@ -834,7 +834,7 @@
         "file": "video.mp4"
       },
       "category": "cat-trap-001",
-      "generateLRCAfterRecording": false,
+      "generateLRCAfterRecording": true,
       "audioMode": "both"
     },
     {
@@ -874,7 +874,8 @@
         "uploader": "Pablo Oficial",
         "view_count": 37572828,
         "file": "video.mp4"
-      }
+      },
+      "category": "cat-1765572216823-9en3mni93"
     },
     {
       "id": "mj3bgagj-9k2wto",
@@ -1035,7 +1036,8 @@
         "file": "video.mp4"
       },
       "audioMode": "vocals-only",
-      "generateLRCAfterRecording": false
+      "generateLRCAfterRecording": false,
+      "category": "cat-trap-001"
     },
     {
       "id": "mj5t74kc-2bbur6",
@@ -1116,7 +1118,8 @@
         "file": "video.mp4"
       },
       "audioMode": "both",
-      "generateLRCAfterRecording": false
+      "generateLRCAfterRecording": false,
+      "category": "cat-rock-001"
     },
     {
       "id": "mj5u2s7a-vrzer",
@@ -1155,7 +1158,8 @@
         "uploader": "Ivete Sangalo",
         "view_count": 29911,
         "file": "video.mp4"
-      }
+      },
+      "category": "cat-1765809828929-dbs95vvk8"
     },
     {
       "id": "mj5u44x6-e5k038",
@@ -1196,7 +1200,8 @@
         "file": "video.mp4"
       },
       "generateLRCAfterRecording": false,
-      "audioMode": "both"
+      "audioMode": "both",
+      "category": "cat-1765809828929-dbs95vvk8"
     },
     {
       "id": "mj5u79qb-784pn0",
@@ -1235,7 +1240,8 @@
         "uploader": "Nelson Gonçalves",
         "view_count": 33852126,
         "file": "video.mp4"
-      }
+      },
+      "category": "cat-1765392930731-2qaxe7spb"
     },
     {
       "id": "mj6jz9ah-edltap",
@@ -1275,7 +1281,49 @@
         "view_count": 163819128,
         "file": "video.mp4"
       },
-      "generateLRCAfterRecording": false
+      "generateLRCAfterRecording": false,
+      "category": "cat-trap-001"
+    },
+    {
+      "id": "mj79emea-doivg3",
+      "name": "In The End",
+      "displayName": "In The End",
+      "artist": "Unknown",
+      "duration": 218.22113378684807,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-15T14:38:56.488Z",
+        "lastProcessed": "2025-12-15T14:44:11.931Z"
+      },
+      "band": "band-1765809530395-sq7jq3g8r",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "eVTXPUF4Oz4",
+        "title": "In The End [Official HD Music Video] - Linkin Park",
+        "url": "https://www.youtube.com/watch?v=eVTXPUF4Oz4",
+        "thumbnail": "https://i.ytimg.com/vi/eVTXPUF4Oz4/maxresdefault.jpg",
+        "duration": 218,
+        "uploader": "Linkin Park",
+        "view_count": 2155433929,
+        "file": "video.mp4"
+      },
+      "generateLRCAfterRecording": false,
+      "category": "cat-rock-001"
     }
   ],
   "categories": [
@@ -1331,6 +1379,12 @@
       "name": "Arrocha",
       "createdAt": "2025-12-12T20:43:36.823Z",
       "updatedAt": "2025-12-12T20:43:36.823Z"
+    },
+    {
+      "id": "cat-1765809828929-dbs95vvk8",
+      "name": "Axe",
+      "createdAt": "2025-12-15T14:43:48.929Z",
+      "updatedAt": "2025-12-15T14:43:48.929Z"
     }
   ],
   "bands": [
@@ -1457,7 +1511,8 @@
       "id": "band-1765570699939-3nvf2fnoj",
       "name": "Pablo",
       "createdAt": "2025-12-12T20:18:19.939Z",
-      "updatedAt": "2025-12-12T20:18:19.939Z"
+      "updatedAt": "2025-12-15T14:53:38.196Z",
+      "category": "cat-1765572216823-9en3mni93"
     },
     {
       "id": "band-1765570948595-3q3u6zisk",
@@ -1477,7 +1532,8 @@
       "id": "band-1765720726309-eahgdivkc",
       "name": "Will",
       "createdAt": "2025-12-14T13:58:46.309Z",
-      "updatedAt": "2025-12-14T13:58:46.309Z"
+      "updatedAt": "2025-12-15T14:40:36.744Z",
+      "category": "cat-trap-001"
     },
     {
       "id": "band-1765721835129-ljileeyfq",
@@ -1490,19 +1546,29 @@
       "id": "band-1765723317195-xoy2f7gbn",
       "name": "Ivete Sangalo",
       "createdAt": "2025-12-14T14:41:57.195Z",
-      "updatedAt": "2025-12-14T14:41:57.195Z"
+      "updatedAt": "2025-12-15T14:53:42.249Z",
+      "category": "cat-1765809828929-dbs95vvk8"
     },
     {
       "id": "band-1765723372275-c2wd8s3p0",
       "name": "Alexandre Pires",
       "createdAt": "2025-12-14T14:42:52.275Z",
-      "updatedAt": "2025-12-14T14:42:52.275Z"
+      "updatedAt": "2025-12-15T14:53:33.789Z",
+      "category": "cat-1765809828929-dbs95vvk8"
     },
     {
       "id": "band-1765723524666-1g4gfiuaz",
       "name": "Nelson Gonçalves",
       "createdAt": "2025-12-14T14:45:24.666Z",
-      "updatedAt": "2025-12-14T14:45:24.666Z"
+      "updatedAt": "2025-12-15T14:41:34.913Z",
+      "category": "cat-1765392930731-2qaxe7spb"
+    },
+    {
+      "id": "band-1765809530395-sq7jq3g8r",
+      "name": "Link Park",
+      "createdAt": "2025-12-15T14:38:50.395Z",
+      "updatedAt": "2025-12-15T14:53:25.246Z",
+      "category": "cat-rock-001"
     }
   ]
 }

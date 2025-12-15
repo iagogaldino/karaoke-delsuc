@@ -3,6 +3,37 @@ import './LRCRegenerationComparison.css';
 import { parseLRC } from '../utils/textUtils.js';
 import { formatTime } from '../utils/formatters.js';
 
+/**
+ * Format time to LRC format [mm:ss.xx]
+ */
+function formatLrcTime(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  const secsInt = Math.floor(secs);
+  const centiseconds = Math.floor((secs - secsInt) * 100);
+  return `${String(minutes).padStart(2, '0')}:${String(secsInt).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}`;
+}
+
+/**
+ * Render text with word-by-word timestamps if available
+ */
+function renderTextWithWords(text: string, words?: Array<{ word: string; time: number }>): React.ReactNode {
+  if (words && words.length > 0) {
+    return (
+      <span className="word-by-word-text">
+        {words.map((word, idx) => (
+          <span key={idx} className="word-with-time" title={`${formatLrcTime(word.time)}`}>
+            <span className="word-time">{formatLrcTime(word.time)}</span>
+            <span className="word-text">{word.word}</span>
+            {idx < words.length - 1 && ' '}
+          </span>
+        ))}
+      </span>
+    );
+  }
+  return <span>{text}</span>;
+}
+
 interface LRCRegenerationComparisonProps {
   songId: string;
   oldLyrics: string;
@@ -15,6 +46,8 @@ interface ComparisonLine {
   time: number;
   oldText: string;
   newText: string;
+  oldWords?: Array<{ word: string; time: number }>;
+  newWords?: Array<{ word: string; time: number }>;
   hasDifference: boolean;
 }
 
@@ -49,12 +82,35 @@ export default function LRCRegenerationComparison({
     
     const oldText = oldLine?.text || '';
     const newText = newLine?.text || '';
-    const hasDifference = oldText !== newText;
+    const oldWords = oldLine?.words;
+    const newWords = newLine?.words;
+    
+    // Comparar texto e palavras individuais
+    const textDiff = oldText !== newText;
+    let wordsDiff = false;
+    
+    if (oldWords && newWords) {
+      // Comparar palavras individuais
+      if (oldWords.length !== newWords.length) {
+        wordsDiff = true;
+      } else {
+        wordsDiff = oldWords.some((w, i) => 
+          w.word !== newWords[i]?.word || Math.abs(w.time - (newWords[i]?.time || 0)) > 0.1
+        );
+      }
+    } else if (oldWords || newWords) {
+      // Um tem palavras, outro não
+      wordsDiff = true;
+    }
+    
+    const hasDifference = textDiff || wordsDiff;
     
     comparisonLines.push({
       time,
       oldText,
       newText,
+      oldWords,
+      newWords,
       hasDifference,
     });
   });
@@ -133,11 +189,15 @@ export default function LRCRegenerationComparison({
                 key={`old-${index}`}
                 className={`lrc-line ${line.hasDifference ? 'has-difference' : ''} ${
                   line.oldText === '' ? 'missing' : ''
-                }`}
+                } ${line.oldWords && line.oldWords.length > 0 ? 'has-words' : ''}`}
               >
                 <span className="lrc-time">{formatTime(line.time)}</span>
                 <span className="lrc-text">
-                  {line.oldText || <em className="empty-text">(sem texto)</em>}
+                  {line.oldText ? (
+                    renderTextWithWords(line.oldText, line.oldWords)
+                  ) : (
+                    <em className="empty-text">(sem texto)</em>
+                  )}
                 </span>
               </div>
             ))}
@@ -155,11 +215,15 @@ export default function LRCRegenerationComparison({
                 key={`new-${index}`}
                 className={`lrc-line ${line.hasDifference ? 'has-difference' : ''} ${
                   line.newText === '' ? 'missing' : ''
-                }`}
+                } ${line.newWords && line.newWords.length > 0 ? 'has-words' : ''}`}
               >
                 <span className="lrc-time">{formatTime(line.time)}</span>
                 <span className="lrc-text">
-                  {line.newText || <em className="empty-text">(sem texto)</em>}
+                  {line.newText ? (
+                    renderTextWithWords(line.newText, line.newWords)
+                  ) : (
+                    <em className="empty-text">(sem texto)</em>
+                  )}
                 </span>
               </div>
             ))}

@@ -59,6 +59,7 @@ voice-remove/output/
 waveform-generator/wave_images/
 waveform-generator/wave_json/
 lrc-generator/lrc-output/
+recordings/
 
 # Audio files - arquivos grandes, não versionar
 *.mp3

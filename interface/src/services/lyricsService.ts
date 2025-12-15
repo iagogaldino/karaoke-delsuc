@@ -27,12 +27,13 @@ export const lyricsService = {
   /**
    * Update a lyrics line
    */
-  async updateLine(songId: string, lineIndex: number, newText: string, newTime?: number): Promise<void> {
+  async updateLine(songId: string, lineIndex: number, newText: string, newTime?: number, words?: Array<{ word: string; time: number }>): Promise<void> {
     await apiService.put(`${API_CONFIG.ENDPOINTS.LYRICS}`, {
       songId,
       lineIndex,
       newText,
       newTime,
+      words, // Palavras individuais com timestamps (formato palavra por palavra)
     });
   },
 

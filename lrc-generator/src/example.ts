@@ -45,14 +45,14 @@ async function exemplo() {
 
     // Exemplo 4: Usando apenas a transcrição
     console.log('\n📝 Exemplo 4: Apenas transcrição');
-    // const segments = await generator.transcribeAudio('audio.wav', {
+    // const words = await generator.transcribeAudio('audio.wav', {
     //   language: 'pt',
     // });
-    // console.log(`Transcrito ${segments.length} segmentos`);
+    // console.log(`Transcrito ${words.length} palavras`);
 
-    // Exemplo 5: Gerar LRC a partir de segmentos
-    console.log('\n📝 Exemplo 5: Gerar LRC de segmentos');
-    // generator.generateLRCFromSegments(segments, 'custom.lrc');
+    // Exemplo 5: Gerar LRC a partir de palavras
+    console.log('\n📝 Exemplo 5: Gerar LRC de palavras');
+    // generator.generateLRCFromWords(words, 'custom.lrc');
 
     console.log('\n💡 Descomente os exemplos acima e forneça arquivos de áudio válidos para testar!');
 

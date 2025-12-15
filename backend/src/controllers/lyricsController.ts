@@ -26,6 +26,57 @@ export const getLyrics = asyncHandler(async (req: Request, res: Response) => {
  * GET /api/lyrics/json?song=id
  * Returns the LRC file parsed as JSON
  */
+/**
+ * Parse LRC timestamp to seconds
+ */
+function parseLrcTime(timeStr: string): number {
+  const match = timeStr.match(/(\d{2}):(\d{2})\.(\d{2})/);
+  if (match) {
+    const [, minutes, seconds, centiseconds] = match;
+    return parseInt(minutes, 10) * 60 + parseInt(seconds, 10) + parseInt(centiseconds, 10) / 100;
+  }
+  return 0;
+}
+
+/**
+ * Parse word-by-word LRC format: [mm:ss.xx]<mm:ss.xx>palavra <mm:ss.xx>palavra
+ * Returns array of words with individual timestamps
+ */
+function parseWordByWordLine(line: string): Array<{ word: string; time: number }> | null {
+  // Match line start: [mm:ss.xx]<mm:ss.xx>palavra
+  const lineMatch = line.match(/\[(\d{2}):(\d{2})\.(\d{2})\](.*)/);
+  if (!lineMatch) {
+    return null;
+  }
+
+  const [, minutes, seconds, centiseconds, rest] = lineMatch;
+  const lineStartTime = parseInt(minutes, 10) * 60 + parseInt(seconds, 10) + parseInt(centiseconds, 10) / 100;
+  
+  // Parse words with timestamps: <mm:ss.xx>palavra
+  const words: Array<{ word: string; time: number }> = [];
+  const wordPattern = /<(\d{2}):(\d{2})\.(\d{2})>([^<]+)/g;
+  let match;
+  
+  while ((match = wordPattern.exec(rest)) !== null) {
+    const [, wMinutes, wSeconds, wCentiseconds, word] = match;
+    const wordTime = parseInt(wMinutes, 10) * 60 + parseInt(wSeconds, 10) + parseInt(wCentiseconds, 10) / 100;
+    words.push({
+      word: word.trim(),
+      time: wordTime
+    });
+  }
+  
+  // If no words found, fallback to old format (plain text after timestamp)
+  if (words.length === 0) {
+    return [{
+      word: rest.trim(),
+      time: lineStartTime
+    }];
+  }
+  
+  return words;
+}
+
 export const getLyricsJson = asyncHandler(async (req: Request, res: Response) => {
   const songId = req.query.song as string;
   const lrcPath = getLyricsPath(songId);
@@ -38,7 +89,19 @@ export const getLyricsJson = asyncHandler(async (req: Request, res: Response) =>
   const lines = lrcContent.split('\n').filter(line => line.trim());
   
   const lyrics = lines.map(line => {
-    // Parse LRC format: [mm:ss.xx]text
+    // Try to parse word-by-word format first
+    const words = parseWordByWordLine(line);
+    
+    if (words && words.length > 0) {
+      // Return first word's time as line time, and include all words
+      return {
+        time: words[0].time,
+        text: words.map(w => w.word).join(' '), // Keep text for backward compatibility
+        words: words // Include individual words with timestamps
+      };
+    }
+    
+    // Fallback to old format: [mm:ss.xx]text
     const match = line.match(/\[(\d{2}):(\d{2})\.(\d{2})\](.*)/);
     if (match) {
       const [, minutes, seconds, centiseconds, text] = match;
@@ -49,9 +112,11 @@ export const getLyricsJson = asyncHandler(async (req: Request, res: Response) =>
       
       return {
         time: timeInSeconds,
-        text: text.trim()
+        text: text.trim(),
+        words: [{ word: text.trim(), time: timeInSeconds }] // Single word for compatibility
       };
     }
+    
     return null;
   }).filter(item => item !== null);
 
@@ -68,7 +133,7 @@ export const getLyricsJson = asyncHandler(async (req: Request, res: Response) =>
  * Updates a specific line of the LRC file
  */
 export const updateLyrics = asyncHandler(async (req: Request, res: Response) => {
-  const { songId, lineIndex, newText, newTime } = req.body;
+  const { songId, lineIndex, newText, newTime, words } = req.body;
 
   if (!songId || lineIndex === undefined || !newText) {
     return res.status(400).json({ error: 'Missing required fields: songId, lineIndex, newText' });
@@ -102,13 +167,46 @@ export const updateLyrics = asyncHandler(async (req: Request, res: Response) => 
       if (lyricIndex === lineIndex) {
         found = true;
         currentTime = timeInSeconds;
-        // Update this line
-        const newTimestamp = newTime !== undefined ? secondsToLrcTimestamp(newTime) : match[1];
-        allLyrics.push({ 
-          line: `${newTimestamp}${newText}`, 
-          time: newTime !== undefined ? newTime : timeInSeconds, 
-          originalLineIndex: lineIdx 
-        });
+        
+        // Se tiver palavras individuais, formatar no formato palavra por palavra
+        if (words && Array.isArray(words) && words.length > 0) {
+          const validWords = words.filter((w: any) => w.word && w.word.trim() && typeof w.time === 'number');
+          if (validWords.length > 0) {
+            // Ordenar palavras por tempo
+            const sortedWords = [...validWords].sort((a: any, b: any) => a.time - b.time);
+            const firstWordTime = sortedWords[0].time;
+            const lineStartTimestamp = secondsToLrcTimestamp(firstWordTime);
+            
+            // Formatar: [mm:ss.xx]<mm:ss.xx>palavra <mm:ss.xx>palavra
+            const wordParts = sortedWords.map((w: any) => {
+              const wordTimestamp = secondsToLrcTimestamp(w.time).replace(/[\[\]]/g, '');
+              return `<${wordTimestamp}>${w.word.trim()}`;
+            });
+            
+            const newLine = `${lineStartTimestamp}${wordParts.join(' ')}`;
+            allLyrics.push({ 
+              line: newLine, 
+              time: firstWordTime, 
+              originalLineIndex: lineIdx 
+            });
+          } else {
+            // Fallback: usar formato simples
+            const newTimestamp = newTime !== undefined ? secondsToLrcTimestamp(newTime) : match[1];
+            allLyrics.push({ 
+              line: `${newTimestamp}${newText}`, 
+              time: newTime !== undefined ? newTime : timeInSeconds, 
+              originalLineIndex: lineIdx 
+            });
+          }
+        } else {
+          // Formato antigo: apenas texto com timestamp único
+          const newTimestamp = newTime !== undefined ? secondsToLrcTimestamp(newTime) : match[1];
+          allLyrics.push({ 
+            line: `${newTimestamp}${newText}`, 
+            time: newTime !== undefined ? newTime : timeInSeconds, 
+            originalLineIndex: lineIdx 
+          });
+        }
       } else {
         allLyrics.push({ line, time: timeInSeconds, originalLineIndex: lineIdx });
       }
@@ -120,21 +218,26 @@ export const updateLyrics = asyncHandler(async (req: Request, res: Response) => 
     return res.status(404).json({ error: 'Line index not found' });
   }
 
+  // Se tiver palavras individuais, usar o tempo da primeira palavra para validação
+  const effectiveNewTime = words && Array.isArray(words) && words.length > 0 
+    ? words[0].time 
+    : newTime;
+
   // If newTime is provided, validate it's not a duplicate
-  if (newTime !== undefined) {
+  if (effectiveNewTime !== undefined) {
     const TOLERANCE = 0.01;
     const duplicateLine = allLyrics.find((lyric, idx) => 
-      idx !== lineIndex && Math.abs(lyric.time - newTime) < TOLERANCE
+      idx !== lineIndex && Math.abs(lyric.time - effectiveNewTime) < TOLERANCE
     );
     if (duplicateLine) {
       return res.status(400).json({ 
-        error: `Já existe uma linha com o tempo ${secondsToLrcTimestamp(newTime)}. Não é possível usar o mesmo timestamp.` 
+        error: `Já existe uma linha com o tempo ${secondsToLrcTimestamp(effectiveNewTime)}. Não é possível usar o mesmo timestamp.` 
       });
     }
   }
 
   // If time changed, reorder all lyrics by time
-  if (newTime !== undefined && newTime !== currentTime) {
+  if (effectiveNewTime !== undefined && effectiveNewTime !== currentTime) {
     // Sort by time
     allLyrics.sort((a, b) => a.time - b.time);
     
@@ -176,14 +279,16 @@ export const updateLyrics = asyncHandler(async (req: Request, res: Response) => 
     writeFileSync(lrcPath, updatedContent, 'utf-8');
   }
 
-  console.log(`[Lyrics] ✅ Linha ${lineIndex} atualizada para: "${newText}"${newTime !== undefined ? ` (tempo: ${secondsToLrcTimestamp(newTime)})` : ''}`);
+  const finalTime = effectiveNewTime !== undefined ? effectiveNewTime : currentTime;
+  console.log(`[Lyrics] ✅ Linha ${lineIndex} atualizada para: "${newText}"${finalTime !== currentTime ? ` (tempo: ${secondsToLrcTimestamp(finalTime)})` : ''}${words && words.length > 0 ? ` (${words.length} palavras)` : ''}`);
 
   res.json({
     success: true,
     message: 'Lyrics updated successfully',
     lineIndex,
     newText,
-    newTime: newTime !== undefined ? newTime : currentTime
+    newTime: finalTime,
+    words: words && Array.isArray(words) && words.length > 0 ? words : undefined
   });
 });
 

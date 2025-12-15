@@ -132,7 +132,8 @@
 }
 
 .song-tree-band.drop-zone-active,
-.song-tree-category.drop-zone-active {
+.song-tree-category.drop-zone-active,
+.song-tree-category-header.drop-zone-active {
   background: rgba(245, 158, 11, 0.15);
   border: 2px dashed rgba(245, 158, 11, 0.5);
   box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);

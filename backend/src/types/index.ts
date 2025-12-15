@@ -136,9 +136,15 @@ export interface WaveformChunk {
   length: number;
 }
 
+export interface LyricsWord {
+  word: string;
+  time: number;
+}
+
 export interface LyricsLine {
   time: number;
-  text: string;
+  text: string; // Texto completo da linha (para compatibilidade)
+  words?: LyricsWord[]; // Palavras individuais com timestamps (novo formato)
 }
 
 export interface LyricsJson {
