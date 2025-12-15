@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
 import { join, extname } from 'path';
-import { existsSync, mkdirSync, renameSync, statSync } from 'fs';
+import { existsSync, mkdirSync, renameSync, statSync, readFileSync, writeFileSync } from 'fs';
 import { getSongById, updateSong, getBandById } from '../utils/database.js';
 import multer from 'multer';
 import { PROJECT_ROOT, PATHS, PROCESSING_CONFIG, MEDIA_CONFIG } from '../config/index.js';
 import { asyncHandler } from '../middlewares/errorHandler.js';
 import { processingStatus, processMusic, processYouTubeMusic, execPython } from '../services/processingService.js';
+import { getLyricsPath } from '../services/songPathService.js';
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -769,4 +770,507 @@ export const saveLRC = asyncHandler(async (req: Request, res: Response) => {
     console.error(`[saveLRC] ❌ Erro ao salvar LRC:`, error);
     res.status(500).json({ error: `Erro ao salvar LRC: ${error.message}` });
   }
+});
+
+/**
+ * POST /api/processing/regenerate-lrc-segment/:songId
+ * Regenera um trecho específico do LRC
+ */
+export const regenerateLRCSegment = asyncHandler(async (req: Request, res: Response) => {
+  const { songId } = req.params;
+  const { lineIndices, startTime, endTime } = req.body;
+
+  if (!songId) {
+    return res.status(400).json({ error: 'Song ID é obrigatório' });
+  }
+
+  // Permitir lineIndices vazio se startTime e endTime forem fornecidos (modo tempo manual)
+  if (!Array.isArray(lineIndices)) {
+    return res.status(400).json({ error: 'lineIndices deve ser um array' });
+  }
+  
+  if (lineIndices.length === 0 && (!startTime || !endTime)) {
+    return res.status(400).json({ error: 'lineIndices não pode estar vazio a menos que startTime e endTime sejam fornecidos' });
+  }
+
+  if (typeof startTime !== 'number' || typeof endTime !== 'number' || startTime >= endTime) {
+    return res.status(400).json({ error: 'startTime e endTime devem ser números válidos com startTime < endTime' });
+  }
+
+  const song = getSongById(songId);
+  if (!song) {
+    return res.status(404).json({ error: 'Música não encontrada' });
+  }
+
+  const musicDir = join(PROJECT_ROOT, 'music', song.id);
+  const vocalsPath = join(musicDir, 'vocals.wav');
+  const lyricsPath = join(musicDir, 'lyrics.lrc');
+
+  if (!existsSync(vocalsPath)) {
+    return res.status(404).json({ error: 'Arquivo vocals.wav não encontrado' });
+  }
+
+  if (!existsSync(lyricsPath)) {
+    return res.status(404).json({ error: 'Arquivo lyrics.lrc não encontrado' });
+  }
+
+  const processId = `lrc-segment-${songId}-${Date.now()}`;
+  processingStatus.set(processId, {
+    status: 'processing',
+    step: 'Extraindo trecho de áudio...',
+    progress: 0,
+    songId,
+  });
+
+  // Processar em background
+  regenerateLRCSegmentForSong(processId, song, musicDir, vocalsPath, lyricsPath, lineIndices, startTime, endTime)
+    .catch(err => {
+      const status = processingStatus.get(processId);
+      if (status) {
+        status.status = 'error';
+        status.error = err.message;
+        status.step = 'Erro na regeneração do trecho';
+      }
+      console.error(`[${processId}] ❌ Erro:`, err);
+    });
+
+  res.json({
+    processId,
+    message: 'Regeneração de trecho LRC iniciada',
+    statusUrl: `/api/processing/status/${processId}`
+  });
+});
+
+async function regenerateLRCSegmentForSong(
+  processId: string,
+  song: any,
+  musicDir: string,
+  vocalsPath: string,
+  lyricsPath: string,
+  lineIndices: number[],
+  startTime: number,
+  endTime: number
+) {
+  const status = processingStatus.get(processId);
+  if (!status) return;
+
+  try {
+    const fs = await import('fs/promises');
+
+    // 1. Ler LRC atual
+    status.step = 'Lendo LRC atual...';
+    status.progress = 10;
+    const currentLrcContent = await fs.readFile(lyricsPath, 'utf-8');
+    const currentLrcLines = currentLrcContent.split('\n').filter(line => line.trim());
+
+    // 2. Extrair trecho de áudio
+    status.step = 'Extraindo trecho de áudio...';
+    status.progress = 20;
+    const segmentAudioPath = join(musicDir, `temp_segment_${Date.now()}.wav`);
+    const duration = endTime - startTime;
+    const extractScript = join(PROJECT_ROOT, 'youtube-downloader', 'extract_audio_segment.py');
+
+    if (!existsSync(extractScript)) {
+      throw new Error('Script de extração de trecho não encontrado');
+    }
+
+    await execPython(
+      `python "${extractScript}" "${vocalsPath}" "${segmentAudioPath}" "${startTime}" "${duration}" "0.5"`,
+      undefined,
+      `${processId} [Extract Segment]`
+    );
+
+    if (!existsSync(segmentAudioPath)) {
+      throw new Error('Falha ao extrair trecho de áudio');
+    }
+
+    // 3. Verificar tamanho do arquivo e converter se necessário
+    status.step = 'Preparando áudio para transcrição...';
+    status.progress = 30;
+    const audioFileSize = statSync(segmentAudioPath).size;
+    const maxSize = 25 * 1024 * 1024; // 25 MB
+    let audioForLRC = segmentAudioPath;
+
+    if (audioFileSize > maxSize) {
+      const mp3Path = join(musicDir, `temp_segment_${Date.now()}.mp3`);
+      const convertScript = join(PROJECT_ROOT, 'youtube-downloader', 'convert_audio_to_mp3.py');
+      
+      if (existsSync(convertScript)) {
+        await execPython(
+          `python "${convertScript}" "${segmentAudioPath}" "${mp3Path}" "128k" "22050" "1"`,
+          undefined,
+          `${processId} [Convert Segment]`
+        );
+        
+        if (existsSync(mp3Path)) {
+          // Remover WAV temporário
+          await fs.unlink(segmentAudioPath);
+          audioForLRC = mp3Path;
+        }
+      }
+    }
+
+    // 4. Transcrever trecho com Whisper
+    status.step = 'Transcrevendo trecho...';
+    status.progress = 40;
+    const lrcScript = join(PROJECT_ROOT, 'lrc-generator', 'src', 'index.ts');
+    const tempLrcDir = join(musicDir, 'temp_segment_lrc');
+    
+    // Criar diretório temporário se não existir
+    if (!existsSync(tempLrcDir)) {
+      await fs.mkdir(tempLrcDir, { recursive: true });
+    }
+
+    await execPython(
+      `cd "${join(PROJECT_ROOT, 'lrc-generator')}" && npx tsx "${lrcScript}" "${audioForLRC}" --output-dir "${tempLrcDir}"`,
+      join(PROJECT_ROOT, 'lrc-generator'),
+      `${processId} [LRC Generator]`,
+      (progress: number) => {
+        const stepProgress = 40 + (progress * 0.4);
+        status.progress = Math.round(stepProgress);
+        status.step = `Transcrevendo... ${progress}%`;
+      }
+    );
+
+    // 5. Encontrar arquivo LRC gerado
+    status.step = 'Processando novo LRC...';
+    status.progress = 80;
+    const tempFiles = await fs.readdir(tempLrcDir);
+    const generatedLrcFile = tempFiles.find((f: string) => f.toLowerCase().endsWith('.lrc'));
+    
+    if (!generatedLrcFile) {
+      throw new Error('Arquivo LRC não foi gerado');
+    }
+
+    const generatedLrcPath = join(tempLrcDir, generatedLrcFile);
+    const newSegmentLrcContent = await fs.readFile(generatedLrcPath, 'utf-8');
+    const newSegmentLines = newSegmentLrcContent.split('\n').filter(line => line.trim());
+
+    // 6. Parsear e ajustar timestamps
+    // Formato LRC: [mm:ss.xx]texto
+    const lrcPattern = /\[(\d{2}):(\d{2})\.(\d{2})\](.*)/;
+    const newLines: Array<{ time: number; text: string; originalLine: string }> = [];
+
+    for (const line of newSegmentLines) {
+      const match = line.match(lrcPattern);
+      if (match) {
+        const minutes = parseInt(match[1], 10);
+        const seconds = parseInt(match[2], 10);
+        const centiseconds = parseInt(match[3], 10);
+        const text = match[4].trim();
+        
+        // Converter para segundos
+        // Os timestamps do Whisper são relativos ao início do arquivo de áudio enviado
+        // Como extraímos o trecho com margem de 0.5s antes, o início real do trecho é (startTime - 0.5)
+        const relativeTime = minutes * 60 + seconds + centiseconds / 100.0;
+        const margin = 0.5; // Margem usada na extração
+        const segmentStartTime = Math.max(0, startTime - margin);
+        const absoluteTime = segmentStartTime + relativeTime;
+        
+        if (text) {
+          newLines.push({
+            time: absoluteTime,
+            text,
+            originalLine: line,
+          });
+        }
+      }
+    }
+
+    // Ordenar novas linhas por tempo
+    newLines.sort((a, b) => a.time - b.time);
+
+    // 7. Substituir linhas no LRC original
+    // Parsear LRC original
+    const originalLines: Array<{ time: number; text: string; originalLine: string; index: number }> = [];
+    for (let i = 0; i < currentLrcLines.length; i++) {
+      const match = currentLrcLines[i].match(lrcPattern);
+      if (match) {
+        const minutes = parseInt(match[1], 10);
+        const seconds = parseInt(match[2], 10);
+        const centiseconds = parseInt(match[3], 10);
+        const text = match[4].trim();
+        const time = minutes * 60 + seconds + centiseconds / 100.0;
+        
+        originalLines.push({
+          time,
+          text,
+          originalLine: currentLrcLines[i],
+          index: i,
+        });
+      }
+    }
+
+    // Remover linhas: se houver índices, usar eles; senão, remover todas no intervalo [startTime, endTime]
+    const linesToRemove = new Set<number>();
+    
+    if (lineIndices.length > 0) {
+      // Remover apenas as linhas selecionadas (pelos índices)
+      const sortedIndices = [...lineIndices].sort((a, b) => a - b);
+      
+      // Mapear índices do frontend para índices no array originalLines
+      for (const frontendIndex of sortedIndices) {
+        if (frontendIndex >= 0 && frontendIndex < originalLines.length) {
+          linesToRemove.add(frontendIndex);
+        }
+      }
+    } else {
+      // Modo tempo manual: remover todas as linhas no intervalo [startTime, endTime]
+      for (let i = 0; i < originalLines.length; i++) {
+        if (originalLines[i].time >= startTime && originalLines[i].time <= endTime) {
+          linesToRemove.add(i);
+        }
+      }
+    }
+
+    // Criar novo LRC: manter linhas não selecionadas + novas linhas
+    const updatedLines: Array<{ time: number; text: string }> = [];
+    
+    // Adicionar linhas que não foram selecionadas
+    for (let i = 0; i < originalLines.length; i++) {
+      if (!linesToRemove.has(i)) {
+        updatedLines.push({
+          time: originalLines[i].time,
+          text: originalLines[i].text,
+        });
+      }
+    }
+
+    // Adicionar novas linhas do trecho regenerado
+    updatedLines.push(...newLines.map(l => ({ time: l.time, text: l.text })));
+
+    // Ordenar todas as linhas por tempo
+    updatedLines.sort((a, b) => a.time - b.time);
+
+    // 8. Escrever LRC atualizado
+    status.step = 'Salvando LRC atualizado...';
+    status.progress = 90;
+
+    const formatLrcTime = (seconds: number): string => {
+      const minutes = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      const secsInt = Math.floor(secs);
+      const centiseconds = Math.floor((secs - secsInt) * 100);
+      return `[${minutes.toString().padStart(2, '0')}:${secsInt.toString().padStart(2, '0')}.${centiseconds.toString().padStart(2, '0')}]`;
+    };
+
+    const updatedLrcContent = updatedLines
+      .map(line => `${formatLrcTime(line.time)}${line.text}`)
+      .join('\n');
+
+    await fs.writeFile(lyricsPath, updatedLrcContent, 'utf-8');
+
+    // 9. Limpar arquivos temporários
+    try {
+      if (existsSync(segmentAudioPath)) await fs.unlink(segmentAudioPath);
+      if (existsSync(audioForLRC) && audioForLRC !== segmentAudioPath) await fs.unlink(audioForLRC);
+      if (existsSync(tempLrcDir)) {
+        const tempFiles = await fs.readdir(tempLrcDir);
+        for (const file of tempFiles) {
+          await fs.unlink(join(tempLrcDir, file));
+        }
+        await fs.rmdir(tempLrcDir);
+      }
+    } catch (cleanupError) {
+      console.warn(`[${processId}] ⚠️  Erro ao limpar arquivos temporários:`, cleanupError);
+    }
+
+    // 10. Atualizar banco de dados
+    const updatedSong = getSongById(song.id);
+    if (updatedSong) {
+      updateSong(song.id, {
+        ...updatedSong,
+        files: { ...updatedSong.files, lyrics: 'lyrics.lrc' },
+        metadata: {
+          ...updatedSong.metadata,
+          lastProcessed: new Date().toISOString()
+        }
+      });
+    }
+
+    status.status = 'completed';
+    status.step = 'Trecho regenerado com sucesso!';
+    status.progress = 100;
+
+    console.log(`[${processId}] ✅ Trecho LRC regenerado com sucesso`);
+
+    // Limpar status após 1 hora
+    setTimeout(() => {
+      processingStatus.delete(processId);
+    }, PROCESSING_CONFIG.STATUS_CLEANUP_TIME);
+
+  } catch (error: any) {
+    status.status = 'error';
+    status.error = error.message;
+    status.step = 'Erro na regeneração do trecho';
+    
+    console.error(`[${processId}] ❌ Erro:`, error);
+    
+    // Limpar status após 1 hora mesmo em erro
+    setTimeout(() => {
+      processingStatus.delete(processId);
+    }, PROCESSING_CONFIG.STATUS_CLEANUP_TIME);
+  }
+}
+
+/**
+ * Helper function to convert seconds to LRC timestamp format [mm:ss.xx]
+ */
+function secondsToLrcTimestamp(seconds: number): string {
+  const minutes = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  const centiseconds = Math.floor((seconds % 1) * 100);
+  return `[${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(centiseconds).padStart(2, '0')}]`;
+}
+
+/**
+ * POST /api/processing/remove-lrc-lines/:songId
+ * Remove multiple LRC lines by indices
+ */
+export const removeLRCLines = asyncHandler(async (req: Request, res: Response) => {
+  const { songId } = req.params;
+  const { lineIndices } = req.body;
+
+  if (!Array.isArray(lineIndices) || lineIndices.length === 0) {
+    return res.status(400).json({ error: 'lineIndices deve ser um array não vazio' });
+  }
+
+  const lyricsPath = getLyricsPath(songId);
+  if (!lyricsPath || !existsSync(lyricsPath)) {
+    return res.status(404).json({ error: 'Arquivo lyrics.lrc não encontrado' });
+  }
+
+  // Read current file
+  const lrcContent = readFileSync(lyricsPath, 'utf-8');
+  const lines = lrcContent.split('\n');
+
+  // Find and remove lines by indices
+  const indicesToRemove = new Set(lineIndices);
+  let currentIndex = 0;
+  const updatedLines = lines.filter((line) => {
+    const match = line.match(/^\[(\d{2}):(\d{2})\.(\d{2})\](.*)$/);
+    if (match) {
+      if (indicesToRemove.has(currentIndex)) {
+        currentIndex++;
+        return false; // Remove this line
+      }
+      currentIndex++;
+    }
+    return true; // Keep this line
+  });
+
+  // Save updated file
+  const updatedContent = updatedLines.join('\n');
+  writeFileSync(lyricsPath, updatedContent, 'utf-8');
+
+  console.log(`[LRC] ✅ ${lineIndices.length} linha(s) removida(s) da música ${songId}`);
+
+  res.json({
+    success: true,
+    message: `${lineIndices.length} linha(s) removida(s) com sucesso`,
+    removedCount: lineIndices.length
+  });
+});
+
+/**
+ * POST /api/processing/edit-lrc-lines/:songId
+ * Edit multiple LRC lines (text and/or time)
+ */
+export const editLRCLines = asyncHandler(async (req: Request, res: Response) => {
+  const { songId } = req.params;
+  const { edits } = req.body; // Array of { lineIndex, newText?, newTime? }
+
+  if (!Array.isArray(edits) || edits.length === 0) {
+    return res.status(400).json({ error: 'edits deve ser um array não vazio' });
+  }
+
+  const lyricsPath = getLyricsPath(songId);
+  if (!lyricsPath || !existsSync(lyricsPath)) {
+    return res.status(404).json({ error: 'Arquivo lyrics.lrc não encontrado' });
+  }
+
+  // Read current file
+  const lrcContent = readFileSync(lyricsPath, 'utf-8');
+  const lines = lrcContent.split('\n');
+
+  // Parse all lyrics lines
+  const allLyrics: Array<{ line: string; time: number; originalLineIndex: number; lyricIndex: number }> = [];
+  let lyricIndex = 0;
+
+  lines.forEach((line, lineIdx) => {
+    const match = line.match(/^(\[(\d{2}):(\d{2})\.(\d{2})\])(.*)$/);
+    if (match) {
+      const [, , minutes, seconds, centiseconds] = match;
+      const timeInSeconds = 
+        parseInt(minutes, 10) * 60 + 
+        parseInt(seconds, 10) + 
+        parseInt(centiseconds, 10) / 100;
+      
+      allLyrics.push({ 
+        line, 
+        time: timeInSeconds, 
+        originalLineIndex: lineIdx,
+        lyricIndex: lyricIndex++
+      });
+    }
+  });
+
+  // Create a map of edits by lyricIndex
+  const editsMap = new Map<number, { newText?: string; newTime?: number }>();
+  edits.forEach((edit: { lineIndex: number; newText?: string; newTime?: number }) => {
+    if (edit.lineIndex >= 0 && edit.lineIndex < allLyrics.length) {
+      editsMap.set(edit.lineIndex, { newText: edit.newText, newTime: edit.newTime });
+    }
+  });
+
+  // Apply edits
+  let needsReorder = false;
+  allLyrics.forEach((lyric) => {
+    const edit = editsMap.get(lyric.lyricIndex);
+    if (edit) {
+      if (edit.newTime !== undefined && edit.newTime !== lyric.time) {
+        lyric.time = edit.newTime;
+        needsReorder = true;
+      }
+      if (edit.newText !== undefined) {
+        const timestamp = edit.newTime !== undefined 
+          ? secondsToLrcTimestamp(edit.newTime) 
+          : lyric.line.match(/^\[(\d{2}):(\d{2})\.(\d{2})\]/)?.[0] || '';
+        lyric.line = `${timestamp}${edit.newText}`;
+      }
+    }
+  });
+
+  // If times changed, reorder by time
+  if (needsReorder) {
+    allLyrics.sort((a, b) => a.time - b.time);
+  }
+
+  // Rebuild file
+  const result: string[] = [];
+  let lyricPos = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const isLyric = lines[i].match(/^\[(\d{2}):(\d{2})\.(\d{2})\]/);
+    if (isLyric) {
+      if (lyricPos < allLyrics.length) {
+        result.push(allLyrics[lyricPos].line);
+        lyricPos++;
+      }
+    } else {
+      result.push(lines[i]);
+    }
+  }
+
+  // Save updated file
+  const updatedContent = result.join('\n');
+  writeFileSync(lyricsPath, updatedContent, 'utf-8');
+
+  console.log(`[LRC] ✅ ${edits.length} linha(s) editada(s) na música ${songId}`);
+
+  res.json({
+    success: true,
+    message: `${edits.length} linha(s) editada(s) com sucesso`,
+    editedCount: edits.length
+  });
 });

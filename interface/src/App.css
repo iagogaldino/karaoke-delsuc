@@ -743,3 +743,11 @@
   max-height: 800px;
 }
 
+/* Modal de regeneração de trecho de LRC */
+.lrc-segment-modal {
+  max-width: 90vw;
+  width: 800px;
+  height: 80vh;
+  max-height: 700px;
+}
+

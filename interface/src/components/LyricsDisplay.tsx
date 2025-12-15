@@ -12,9 +12,10 @@ interface LyricsDisplayProps {
   isRecording?: boolean; // Indica se está gravando
   allowEdit?: boolean; // Permite edição de letras (padrão: true)
   showUpcomingLines?: boolean; // Mostra as próximas linhas destacadas (modo apresentação)
+  onRegenerateSegment?: (songId: string) => void; // Função para abrir modal de regeneração de trecho
 }
 
-export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpdate, capturedText = '', isRecording = false, allowEdit = true, showUpcomingLines = false }: LyricsDisplayProps) {
+export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpdate, capturedText = '', isRecording = false, allowEdit = true, showUpcomingLines = false, onRegenerateSegment }: LyricsDisplayProps) {
   const [activeIndex, setActiveIndex] = useState(-1);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editText, setEditText] = useState('');
@@ -507,17 +508,30 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
       <div className="lyrics-display">
         <div className="lyrics-header">
           <h3>Letras</h3>
-          {allowEdit && (
-            <button
-              className="add-line-btn"
-              onClick={handleAddLine}
-              title="Adicionar nova linha"
-              disabled={!songId}
-            >
-              <i className="fas fa-plus"></i>
-              <span>Adicionar</span>
-            </button>
-          )}
+          <div className="lyrics-header-actions">
+            {allowEdit && onRegenerateSegment && songId && (
+              <button
+                className="regenerate-segment-btn"
+                onClick={() => onRegenerateSegment(songId)}
+                title="Regenerar trecho selecionado"
+                disabled={true}
+              >
+                <i className="fas fa-cut"></i>
+                <span>Regenerar Trecho</span>
+              </button>
+            )}
+            {allowEdit && (
+              <button
+                className="add-line-btn"
+                onClick={handleAddLine}
+                title="Adicionar nova linha"
+                disabled={!songId}
+              >
+                <i className="fas fa-plus"></i>
+                <span>Adicionar</span>
+              </button>
+            )}
+          </div>
         </div>
         <div className="lyrics-container">
           <p className="no-lyrics">Nenhuma letra disponível</p>
@@ -530,17 +544,31 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
     <div className="lyrics-display">
       <div className="lyrics-header">
         <h3>Letras</h3>
-        {allowEdit && !addingLine && (
-          <button
-            className="add-line-btn"
-            onClick={handleAddLine}
-            title="Adicionar nova linha"
-            disabled={!songId}
-          >
-            <i className="fas fa-plus"></i>
-            <span>Adicionar</span>
-          </button>
-        )}
+        <div className="lyrics-header-actions">
+          {allowEdit && !addingLine && (
+            <>
+              {onRegenerateSegment && songId && lyrics.length > 0 && (
+                <button
+                  className="regenerate-segment-btn"
+                  onClick={() => onRegenerateSegment(songId)}
+                  title="Regenerar trecho selecionado"
+                >
+                  <i className="fas fa-cut"></i>
+                  <span>Regenerar Trecho</span>
+                </button>
+              )}
+              <button
+                className="add-line-btn"
+                onClick={handleAddLine}
+                title="Adicionar nova linha"
+                disabled={!songId}
+              >
+                <i className="fas fa-plus"></i>
+                <span>Adicionar</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
       <div className="lyrics-container" ref={lyricsRef}>
         {addingLine && allowEdit && (

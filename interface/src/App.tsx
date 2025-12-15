@@ -10,6 +10,7 @@ import SongTree from './components/SongTree.js';
 import AudioRecorder from './components/AudioRecorder';
 import LRCComparison from './components/LRCComparison';
 import LRCRegenerationComparison from './components/LRCRegenerationComparison';
+import LRCSegmentRegenerator from './components/LRCSegmentRegenerator';
 import RecordingTest from './components/RecordingTest';
 import ResultsScreen from './components/ResultsScreen';
 import { useSyncWebSocket } from './hooks/useSyncWebSocket';
@@ -49,6 +50,8 @@ function App() {
   const [lrcRefreshKey, setLrcRefreshKey] = useState(0);
   const [showLRCRegenerationComparison, setShowLRCRegenerationComparison] = useState(false);
   const [lrcRegenerationData, setLrcRegenerationData] = useState<{ songId: string; oldLyrics: string; newLyrics: string } | null>(null);
+  const [showLRCSegmentRegenerator, setShowLRCSegmentRegenerator] = useState(false);
+  const [segmentRegeneratorSongId, setSegmentRegeneratorSongId] = useState<string | null>(null);
   const [showRecordingTest, setShowRecordingTest] = useState(false);
   const [songDuration, setSongDuration] = useState<number>(0);
   const [generateLRCAfterRecording, setGenerateLRCAfterRecording] = useState(true);
@@ -508,6 +511,143 @@ function App() {
     }
   }, [confirm, alert, updateSongInList]);
 
+  // Função para abrir modal de regeneração de trecho
+  const handleOpenSegmentRegenerator = useCallback(async (songId: string) => {
+    setSegmentRegeneratorSongId(songId);
+    setShowLRCSegmentRegenerator(true);
+    
+    // Carregar letras da música se ainda não estiverem carregadas ou se for uma música diferente
+    if (selectedSong !== songId) {
+      const song = songs.find(s => s.id === songId);
+      if (song?.files?.lyrics) {
+        try {
+          const lyricsJson = await lyricsService.getJson(songId);
+          setLyrics(lyricsJson.lyrics);
+        } catch (error: any) {
+          // Se o arquivo não existir, não é um erro crítico - apenas logar
+          if (error.message?.includes('not found') || error.message?.includes('Lyrics file not found')) {
+            console.log(`Arquivo de letras não encontrado para ${songId}`);
+            setLyrics([]); // Definir array vazio para evitar erros
+          } else {
+            console.error('Erro ao carregar letras:', error);
+          }
+        }
+      } else {
+        // Se não houver arquivo de letras, definir array vazio
+        setLyrics([]);
+      }
+    }
+  }, [selectedSong, songs]);
+
+  // Função para regenerar trecho de LRC
+  const handleRegenerateSegment = useCallback(async (
+    songId: string,
+    selectedIndices: number[],
+    startTime: number,
+    endTime: number
+  ) => {
+    try {
+      const response = await processingService.regenerateLRCSegment(songId, selectedIndices, startTime, endTime);
+      const processId = response.processId;
+
+      // Polling do status
+      await processingService.pollStatus(processId, (status) => {
+        console.log(`Regeneração de trecho: ${status.step} (${status.progress}%)`);
+      });
+
+      // Atualizar letras na interface
+      await updateSongInList(songId);
+      
+      // Recarregar letras se a música estiver selecionada
+      if (selectedSong === songId && lyrics.length > 0) {
+        const updatedSong = songs.find(s => s.id === songId);
+        if (updatedSong?.files?.lyrics) {
+          const updatedLyricsJson = await lyricsService.getJson(songId);
+          setLyrics(updatedLyricsJson.lyrics);
+        }
+      }
+
+      setShowLRCSegmentRegenerator(false);
+      setSegmentRegeneratorSongId(null);
+      await alert('Trecho de LRC regenerado com sucesso!', { type: 'success', title: 'Sucesso' });
+    } catch (error: any) {
+      console.error('Erro ao regenerar trecho:', error);
+      await alert('Erro ao regenerar trecho: ' + (error.message || 'Erro desconhecido'), { type: 'error', title: 'Erro' });
+    }
+  }, [alert, updateSongInList, selectedSong, lyrics, songs]);
+
+  // Função para remover linhas de LRC
+  const handleRemoveSegment = useCallback(async (
+    songId: string,
+    selectedIndices: number[]
+  ) => {
+    try {
+      await processingService.removeLRCLines(songId, selectedIndices);
+
+      // Atualizar letras na interface
+      await updateSongInList(songId);
+      
+      // Recarregar letras sempre (tanto se a música estiver selecionada quanto se o modal estiver aberto)
+      const updatedSong = songs.find(s => s.id === songId);
+      if (updatedSong?.files?.lyrics) {
+        const updatedLyricsJson = await lyricsService.getJson(songId);
+        const newLyrics = updatedLyricsJson.lyrics;
+        
+        // Se o modal de regeneração estiver aberto para esta música, atualizar as letras
+        // para que o componente seja atualizado automaticamente
+        if (segmentRegeneratorSongId === songId) {
+          setLyrics(newLyrics);
+        }
+        
+        // Atualizar letras se a música estiver selecionada (mesmo que não seja a do modal)
+        if (selectedSong === songId) {
+          setLyrics(newLyrics);
+        }
+      }
+
+      await alert(`${selectedIndices.length} linha(s) removida(s) com sucesso!`, { type: 'success', title: 'Sucesso' });
+    } catch (error: any) {
+      console.error('Erro ao remover linhas:', error);
+      await alert('Erro ao remover linhas: ' + (error.message || 'Erro desconhecido'), { type: 'error', title: 'Erro' });
+    }
+  }, [alert, updateSongInList, selectedSong, songs, segmentRegeneratorSongId]);
+
+  // Função para editar linhas de LRC
+  const handleEditSegment = useCallback(async (
+    songId: string,
+    edits: Array<{ lineIndex: number; newText: string }>
+  ) => {
+    try {
+      await processingService.editLRCLines(songId, edits);
+
+      // Atualizar letras na interface
+      await updateSongInList(songId);
+      
+      // Recarregar letras sempre (tanto se a música estiver selecionada quanto se o modal estiver aberto)
+      const updatedSong = songs.find(s => s.id === songId);
+      if (updatedSong?.files?.lyrics) {
+        const updatedLyricsJson = await lyricsService.getJson(songId);
+        const newLyrics = updatedLyricsJson.lyrics;
+        
+        // Se o modal de regeneração estiver aberto para esta música, atualizar as letras
+        // para que o componente seja atualizado automaticamente
+        if (segmentRegeneratorSongId === songId) {
+          setLyrics(newLyrics);
+        }
+        
+        // Atualizar letras se a música estiver selecionada (mesmo que não seja a do modal)
+        if (selectedSong === songId) {
+          setLyrics(newLyrics);
+        }
+      }
+
+      await alert(`${edits.length} linha(s) editada(s) com sucesso!`, { type: 'success', title: 'Sucesso' });
+    } catch (error: any) {
+      console.error('Erro ao editar linhas:', error);
+      await alert('Erro ao editar linhas: ' + (error.message || 'Erro desconhecido'), { type: 'error', title: 'Erro' });
+    }
+  }, [alert, updateSongInList, selectedSong, songs, segmentRegeneratorSongId]);
+
   const handleDeleteSong = useCallback(async (songId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Prevenir que o clique selecione a música
     
@@ -581,7 +721,16 @@ function App() {
       .then(data => {
         setLyrics(data.lyrics || []);
       })
-      .catch(err => console.error('Error loading lyrics:', err));
+      .catch(err => {
+        // Se o arquivo não existir, não é um erro crítico - apenas definir array vazio
+        if (err.message?.includes('not found') || err.message?.includes('Lyrics file not found')) {
+          console.log(`Arquivo de letras não encontrado para ${selectedSong}`);
+          setLyrics([]);
+        } else {
+          console.error('Error loading lyrics:', err);
+          setLyrics([]); // Definir array vazio em caso de erro
+        }
+      });
   }, [selectedSong]);
 
   useEffect(() => {
@@ -1043,6 +1192,7 @@ function App() {
                       onLyricsUpdate={(updatedLyrics) => {
                         setLyrics(updatedLyrics);
                       }}
+                      onRegenerateSegment={handleOpenSegmentRegenerator}
                     />
                   </div>
                 </>
@@ -1089,6 +1239,25 @@ function App() {
               onClose={() => {
                 setShowLRCRegenerationComparison(false);
                 setLrcRegenerationData(null);
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Modal de regeneração de trecho de LRC */}
+      {showLRCSegmentRegenerator && segmentRegeneratorSongId && (
+        <div className="modal-overlay" onClick={() => {}}>
+          <div className="modal-content lrc-segment-modal" onClick={(e) => e.stopPropagation()}>
+            <LRCSegmentRegenerator
+              songId={segmentRegeneratorSongId}
+              lyrics={lyrics}
+              onRegenerate={handleRegenerateSegment}
+              onRemove={handleRemoveSegment}
+              onEdit={handleEditSegment}
+              onClose={() => {
+                setShowLRCSegmentRegenerator(false);
+                setSegmentRegeneratorSongId(null);
               }}
             />
           </div>

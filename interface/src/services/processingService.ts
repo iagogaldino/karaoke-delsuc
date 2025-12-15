@@ -90,6 +90,46 @@ export const processingService = {
   },
 
   /**
+   * Regenerate a specific segment of LRC
+   */
+  async regenerateLRCSegment(
+    songId: string,
+    lineIndices: number[],
+    startTime: number,
+    endTime: number
+  ): Promise<{ processId: string; message: string; statusUrl: string }> {
+    return apiService.post(`${API_CONFIG.ENDPOINTS.PROCESSING}/regenerate-lrc-segment/${songId}`, {
+      lineIndices,
+      startTime,
+      endTime,
+    });
+  },
+
+  /**
+   * Remove multiple LRC lines
+   */
+  async removeLRCLines(
+    songId: string,
+    lineIndices: number[]
+  ): Promise<{ success: boolean; message: string; removedCount: number }> {
+    return apiService.post(`${API_CONFIG.ENDPOINTS.PROCESSING}/remove-lrc-lines/${songId}`, {
+      lineIndices,
+    });
+  },
+
+  /**
+   * Edit multiple LRC lines
+   */
+  async editLRCLines(
+    songId: string,
+    edits: Array<{ lineIndex: number; newText?: string; newTime?: number }>
+  ): Promise<{ success: boolean; message: string; editedCount: number }> {
+    return apiService.post(`${API_CONFIG.ENDPOINTS.PROCESSING}/edit-lrc-lines/${songId}`, {
+      edits,
+    });
+  },
+
+  /**
    * Poll processing status until completion
    */
   async pollStatus(

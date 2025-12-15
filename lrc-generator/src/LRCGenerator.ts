@@ -71,6 +71,7 @@ export class LRCGenerator {
     }
 
     const lrcLines: string[] = [];
+    let lastText = '';
 
     for (const segment of segments) {
       const startTime = this.formatTime(segment.start);
@@ -81,6 +82,12 @@ export class LRCGenerator {
         continue;
       }
 
+      // Ignorar segmentos duplicados consecutivos (mesmo texto)
+      if (text === lastText) {
+        continue;
+      }
+
+      lastText = text;
       lrcLines.push(`${startTime}${text}`);
     }
 
@@ -193,20 +200,24 @@ export class LRCGenerator {
       });
 
       console.log('✅ Transcrição concluída');
-      
-      // Log dos primeiros segmentos para debug
-      if ('segments' in transcription && Array.isArray(transcription.segments)) {
-        const firstSegments = transcription.segments.slice(0, 3);
-        console.log(`📝 Primeiros segmentos transcritos:`, firstSegments.map(s => ({
-          start: s.start,
-          end: s.end,
-          text: s.text.substring(0, 50)
-        })));
-      }
 
       // Se for verbose_json, já temos os segments
       if ('segments' in transcription && Array.isArray(transcription.segments)) {
-        return transcription.segments.map((seg: any) => ({
+        // Filtrar segmentos duplicados consecutivos (mesmo texto)
+        const filteredSegments: any[] = [];
+        let lastText = '';
+        
+        for (const seg of transcription.segments) {
+          const currentText = seg.text.trim();
+          // Só adicionar se for diferente do anterior ou se houver gap significativo (>1s)
+          if (currentText !== lastText || filteredSegments.length === 0 || 
+              (seg.start - filteredSegments[filteredSegments.length - 1].end) > 1.0) {
+            filteredSegments.push(seg);
+            lastText = currentText;
+          }
+        }
+        
+        return filteredSegments.map((seg: any) => ({
           start: seg.start,
           end: seg.end,
           text: seg.text.trim(),

@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-12T21:08:02.189Z",
+  "lastUpdated": "2025-12-15T02:12:38.147Z",
   "scores": [
     {
       "songId": "miurk9ti-c4wnra",
@@ -2694,6 +2694,147 @@
       "maxPossiblePoints": 21300,
       "createdAt": "2025-12-12T21:08:02.189Z",
       "updatedAt": "2025-12-12T21:08:02.189Z"
+    },
+    {
+      "songId": "mj07h6s0-afr43s",
+      "sessionId": "1765764758124-8qoxojntf",
+      "results": [
+        {
+          "lyric": "He left no time to regret Camped his way",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 9
+        },
+        {
+          "lyric": "With his same old safe bet",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 6
+        },
+        {
+          "lyric": "Me and my head high And my tears dry",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 9
+        },
+        {
+          "lyric": "Get on without my guide",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 5
+        },
+        {
+          "lyric": "You went back to what you knew So far removed from all that we went through",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 16
+        },
+        {
+          "lyric": "And I tread a troubled track My arms are stagged",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 10
+        },
+        {
+          "lyric": "I go back to black",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 5
+        },
+        {
+          "lyric": "We only said goodbye with words I died a hundred times",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 11
+        },
+        {
+          "lyric": "You go back to her and I go back to I go back to us",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 15
+        },
+        {
+          "lyric": "I love you much It's not enough",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 7
+        },
+        {
+          "lyric": "You love me and I love us And life is like a pie",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 13
+        },
+        {
+          "lyric": "And I'm a tiny penny rolling up the walls inside",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 10
+        },
+        {
+          "lyric": "We only said goodbye with words I died a hundred times",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 11
+        },
+        {
+          "lyric": "You go back to her and I go back to We only said goodbye with words",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 16
+        },
+        {
+          "lyric": "I died a hundred times You go back to her and I go back to",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 15
+        },
+        {
+          "lyric": "Black",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 1
+        },
+        {
+          "lyric": "I go back to",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 4
+        },
+        {
+          "lyric": "I go back to",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 4
+        },
+        {
+          "lyric": "We only said goodbye with words I died a hundred times",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 11
+        },
+        {
+          "lyric": "You go back to her and I go back to We only said goodbye with words",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 16
+        },
+        {
+          "lyric": "I died a hundred times You go back to her and I go back to Black",
+          "score": 0,
+          "percentage": 0,
+          "totalWords": 16
+        }
+      ],
+      "score": {
+        "total": 0,
+        "average": 0,
+        "count": 21,
+        "points": 0
+      },
+      "maxPossiblePoints": 21000,
+      "createdAt": "2025-12-15T02:12:38.147Z",
+      "updatedAt": "2025-12-15T02:12:38.147Z"
     }
   ]
 }
