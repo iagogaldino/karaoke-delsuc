@@ -750,6 +750,8 @@
   height: 100%;
   background: transparent !important;
   padding: 1rem 2rem;
+  padding-bottom: 4rem; /* Espaço extra no bottom para garantir que preview apareça completamente */
+  padding-top: 2rem; /* Espaço no topo para evitar corte */
   flex: 1;
   position: relative;
   z-index: 2;
@@ -758,6 +760,8 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Remover scrollbar do container de letras também */
@@ -781,6 +785,9 @@
   overflow-wrap: break-word;
   max-width: 100%;
   overflow-x: hidden;
+  overflow-y: visible; /* Permitir que o texto seja totalmente visível */
+  flex-shrink: 0; /* Não encolher as linhas */
+  min-height: auto; /* Permitir altura automática */
 }
 
 .karaoke-lyrics-area .lyric-line.active {
@@ -797,7 +804,23 @@
   overflow-wrap: break-word;
   max-width: 100%;
   overflow-x: hidden;
+  overflow-y: visible; /* Permitir que o texto seja totalmente visível */
   text-align: center;
+  flex-shrink: 0; /* Não encolher a linha ativa */
+  min-height: auto; /* Permitir altura automática */
+}
+
+/* Garantir que linhas upcoming apareçam completamente */
+.karaoke-lyrics-area .lyric-line.upcoming {
+  overflow-y: visible !important;
+  overflow-x: hidden !important;
+  white-space: normal !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  max-height: none !important;
+  min-height: auto !important;
+  margin-bottom: 2rem !important; /* Espaço extra no bottom para não ser cortada */
+  padding-bottom: 1rem !important; /* Padding extra para garantir visibilidade completa */
 }
 
 /* Linha brilhante embaixo da linha ativa na área de karaoke */
@@ -855,6 +878,55 @@
 .karaoke-lyrics-area .lyric-line.future {
   font-size: 1.2rem;
   opacity: 0.3;
+}
+
+/* Efeito brilhante intensificado para próximos trechos no modo jogador */
+.karaoke-lyrics-area .lyric-line.upcoming {
+  text-shadow: 
+    0 0 15px rgba(74, 144, 226, 1),
+    0 0 30px rgba(74, 144, 226, 0.8),
+    0 0 45px rgba(74, 144, 226, 0.6),
+    0 0 60px rgba(74, 144, 226, 0.4) !important;
+  box-shadow: 
+    0 0 20px rgba(74, 144, 226, 0.6),
+    0 0 40px rgba(74, 144, 226, 0.4),
+    inset 0 0 20px rgba(74, 144, 226, 0.2) !important;
+  background: rgba(74, 144, 226, 0.2) !important;
+  border-left: 4px solid rgba(74, 144, 226, 0.8) !important;
+}
+
+.karaoke-lyrics-area .lyric-line.upcoming-1 {
+  text-shadow: 
+    0 0 20px rgba(74, 144, 226, 1),
+    0 0 40px rgba(74, 144, 226, 0.9),
+    0 0 60px rgba(74, 144, 226, 0.7),
+    0 0 80px rgba(74, 144, 226, 0.5) !important;
+  box-shadow: 
+    0 0 25px rgba(74, 144, 226, 0.8),
+    0 0 50px rgba(74, 144, 226, 0.6),
+    inset 0 0 25px rgba(74, 144, 226, 0.3) !important;
+}
+
+.karaoke-lyrics-area .lyric-line.upcoming-2 {
+  text-shadow: 
+    0 0 15px rgba(74, 144, 226, 0.9),
+    0 0 30px rgba(74, 144, 226, 0.7),
+    0 0 45px rgba(74, 144, 226, 0.5) !important;
+  box-shadow: 
+    0 0 20px rgba(74, 144, 226, 0.6),
+    0 0 40px rgba(74, 144, 226, 0.4),
+    inset 0 0 20px rgba(74, 144, 226, 0.2) !important;
+}
+
+.karaoke-lyrics-area .lyric-line.upcoming-3 {
+  text-shadow: 
+    0 0 10px rgba(74, 144, 226, 0.8),
+    0 0 20px rgba(74, 144, 226, 0.6),
+    0 0 30px rgba(74, 144, 226, 0.4) !important;
+  box-shadow: 
+    0 0 15px rgba(74, 144, 226, 0.5),
+    0 0 30px rgba(74, 144, 226, 0.3),
+    inset 0 0 15px rgba(74, 144, 226, 0.15) !important;
 }
 
 /* Ocultar botão de edição na tela de apresentação */

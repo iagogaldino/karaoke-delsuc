@@ -85,6 +85,12 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
             const containerWidth = lyricsContainer ? lyricsContainer.offsetWidth - 80 : activeElement.offsetWidth - 80; // Margem para padding
             const containerHeight = lyricsContainer ? lyricsContainer.offsetHeight : window.innerHeight * 0.4; // Altura estimada
             
+            // Calcular espaço necessário para as próximas linhas (upcoming)
+            // Considerar apenas 1 linha upcoming com ~70px de altura (incluindo margin)
+            const upcomingLinesHeight = 1 * 70; // ~70px para a próxima linha
+            const paddingBottom = 48; // Espaço extra no bottom
+            const availableHeight = Math.max(100, containerHeight - upcomingLinesHeight - paddingBottom); // Reservar espaço para próxima linha + margem
+            
             // Calcular tamanho base baseado no número de palavras
             // Mais palavras = fonte menor, menos palavras = fonte maior
             const maxWords = 25; // Número máximo de palavras esperado para referência
@@ -118,13 +124,30 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
                 adjustedFontSize = Math.max(minFontSize, calculatedFontSize * widthRatio * 0.95);
               }
               
-              // Ajustar baseado na altura também (caso o texto quebre em múltiplas linhas)
-              if (textHeight > containerHeight && containerHeight > 0) {
-                const heightRatio = containerHeight / textHeight;
+              // Ajustar baseado na altura disponível (reservando espaço para próximas linhas)
+              if (textHeight > availableHeight && availableHeight > 0) {
+                const heightRatio = availableHeight / textHeight;
                 adjustedFontSize = Math.max(minFontSize, Math.min(adjustedFontSize, calculatedFontSize * heightRatio * 0.9));
               }
               
               textElement.style.fontSize = `${adjustedFontSize}rem`;
+              
+              // Garantir que as próximas linhas sejam visíveis fazendo scroll se necessário
+              if (lyricsContainer && activeElement) {
+                const activeRect = activeElement.getBoundingClientRect();
+                const containerRect = lyricsContainer.getBoundingClientRect();
+                const activeBottom = activeRect.bottom - containerRect.top;
+                const containerHeight = containerRect.height;
+                
+                // Se a linha ativa está ocupando muito espaço, ajustar scroll para mostrar próximas linhas
+                if (activeBottom > containerHeight * 0.6) {
+                  const scrollPosition = lyricsContainer.scrollTop + (activeBottom - containerHeight * 0.5);
+                  lyricsContainer.scrollTo({
+                    top: Math.max(0, scrollPosition),
+                    behavior: 'smooth'
+                  });
+                }
+              }
             });
           }
         } else {
@@ -142,27 +165,75 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
     }
   }, [activeIndex, editingIndex, localLyrics, showUpcomingLines, lyricsRef]);
 
-  // Scroll automático para linha ativa
+  // Scroll automático para linha ativa ou preview quando não há linha ativa
   useEffect(() => {
-    if (activeRef.current && lyricsRef.current && activeIndex >= 0 && editingIndex === null) {
+    if (lyricsRef.current && editingIndex === null) {
       const container = lyricsRef.current;
-      const activeElement = activeRef.current;
-
-      const containerRect = container.getBoundingClientRect();
-      const activeRect = activeElement.getBoundingClientRect();
-
-      const offsetTop = activeRect.top - containerRect.top;
-      const scrollPosition = container.scrollTop + offsetTop - containerRect.height / 2 + activeRect.height / 2;
-
-      // Usar requestAnimationFrame para scroll mais suave
-      requestAnimationFrame(() => {
-        container.scrollTo({
-          top: Math.max(0, scrollPosition),
-          behavior: 'smooth'
+      const isPlayerMode = showUpcomingLines && !allowEdit;
+      
+      // Quando não há linha ativa no modo jogador, garantir que a primeira linha (preview) seja visível
+      if (isPlayerMode && activeIndex === -1 && localLyrics.length > 0) {
+        // Encontrar a primeira linha no DOM
+        const firstLineElement = container.querySelector('.lyric-line.upcoming') || container.querySelector('.lyric-line:first-child');
+        if (firstLineElement) {
+          // Aguardar próximo frame para garantir que o elemento está renderizado
+          requestAnimationFrame(() => {
+            const containerRect = container.getBoundingClientRect();
+            const lineRect = firstLineElement.getBoundingClientRect();
+            const offsetTop = lineRect.top - containerRect.top;
+            
+            // Posicionar a linha preview na parte inferior da área visível, garantindo que apareça completamente
+            // Calcular para que a linha fique visível na parte inferior, mas sem ser cortada
+            const lineHeight = lineRect.height;
+            const paddingBottom = 60; // Espaço extra no bottom
+            const targetPosition = containerRect.height - lineHeight - paddingBottom;
+            const scrollPosition = container.scrollTop + offsetTop - targetPosition;
+            
+            container.scrollTo({
+              top: Math.max(0, scrollPosition),
+              behavior: 'smooth'
+            });
+          });
+        }
+      } else if (activeRef.current && activeIndex >= 0) {
+        // Quando há linha ativa, usar a lógica normal
+        const activeElement = activeRef.current;
+        
+        requestAnimationFrame(() => {
+          const containerRect = container.getBoundingClientRect();
+          const activeRect = activeElement.getBoundingClientRect();
+          const offsetTop = activeRect.top - containerRect.top;
+          
+          if (isPlayerMode) {
+            // No modo jogador, posicionar a linha ativa de forma que apareça completamente
+            // e deixe espaço para a preview abaixo
+            const activeHeight = activeRect.height;
+            const previewSpace = 100; // Espaço reservado para preview abaixo
+            const topPadding = 40; // Espaço no topo para evitar corte
+            
+            // Calcular posição ideal: linha ativa visível + espaço para preview
+            const idealTopPosition = topPadding;
+            const currentTopPosition = offsetTop + container.scrollTop;
+            const scrollNeeded = currentTopPosition - idealTopPosition;
+            
+            container.scrollTo({
+              top: Math.max(0, scrollNeeded),
+              behavior: 'smooth'
+            });
+          } else {
+            // Modo normal: centralizar
+            const scrollOffset = containerRect.height / 2;
+            const scrollPosition = container.scrollTop + offsetTop - scrollOffset + activeRect.height / 2;
+            
+            container.scrollTo({
+              top: Math.max(0, scrollPosition),
+              behavior: 'smooth'
+            });
+          }
         });
-      });
+      }
     }
-  }, [activeIndex, editingIndex]);
+  }, [activeIndex, editingIndex, showUpcomingLines, allowEdit, localLyrics]);
 
   // Focar no input quando entrar em modo de edição
   useEffect(() => {
@@ -830,20 +901,37 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
           const isEditing = editingIndex === index;
           
           // Calcular se é uma das próximas linhas (modo apresentação)
-          const upcomingOffset = index - activeIndex;
-          const isUpcoming = showUpcomingLines && !allowEdit && activeIndex >= 0 && upcomingOffset > 0 && upcomingOffset <= 3;
-          const upcomingClass = isUpcoming ? `upcoming upcoming-${Math.min(upcomingOffset, 3)}` : '';
+          const isPlayerMode = showUpcomingLines && !allowEdit;
+          let upcomingOffset = index - activeIndex;
+          let isUpcoming = false;
+          
+          // No modo jogador, quando não há linha ativa (activeIndex === -1), mostrar a primeira linha como preview
+          if (isPlayerMode && activeIndex === -1 && index === 0) {
+            isUpcoming = true;
+            upcomingOffset = 1;
+          } else if (isPlayerMode && activeIndex >= 0) {
+            // Quando há linha ativa, mostrar apenas a próxima linha como preview
+            isUpcoming = upcomingOffset > 0 && upcomingOffset <= 1;
+          }
+          
+          const upcomingClass = isUpcoming ? `upcoming upcoming-${Math.min(upcomingOffset, 1)}` : '';
 
           // No modo jogador, esconder linhas antigas (já cantadas) e linhas futuras que não são prévia
-          const isPlayerMode = showUpcomingLines && !allowEdit;
           if (isPlayerMode) {
-            // Esconder linhas antigas (já cantadas)
-            if (isPast && !isActive) {
-              return null;
-            }
-            // Esconder linhas futuras que não são prévia
-            if (isFuture && !isUpcoming) {
-              return null;
+            // Quando não há linha ativa (antes de começar a cantar), mostrar apenas a primeira linha como preview
+            if (activeIndex === -1) {
+              if (index !== 0) {
+                return null; // Esconder todas as linhas exceto a primeira
+              }
+            } else {
+              // Quando há linha ativa, esconder linhas antigas (já cantadas)
+              if (isPast && !isActive) {
+                return null;
+              }
+              // Esconder linhas futuras que não são prévia
+              if (isFuture && !isUpcoming) {
+                return null;
+              }
             }
           }
 
@@ -1001,6 +1089,9 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
                       ) : isActive ? (
                         // Modo karaoke tradicional: destacar palavras progressivamente
                         highlightKaraokeStyle(lyric.text, index)
+                      ) : isUpcoming && isPlayerMode ? (
+                        // Linha preview no modo jogador: mostrar texto completo (sem preview de palavras)
+                        lyric.text
                       ) : (
                         lyric.text
                       )}
