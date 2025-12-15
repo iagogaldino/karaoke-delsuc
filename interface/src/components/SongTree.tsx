@@ -75,6 +75,25 @@ function SongTree({
   const [filterText, setFilterText] = useState<string>('');
   const { alert, confirm, AlertComponent, ConfirmComponent } = useAlert();
 
+  // Ordenar categorias alfabeticamente
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' }));
+  }, [categories]);
+
+  // Ordenar bandas alfabeticamente
+  const sortedBands = useMemo(() => {
+    return [...bands].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR', { sensitivity: 'base' }));
+  }, [bands]);
+
+  // Função helper para ordenar músicas alfabeticamente
+  const sortSongs = (songs: Song[]) => {
+    return [...songs].sort((a, b) => {
+      const nameA = (a.displayName || a.name).toLowerCase();
+      const nameB = (b.displayName || b.name).toLowerCase();
+      return nameA.localeCompare(nameB, 'pt-BR', { sensitivity: 'base' });
+    });
+  };
+
   // Filtrar músicas baseado no texto de filtro
   const filteredSongs = useMemo(() => {
     if (!filterText.trim()) {
@@ -239,7 +258,7 @@ function SongTree({
       setExpandedCategories(new Set());
       setExpandedBands(new Set());
     } else {
-      const allCategoryIds = ['uncategorized', ...categories.map(cat => cat.id)];
+      const allCategoryIds = ['uncategorized', ...sortedCategories.map(cat => cat.id)];
       setExpandedCategories(new Set(allCategoryIds));
       
       const allBandKeys: string[] = [];
@@ -770,7 +789,7 @@ function SongTree({
         {filterText.trim() ? (
           <div className="song-tree-songs">
             {filteredSongs.length > 0 ? (
-              filteredSongs.map(song => renderSong(song))
+              sortSongs(filteredSongs).map(song => renderSong(song))
             ) : (
               <div className="songs-empty">
                 <p>Nenhuma música encontrada</p>
@@ -798,7 +817,7 @@ function SongTree({
             {expandedBands.has('all-noband') && (
               <div className="song-tree-band-content">
                 <div className="song-tree-songs">
-                  {songsWithoutBand.map(song => renderSong(song))}
+                  {sortSongs(songsWithoutBand).map(song => renderSong(song))}
                 </div>
               </div>
             )}
@@ -848,7 +867,7 @@ function SongTree({
                 <div className="song-tree-category-content">
 
                   {/* Bandas dentro desta categoria (incluindo bandas sem músicas ou sem categoria) */}
-                  {bands.map(band => {
+                  {sortedBands.map(band => {
                     const bandSongs = uncategorizedBands[band.id] || [];
                     // Mostrar bandas que têm músicas sem categoria OU bandas sem categoria padrão definida
                     const hasCategorizedSongs = songs.filter(s => s.band === band.id).some(s => s.category && s.category !== 'uncategorized');
@@ -939,7 +958,7 @@ function SongTree({
                         {expandedBands.has(bandKey) && (
                           <div className="song-tree-band-content">
                             <div className="song-tree-songs">
-                              {bandSongs.map(song => renderSong(song))}
+                              {sortSongs(bandSongs).map(song => renderSong(song))}
                             </div>
                           </div>
                         )}
@@ -953,7 +972,7 @@ function SongTree({
         })()}
 
         {/* Outras categorias */}
-        {categories.map(category => {
+        {sortedCategories.map(category => {
           const categoryBands = songsByCategoryAndBand[category.id] || {};
           const totalSongs = Object.values(categoryBands).flat().length;
           const isExpanded = expandedCategories.has(category.id);
@@ -1055,7 +1074,7 @@ function SongTree({
                 <div className="song-tree-category-content">
 
                   {/* Bandas dentro desta categoria (bandas com músicas ou categoria padrão) */}
-                  {bands.map(band => {
+                  {sortedBands.map(band => {
                     const bandSongs = categoryBands[band.id] || [];
                     // Mostrar se tem músicas nesta categoria OU se a categoria padrão da banda é esta
                     const hasSongsInCategory = bandSongs.length > 0;
@@ -1145,7 +1164,7 @@ function SongTree({
                         {expandedBands.has(bandKey) && (
                           <div className="song-tree-band-content">
                             <div className="song-tree-songs">
-                              {bandSongs.map(song => renderSong(song))}
+                              {sortSongs(bandSongs).map(song => renderSong(song))}
                             </div>
                           </div>
                         )}
