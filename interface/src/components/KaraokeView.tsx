@@ -45,10 +45,7 @@ export default function KaraokeView({
   const hasShownGameOverRef = useRef<boolean>(false);
   const wsRef = useRef<WebSocket | null>(null);
   const pauseRef = useRef(pause);
-  // Refs para controle de sincronização do vídeo
-  const lastSyncTimeRef = useRef<number>(0);
-  const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const isSeekingRef = useRef<boolean>(false);
+  const videoPlayStateRef = useRef<boolean>(false); // Para evitar chamadas desnecessárias
 
   // Atualizar refs quando as funções mudarem
   useEffect(() => {
@@ -64,44 +61,63 @@ export default function KaraokeView({
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}${WEBSOCKET_CONFIG.PATH}`;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+    
+    let ws: WebSocket;
+    try {
+      ws = new WebSocket(wsUrl);
+      wsRef.current = ws;
 
-    ws.onopen = () => {
-      console.log('✅ WebSocket connected for QR code give up notifications');
-    };
+      ws.onopen = () => {
+        console.log('✅ WebSocket connected for QR code give up notifications');
+      };
 
-    ws.onmessage = (event) => {
-      try {
-        const message: SyncMessage = JSON.parse(event.data);
-        
-        // Se receber mensagem de desistência, finalizar o jogo
-        if (message.type === 'qrcodeGiveUp') {
-          console.log('🚫 QR code give up received:', message.userName);
+      ws.onmessage = (event) => {
+        try {
+          const message: SyncMessage = JSON.parse(event.data);
           
-          // Parar música
-          pauseRef.current();
+          // Se receber mensagem de desistência, finalizar o jogo
+          if (message.type === 'qrcodeGiveUp') {
+            console.log('🚫 QR code give up received:', message.userName);
+            
+            // Parar música
+            pauseRef.current();
+          }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
         }
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
-    };
+      };
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
+      ws.onerror = (error) => {
+        // Só logar erro se não estiver fechando intencionalmente
+        if (ws.readyState !== WebSocket.CLOSING && ws.readyState !== WebSocket.CLOSED) {
+          console.error('WebSocket error:', error);
+        }
+      };
 
-    ws.onclose = () => {
-      console.log('🔌 WebSocket disconnected for QR code give up');
-      wsRef.current = null;
-    };
-
-    return () => {
-      if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
-        wsRef.current.close();
+      ws.onclose = (event) => {
+        // Só logar desconexão se não foi intencional (código 1000)
+        if (event.code !== 1000) {
+          console.log('🔌 WebSocket disconnected for QR code give up');
+        }
         wsRef.current = null;
-      }
-    };
+      };
+
+      return () => {
+        if (wsRef.current) {
+          const currentWs = wsRef.current;
+          // Remover listeners para evitar logs desnecessários
+          currentWs.onerror = null;
+          currentWs.onclose = null;
+          
+          if (currentWs.readyState === WebSocket.OPEN || currentWs.readyState === WebSocket.CONNECTING) {
+            currentWs.close(1000, 'Component unmounting');
+          }
+          wsRef.current = null;
+        }
+      };
+    } catch (error) {
+      console.error('Failed to create WebSocket:', error);
+    }
   }, []); // Sem dependências - executa apenas uma vez ao montar
 
   // Carregar letras e verificar vídeo quando a música mudar
@@ -110,6 +126,7 @@ export default function KaraokeView({
       setIsReady(false);
       setLyrics([]);
       setHasVideo(false);
+      setVideoFilename(null);
       setSongDuration(0);
       hasShownGameOverRef.current = false;
       return;
@@ -120,6 +137,7 @@ export default function KaraokeView({
     setVideoFilename(null);
     setSongDuration(0);
     hasShownGameOverRef.current = false;
+    videoPlayStateRef.current = false; // Resetar estado do vídeo
 
     // Carregar informações da música para verificar se tem vídeo e obter duração
     songsService.getById(songId)
@@ -189,7 +207,7 @@ export default function KaraokeView({
     }
   }, [currentTime, songDuration, isPlaying, pause, seek]);
 
-  // Sincronizar vídeo com o áudio - versão otimizada para evitar travamentos
+  // Sincronizar apenas play/pause do vídeo com o áudio (otimizado)
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !hasVideo) return;
@@ -197,93 +215,17 @@ export default function KaraokeView({
     // Garantir que o vídeo está muted (sem áudio)
     video.muted = true;
 
-    // Sincronizar play/pause imediatamente (não causa travamento)
-    if (isPlaying && video.paused) {
-      video.play().catch(() => {});
-    } else if (!isPlaying && !video.paused) {
+    // Só sincronizar se o estado mudou (evitar chamadas desnecessárias)
+    if (isPlaying && video.paused && !videoPlayStateRef.current) {
+      videoPlayStateRef.current = true;
+      video.play().catch(() => {
+        videoPlayStateRef.current = false;
+      });
+    } else if (!isPlaying && !video.paused && videoPlayStateRef.current) {
+      videoPlayStateRef.current = false;
       video.pause();
     }
   }, [isPlaying, hasVideo]);
-
-  // Sincronização de tempo com intervalo reduzido para evitar travamentos
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !hasVideo || !isPlaying) {
-      // Limpar intervalo se não estiver reproduzindo
-      if (syncIntervalRef.current !== null) {
-        clearInterval(syncIntervalRef.current);
-        syncIntervalRef.current = null;
-      }
-      return;
-    }
-
-    // Limpar intervalo anterior se existir
-    if (syncIntervalRef.current !== null) {
-      clearInterval(syncIntervalRef.current);
-    }
-
-    // Usar intervalo de 1 segundo ao invés de requestAnimationFrame para reduzir frequência
-    syncIntervalRef.current = setInterval(() => {
-      const video = videoRef.current;
-      if (!video || !hasVideo || !isPlaying) return;
-
-      const timeDiff = Math.abs(video.currentTime - currentTime);
-      const SYNC_THRESHOLD = 0.5; // Threshold para reduzir sincronizações
-      const MAX_SYNC_DIFF = 10; // Limite máximo para evitar saltos muito grandes
-      const MIN_SYNC_INTERVAL = 1.0; // Mínimo de 1s entre sincronizações
-
-      const timeSinceLastSync = Date.now() / 1000 - lastSyncTimeRef.current;
-
-      // Só sincronizar se:
-      // 1. A diferença for significativa (> 0.5s)
-      // 2. Não estiver em processo de seek ou buffering
-      // 3. Passou tempo suficiente desde a última sincronização (1s)
-      // 4. A diferença não for muito grande (evitar saltos)
-      // 5. O vídeo não estiver esperando buffer (readyState >= 3)
-      if (
-        timeDiff > SYNC_THRESHOLD &&
-        timeDiff < MAX_SYNC_DIFF &&
-        !isSeekingRef.current &&
-        timeSinceLastSync > MIN_SYNC_INTERVAL &&
-        video.readyState >= 3 // HAVE_FUTURE_DATA ou superior
-      ) {
-        isSeekingRef.current = true;
-        lastSyncTimeRef.current = Date.now() / 1000;
-        
-        video.currentTime = currentTime;
-        
-        // Resetar flag após um delay maior para evitar múltiplas sincronizações
-        setTimeout(() => {
-          isSeekingRef.current = false;
-        }, 500);
-      }
-    }, 1000); // Verificar a cada 1 segundo
-
-    return () => {
-      if (syncIntervalRef.current !== null) {
-        clearInterval(syncIntervalRef.current);
-        syncIntervalRef.current = null;
-      }
-    };
-  }, [currentTime, hasVideo, isPlaying]);
-
-  // Sincronizar vídeo quando houver seek manual (via slider ou botões)
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !hasVideo) return;
-
-    // Quando currentTime muda significativamente (provavelmente um seek manual),
-    // sincronizar imediatamente, mas só se não estiver em processo de buffering
-    const timeDiff = Math.abs(video.currentTime - currentTime);
-    if (timeDiff > 1 && video.readyState >= 3) {
-      isSeekingRef.current = true;
-      video.currentTime = currentTime;
-      lastSyncTimeRef.current = Date.now() / 1000;
-      setTimeout(() => {
-        isSeekingRef.current = false;
-      }, 500); // Aumentar delay para evitar múltiplas sincronizações
-    }
-  }, [currentTime, hasVideo]);
 
   // normalizeText is now imported from utils
 
@@ -375,34 +317,39 @@ export default function KaraokeView({
 
   return (
     <div className="karaoke-view">
-      {/* Vídeo como background */}
+      {/* Vídeo em tela cheia */}
       {hasVideo && songId && videoFilename && (
-        <video
-          ref={videoRef}
-          src={`${API_CONFIG.BASE_URL}/music/${songId}/${videoFilename}`}
-          className="karaoke-video-background"
-          preload="auto"
-          playsInline
-          muted={true}
-          onLoadedMetadata={() => {
-            const video = videoRef.current;
-            if (video) {
-              video.muted = true; // Garantir que está muted
-              video.currentTime = currentTime;
-              lastSyncTimeRef.current = Date.now() / 1000;
-            }
-          }}
-          onWaiting={() => {
-            // Quando o vídeo está esperando buffer, pausar temporariamente a sincronização
-            isSeekingRef.current = true;
-          }}
-          onCanPlay={() => {
-            // Quando o vídeo pode reproduzir, liberar sincronização
-            setTimeout(() => {
-              isSeekingRef.current = false;
-            }, 100);
-          }}
-        />
+        <div className="karaoke-video-container">
+          <video
+            ref={videoRef}
+            src={`${API_CONFIG.BASE_URL}/music/${songId}/${videoFilename}`}
+            className="karaoke-video-player"
+            preload="auto"
+            playsInline
+            muted={true}
+            disablePictureInPicture
+            onLoadedMetadata={() => {
+              const video = videoRef.current;
+              if (video) {
+                video.muted = true; // Garantir que está muted
+                videoPlayStateRef.current = false; // Resetar estado
+              }
+            }}
+            onPlay={() => {
+              videoPlayStateRef.current = true;
+            }}
+            onPause={() => {
+              videoPlayStateRef.current = false;
+            }}
+            onWaiting={() => {
+              // Quando o vídeo está esperando buffer, não fazer nada
+              // Isso evita travamentos
+            }}
+            onCanPlay={() => {
+              // Vídeo pode reproduzir
+            }}
+          />
+        </div>
       )}
       
       {/* Holofotes no topo disparando luzes */}

@@ -34,7 +34,7 @@ export const PATHS = {
   DATABASE: join(PROJECT_ROOT, 'music', 'database.json'),
   USERS_DATABASE: join(PROJECT_ROOT, 'music', 'users.json'),
   USERS_PHOTOS_DIR: join(PROJECT_ROOT, 'music', 'users-photos'),
-  RECORDINGS_DIR: join(PROJECT_ROOT, 'recordings'), // Gravações salvas fora de music/
+  RECORDINGS_DIR: join(PROJECT_ROOT, 'music'), // Recordings are saved in music/[songId]/recordings/
   SCORING_DIR: join(PROJECT_ROOT, 'scoring'), // LRCs de pontuação salvos fora de music/
 };
 

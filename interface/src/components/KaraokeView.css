@@ -8,13 +8,8 @@
   overflow: hidden;
 }
 
-/* Fallback background quando não há vídeo */
-.karaoke-view:not(:has(.karaoke-video-background)) {
-  background: #1a1a1a;
-}
-
-/* Padrão de fundo apenas quando não há vídeo */
-.karaoke-view:not(:has(.karaoke-video-background))::before {
+/* Padrão de fundo */
+.karaoke-view::before {
   content: '';
   position: absolute;
   top: 0;
@@ -31,6 +26,11 @@
 .karaoke-view > * {
   position: relative;
   z-index: 2;
+}
+
+/* Vídeo deve ficar atrás de tudo */
+.karaoke-video-container {
+  z-index: 0;
 }
 
 .karaoke-view-empty {
@@ -352,134 +352,6 @@
   transform: scale(0.95);
 }
 
-.karaoke-restart-btn {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: rgba(34, 197, 94, 0.9);
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-  z-index: 11;
-}
-
-.karaoke-restart-btn:hover {
-  background: rgba(34, 197, 94, 1);
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(34, 197, 94, 0.4);
-}
-
-.karaoke-restart-btn:active {
-  transform: scale(0.95);
-}
-
-.karaoke-back-btn {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: rgba(74, 144, 226, 0.9);
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
-  z-index: 11;
-}
-
-.karaoke-back-btn:hover {
-  background: rgba(74, 144, 226, 1);
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4);
-}
-
-.karaoke-back-btn:active {
-  transform: scale(0.95);
-}
-
-.karaoke-mic-btn {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: rgba(220, 53, 69, 0.9);
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-  z-index: 11;
-}
-
-.karaoke-mic-btn:hover {
-  background: rgba(220, 53, 69, 1);
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(220, 53, 69, 0.4);
-}
-
-.karaoke-mic-btn:active {
-  transform: scale(0.95);
-}
-
-.karaoke-mic-btn.recording {
-  background: rgba(255, 193, 7, 0.9);
-  animation: pulse-recording 1.5s ease-in-out infinite;
-  box-shadow: 0 4px 12px rgba(255, 193, 7, 0.5);
-}
-
-.karaoke-mic-btn.recording:hover {
-  background: rgba(255, 193, 7, 1);
-  box-shadow: 0 6px 16px rgba(255, 193, 7, 0.6);
-}
-
-@keyframes pulse-recording {
-  0%, 100% {
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.5);
-  }
-  50% {
-    box-shadow: 0 4px 20px rgba(255, 193, 7, 0.8);
-  }
-}
-
-.karaoke-test-btn {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: rgba(74, 144, 226, 0.9);
-  border: none;
-  color: white;
-  font-size: 1.5rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s;
-  box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3);
-  z-index: 11;
-}
-
-.karaoke-test-btn:hover {
-  background: rgba(74, 144, 226, 1);
-  transform: scale(1.1);
-  box-shadow: 0 6px 16px rgba(74, 144, 226, 0.4);
-}
-
-.karaoke-test-btn:active {
-  transform: scale(0.95);
-}
-
 .karaoke-settings-btn {
   position: absolute;
   top: 1.5rem;
@@ -508,16 +380,30 @@
   transform: scale(0.95);
 }
 
-/* Vídeo como background */
-.karaoke-video-background {
+/* Container do vídeo */
+.karaoke-video-container {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
   z-index: 0;
-  opacity: 0.85; /* Levemente transparente para os holofotes aparecerem suavemente */
+  background: #000;
+  overflow: hidden;
+  will-change: contents;
+  transform: translateZ(0); /* Aceleração de hardware */
+}
+
+/* Vídeo em tela cheia */
+.karaoke-video-player {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  will-change: auto;
+  transform: translateZ(0); /* Aceleração de hardware */
+  backface-visibility: hidden; /* Otimização de renderização */
+  -webkit-backface-visibility: hidden;
+  pointer-events: none; /* Evitar interações desnecessárias */
 }
 
 /* Barra de progresso - posicionada no bottom */
@@ -1312,6 +1198,191 @@
     inset 0 2px 5px rgba(255, 255, 255, 0.05);
   transform: translateZ(-5px);
   transform-style: preserve-3d;
+}
+
+/* LEDs ao redor da caixa de som */
+.speaker-led {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74, 144, 226, 1) 0%, rgba(74, 144, 226, 0.6) 50%, transparent 100%);
+  box-shadow: 
+    0 0 10px rgba(74, 144, 226, 0.8),
+    0 0 20px rgba(74, 144, 226, 0.5),
+    0 0 30px rgba(74, 144, 226, 0.3),
+    inset 0 0 5px rgba(255, 255, 255, 0.3);
+  z-index: 10;
+  animation: led-pulse 1.5s ease-in-out infinite;
+  transform-style: preserve-3d;
+}
+
+/* Posicionamento dos LEDs ao redor da caixa */
+.speaker-led-top {
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%) translateZ(5px);
+  animation-delay: 0s;
+}
+
+.speaker-led-bottom {
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%) translateZ(5px);
+  animation-delay: 0.75s;
+}
+
+
+/* Animação de pulso para LEDs */
+@keyframes led-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(0.8);
+    box-shadow: 
+      0 0 5px rgba(74, 144, 226, 0.5),
+      0 0 10px rgba(74, 144, 226, 0.3),
+      0 0 15px rgba(74, 144, 226, 0.2);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+    box-shadow: 
+      0 0 15px rgba(74, 144, 226, 1),
+      0 0 25px rgba(74, 144, 226, 0.8),
+      0 0 35px rgba(74, 144, 226, 0.5),
+      0 0 50px rgba(74, 144, 226, 0.3);
+  }
+}
+
+/* LEDs dentro do cone principal */
+.speaker-cone-led {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 100, 150, 1) 0%, rgba(255, 100, 150, 0.6) 50%, transparent 100%);
+  box-shadow: 
+    0 0 8px rgba(255, 100, 150, 0.9),
+    0 0 15px rgba(255, 100, 150, 0.6),
+    0 0 25px rgba(255, 100, 150, 0.4),
+    inset 0 0 4px rgba(255, 255, 255, 0.4);
+  z-index: 11;
+  animation: cone-led-pulse 1.2s ease-in-out infinite;
+  transform-style: preserve-3d;
+}
+
+/* Posicionamento dos LEDs em círculo no cone */
+.speaker-cone-led-1 {
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%) translateZ(20px);
+  animation-delay: 0s;
+}
+
+.speaker-cone-led-3 {
+  top: 65%;
+  right: 15%;
+  transform: translateY(-50%) translateZ(20px);
+  animation-delay: 0.4s;
+}
+
+.speaker-cone-led-5 {
+  top: 65%;
+  left: 15%;
+  transform: translateY(-50%) translateZ(20px);
+  animation-delay: 0.8s;
+}
+
+/* Animação de pulso para LEDs do cone */
+@keyframes cone-led-pulse {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(0.7);
+    box-shadow: 
+      0 0 4px rgba(255, 100, 150, 0.6),
+      0 0 8px rgba(255, 100, 150, 0.4),
+      0 0 12px rgba(255, 100, 150, 0.2);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.3);
+    box-shadow: 
+      0 0 12px rgba(255, 100, 150, 1),
+      0 0 20px rgba(255, 100, 150, 0.8),
+      0 0 30px rgba(255, 100, 150, 0.6),
+      0 0 40px rgba(255, 100, 150, 0.4);
+  }
+}
+
+/* LED no tweeter (cone pequeno) */
+.speaker-tweeter-led {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) translateZ(10px);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(100, 255, 200, 1) 0%, rgba(100, 255, 200, 0.7) 50%, transparent 100%);
+  box-shadow: 
+    0 0 6px rgba(100, 255, 200, 0.9),
+    0 0 12px rgba(100, 255, 200, 0.6),
+    0 0 20px rgba(100, 255, 200, 0.4),
+    inset 0 0 3px rgba(255, 255, 255, 0.5);
+  z-index: 12;
+  animation: tweeter-led-pulse 0.8s ease-in-out infinite;
+  transform-style: preserve-3d;
+}
+
+/* Animação rápida para LED do tweeter */
+@keyframes tweeter-led-pulse {
+  0%, 100% {
+    opacity: 0.6;
+    transform: translate(-50%, -50%) translateZ(10px) scale(0.8);
+    box-shadow: 
+      0 0 3px rgba(100, 255, 200, 0.6),
+      0 0 6px rgba(100, 255, 200, 0.4),
+      0 0 9px rgba(100, 255, 200, 0.2);
+  }
+  50% {
+    opacity: 1;
+    transform: translate(-50%, -50%) translateZ(12px) scale(1.4);
+    box-shadow: 
+      0 0 8px rgba(100, 255, 200, 1),
+      0 0 15px rgba(100, 255, 200, 0.8),
+      0 0 25px rgba(100, 255, 200, 0.6),
+      0 0 35px rgba(100, 255, 200, 0.4);
+  }
+}
+
+/* Adicionar efeito de brilho pulsante ao redor da caixa quando tocando */
+.speaker-body-active {
+  animation: speaker-body-glow 2s ease-in-out infinite;
+}
+
+@keyframes speaker-body-glow {
+  0%, 100% {
+    box-shadow: 
+      0 10px 30px rgba(0, 0, 0, 0.9),
+      0 5px 15px rgba(0, 0, 0, 0.7),
+      inset -5px -5px 20px rgba(0, 0, 0, 0.8),
+      inset 5px 5px 20px rgba(255, 255, 255, 0.05),
+      inset 0 -10px 30px rgba(0, 0, 0, 0.6),
+      inset 0 10px 20px rgba(255, 255, 255, 0.08),
+      0 0 20px rgba(74, 144, 226, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 10px 30px rgba(0, 0, 0, 0.9),
+      0 5px 15px rgba(0, 0, 0, 0.7),
+      inset -5px -5px 20px rgba(0, 0, 0, 0.8),
+      inset 5px 5px 20px rgba(255, 255, 255, 0.05),
+      inset 0 -10px 30px rgba(0, 0, 0, 0.6),
+      inset 0 10px 20px rgba(255, 255, 255, 0.08),
+      0 0 40px rgba(74, 144, 226, 0.5),
+      0 0 60px rgba(74, 144, 226, 0.3),
+      0 0 80px rgba(74, 144, 226, 0.15);
+  }
 }
 
 

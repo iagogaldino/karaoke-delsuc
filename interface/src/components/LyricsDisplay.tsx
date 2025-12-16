@@ -572,6 +572,37 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
     }
   };
 
+  // Função auxiliar para verificar se uma linha já terminou há tempo suficiente para desaparecer
+  const isLinePast = (index: number): boolean => {
+    if (index < 0 || index >= localLyrics.length) return false;
+    if (activeIndex < 0) return false;
+    
+    // Uma linha só é considerada "past" se:
+    // 1. Ela não é a linha ativa
+    // 2. Ela já terminou há pelo menos X segundos
+    const line = localLyrics[index];
+    const lineDuration = getLineDuration(index);
+    const lineEndTime = line.time + lineDuration;
+    
+    // Delay adicional antes de marcar como "past" (2 segundos)
+    const DISAPPEAR_DELAY = 2.0;
+    const shouldDisappear = currentTime > (lineEndTime + DISAPPEAR_DELAY);
+    
+    // Também considerar como "past" se já passou para outra linha há tempo suficiente
+    if (index < activeIndex) {
+      const nextLine = localLyrics[index + 1];
+      if (nextLine) {
+        // Se já passou do início da próxima linha + delay, considerar como past
+        return currentTime > (nextLine.time + DISAPPEAR_DELAY);
+      } else {
+        // Última linha: usar duração estimada + delay
+        return shouldDisappear;
+      }
+    }
+    
+    return false;
+  };
+
   // Função para destacar letras progressivamente no estilo karaoke
   const highlightKaraokeStyle = (lyricText: string, lineIndex: number): React.ReactNode => {
     if (lineIndex < 0 || lineIndex >= localLyrics.length) {
@@ -609,13 +640,18 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
             
             // Lógica para modo jogador: esconder palavras antigas e mostrar prévia
             if (isPlayerMode) {
+              // Delay antes de esconder palavras cantadas (2 segundos)
+              const WORD_DISAPPEAR_DELAY = 2.0;
+              
               // Uma palavra já foi cantada se passou do tempo de término
               const wordHasEnded = currentTime > wordEndTime;
-              const isOldWord = wordHasEnded && wordIndex <= currentWordIndex;
+              // Uma palavra deve desaparecer apenas após o delay adicional
+              const shouldDisappear = currentTime > (wordEndTime + WORD_DISAPPEAR_DELAY);
+              const isOldWord = shouldDisappear && wordIndex <= currentWordIndex;
               const isPreviewWord = wordIndex > currentWordIndex && wordIndex <= currentWordIndex + PREVIEW_COUNT;
               const isFutureWord = wordIndex > currentWordIndex + PREVIEW_COUNT;
               
-              // Esconder palavras já cantadas (exceto a palavra ativa que ainda está sendo cantada)
+              // Esconder palavras já cantadas apenas após o delay completo (exceto a palavra ativa que ainda está sendo cantada)
               if (isOldWord && !isActive) {
                 return null;
               }
@@ -636,6 +672,19 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
               // Esconder palavras futuras que não são prévia
               if (isFutureWord) {
                 return null;
+              }
+              
+              // Para palavras que já foram cantadas mas ainda não devem desaparecer, mostrar com opacidade reduzida
+              if (wordHasEnded && !isActive && !isOldWord) {
+                return (
+                  <span
+                    key={wordIndex}
+                    className="karaoke-highlighted karaoke-fading"
+                  >
+                    {word.word}
+                    {wordIndex < line.words!.length - 1 && ' '}
+                  </span>
+                );
               }
             }
             
@@ -896,7 +945,7 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
         )}
         {localLyrics.map((lyric, index) => {
           const isActive = index === activeIndex;
-          const isPast = index < activeIndex;
+          const isPast = isLinePast(index);
           const isFuture = index > activeIndex;
           const isEditing = editingIndex === index;
           
@@ -1120,11 +1169,66 @@ export default function LyricsDisplay({ lyrics, currentTime, songId, onLyricsUpd
                       </button>
                     </div>
                   )}
+                  {/* Onda sonora abaixo da linha upcoming */}
+                  {isUpcoming && isPlayerMode && (
+                    <div className="sound-wave-container">
+                      <div className="sound-wave-bar sound-wave-bar-1"></div>
+                      <div className="sound-wave-bar sound-wave-bar-2"></div>
+                      <div className="sound-wave-bar sound-wave-bar-3"></div>
+                      <div className="sound-wave-bar sound-wave-bar-4"></div>
+                      <div className="sound-wave-bar sound-wave-bar-5"></div>
+                      <div className="sound-wave-bar sound-wave-bar-6"></div>
+                      <div className="sound-wave-bar sound-wave-bar-7"></div>
+                      <div className="sound-wave-bar sound-wave-bar-8"></div>
+                      <div className="sound-wave-bar sound-wave-bar-9"></div>
+                      <div className="sound-wave-bar sound-wave-bar-10"></div>
+                    </div>
+                  )}
                 </>
               )}
             </div>
           );
         })}
+        {(() => {
+          const isPlayerMode = showUpcomingLines && !allowEdit;
+          
+          // Se não houver letras ou não estiver no modo jogador, não mostrar mensagem
+          if (localLyrics.length === 0 || !isPlayerMode) {
+            return null;
+          }
+          
+          // Se já passou da última linha
+          const lastLineIndex = localLyrics.length - 1;
+          const isPastLastLine = activeIndex >= lastLineIndex;
+          
+          if (isPastLastLine && activeIndex >= 0) {
+            // Verificar se a última linha já terminou completamente
+            const lastLine = localLyrics[lastLineIndex];
+            const lastLineDuration = getLineDuration(lastLineIndex);
+            const lastLineEndTime = lastLine.time + lastLineDuration;
+            const DISAPPEAR_DELAY = 2.0; // Mesmo delay usado em isLinePast
+            
+            // Se já passou do fim da última linha + delay, mostrar mensagem
+            if (currentTime > (lastLineEndTime + DISAPPEAR_DELAY)) {
+              return (
+                <div className="karaoke-no-more-lyrics">
+                  <div className="karaoke-no-more-lyrics-content">
+                    <i className="fas fa-music"></i>
+                    <h2>Parabéns!</h2>
+                    <p>Você completou todas as letras desta música!</p>
+                    <div className="karaoke-celebration">
+                      <i className="fas fa-star"></i>
+                      <i className="fas fa-star"></i>
+                      <i className="fas fa-star"></i>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+          }
+          
+          return null;
+        })()}
       </div>
     </div>
   );

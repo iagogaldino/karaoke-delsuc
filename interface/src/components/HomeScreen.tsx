@@ -226,62 +226,77 @@ export default function HomeScreen({ onSelectSong, onSettingsClick }: HomeScreen
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}${WEBSOCKET_CONFIG.PATH}`;
-    const ws = new WebSocket(wsUrl);
+    
+    let ws: WebSocket;
+    try {
+      ws = new WebSocket(wsUrl);
 
-    ws.onopen = () => {
-      console.log('✅ WebSocket connected for QR code notifications');
-    };
+      ws.onopen = () => {
+        console.log('✅ WebSocket connected for QR code notifications');
+      };
 
-    ws.onmessage = (event) => {
-      try {
-        const message: SyncMessage = JSON.parse(event.data);
-        
-        if (message.qrId === qrId) {
-          if (message.type === 'qrcodeNameSubmitted') {
-            console.log('📝 QR code name submitted:', message.userName);
-            setIsQrScanned(true);
-            // Quando nome é submetido, usuário está escolhendo música
-            setIsUserSelectingSong(true);
-            setSelectingUserName(message.userName || '');
-            setTimeRemaining(240); // Resetar timer para 4 minutos
-            setSelectionStartTime(Date.now());
-            // Recarregar usuários quando um novo nome é submetido
-            usersService.getAll().then(setUsers).catch(console.error);
-          } else if (message.type === 'qrcodeSongSelected' && message.songId) {
-            console.log('🎵 QR code song selected:', message.songId, 'by', message.userName);
-            // Quando música é selecionada, parar de mostrar mensagem
-            setIsUserSelectingSong(false);
-            setSelectingUserName('');
-            setTimeRemaining(240);
-            setSelectionStartTime(null);
-            onSelectSong(message.songId);
-            ws.close();
-          } else if (message.type === 'qrcodeGiveUp') {
-            // Quando usuário desiste, voltar a mostrar QR code
-            setIsUserSelectingSong(false);
-            setSelectingUserName('');
-            setTimeRemaining(240);
-            setSelectionStartTime(null);
+      ws.onmessage = (event) => {
+        try {
+          const message: SyncMessage = JSON.parse(event.data);
+          
+          if (message.qrId === qrId) {
+            if (message.type === 'qrcodeNameSubmitted') {
+              console.log('📝 QR code name submitted:', message.userName);
+              setIsQrScanned(true);
+              // Quando nome é submetido, usuário está escolhendo música
+              setIsUserSelectingSong(true);
+              setSelectingUserName(message.userName || '');
+              setTimeRemaining(240); // Resetar timer para 4 minutos
+              setSelectionStartTime(Date.now());
+              // Recarregar usuários quando um novo nome é submetido
+              usersService.getAll().then(setUsers).catch(console.error);
+            } else if (message.type === 'qrcodeSongSelected' && message.songId) {
+              console.log('🎵 QR code song selected:', message.songId, 'by', message.userName);
+              // Quando música é selecionada, parar de mostrar mensagem
+              setIsUserSelectingSong(false);
+              setSelectingUserName('');
+              setTimeRemaining(240);
+              setSelectionStartTime(null);
+              onSelectSong(message.songId);
+              ws.close(1000, 'Song selected');
+            } else if (message.type === 'qrcodeGiveUp') {
+              // Quando usuário desiste, voltar a mostrar QR code
+              setIsUserSelectingSong(false);
+              setSelectingUserName('');
+              setTimeRemaining(240);
+              setSelectionStartTime(null);
+            }
           }
+        } catch (error) {
+          console.error('Error parsing WebSocket message:', error);
         }
-      } catch (error) {
-        console.error('Error parsing WebSocket message:', error);
-      }
-    };
+      };
 
-    ws.onerror = (error) => {
-      console.error('WebSocket error:', error);
-    };
+      ws.onerror = (error) => {
+        // Só logar erro se não estiver fechando intencionalmente
+        if (ws.readyState !== WebSocket.CLOSING && ws.readyState !== WebSocket.CLOSED) {
+          console.error('WebSocket error:', error);
+        }
+      };
 
-    ws.onclose = () => {
-      console.log('🔌 WebSocket disconnected for QR code');
-    };
+      ws.onclose = (event) => {
+        // Só logar desconexão se não foi intencional (código 1000)
+        if (event.code !== 1000) {
+          console.log('🔌 WebSocket disconnected for QR code');
+        }
+      };
 
-    return () => {
-      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
-        ws.close();
-      }
-    };
+      return () => {
+        if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+          // Remover listeners para evitar logs desnecessários
+          ws.onerror = null;
+          ws.onclose = null;
+          ws.close(1000, 'Component unmounting');
+        }
+      };
+    } catch (error) {
+      console.error('Failed to create WebSocket:', error);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qrId]);
 

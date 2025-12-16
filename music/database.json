@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "lastUpdated": "2025-12-15T14:53:42.249Z",
+  "lastUpdated": "2025-12-15T17:50:57.374Z",
   "songs": [
     {
       "id": "miunnkaj-c6z8aq",
@@ -63,7 +63,7 @@
         "sampleRate": 44100,
         "format": "wav",
         "createdAt": "2025-12-06T20:55:22.984Z",
-        "lastProcessed": "2025-12-15T02:31:18.964Z"
+        "lastProcessed": "2025-12-15T17:21:25.231Z"
       },
       "status": {
         "vocals": true,
@@ -692,7 +692,7 @@
         "sampleRate": 44100,
         "format": "wav",
         "createdAt": "2025-12-11T03:36:05.622Z",
-        "lastProcessed": "2025-12-11T03:43:17.485Z"
+        "lastProcessed": "2025-12-15T17:15:15.927Z"
       },
       "status": {
         "vocals": true,
@@ -772,7 +772,7 @@
         "sampleRate": 44100,
         "format": "wav",
         "createdAt": "2025-12-12T20:08:11.146Z",
-        "lastProcessed": "2025-12-15T02:39:06.941Z"
+        "lastProcessed": "2025-12-15T17:29:02.656Z"
       },
       "band": "band-1765387655192-y1kuhcl2x",
       "status": {
@@ -1162,48 +1162,6 @@
       "category": "cat-1765809828929-dbs95vvk8"
     },
     {
-      "id": "mj5u44x6-e5k038",
-      "name": "Você Virou Saudade",
-      "displayName": "Você Virou Saudade",
-      "artist": "Unknown",
-      "duration": 322.94312925170067,
-      "files": {
-        "original": "original.wav",
-        "vocals": "vocals.wav",
-        "instrumental": "instrumental.wav",
-        "waveform": "waveform.json",
-        "lyrics": "lyrics.lrc",
-        "video": "video.mp4"
-      },
-      "metadata": {
-        "sampleRate": 44100,
-        "format": "wav",
-        "createdAt": "2025-12-14T14:43:06.862Z",
-        "lastProcessed": "2025-12-15T01:41:43.855Z"
-      },
-      "band": "band-1765723372275-c2wd8s3p0",
-      "status": {
-        "vocals": true,
-        "instrumental": true,
-        "waveform": true,
-        "lyrics": true,
-        "ready": true
-      },
-      "video": {
-        "id": "PHS1GcN6GOM",
-        "title": "Alexandre Pires - Você Virou Saudade (O Baile Do Nêgo Véio-Ao Vivo em Jurerê Internacional Vol. II)",
-        "url": "https://www.youtube.com/watch?v=PHS1GcN6GOM",
-        "thumbnail": "https://i.ytimg.com/vi_webp/PHS1GcN6GOM/maxresdefault.webp",
-        "duration": 323,
-        "uploader": "Alexandre Pires ",
-        "view_count": 51266913,
-        "file": "video.mp4"
-      },
-      "generateLRCAfterRecording": false,
-      "audioMode": "both",
-      "category": "cat-1765809828929-dbs95vvk8"
-    },
-    {
       "id": "mj5u79qb-784pn0",
       "name": "Naquela Mesa",
       "displayName": "Naquela Mesa",
@@ -1324,6 +1282,282 @@
       },
       "generateLRCAfterRecording": false,
       "category": "cat-rock-001"
+    },
+    {
+      "id": "mj7adb7u-62ed3w",
+      "name": "Ela Partiu",
+      "displayName": "Ela Partiu",
+      "artist": "Unknown",
+      "duration": 255.6517006802721,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-15T15:05:54.956Z",
+        "lastProcessed": "2025-12-15T15:12:08.108Z"
+      },
+      "band": "band-1765811146530-g9hq89xy8",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "syqJAgTQdlU",
+        "title": "Tim Maia – Ela Partiu (Official Audio)",
+        "url": "https://www.youtube.com/watch?v=syqJAgTQdlU",
+        "thumbnail": "https://i.ytimg.com/vi/syqJAgTQdlU/sddefault.jpg?sqp=-oaymwEmCIAFEOAD8quKqQMa8AEB-AH-BIAC6AKKAgwIABABGDMgVihyMA8=&rs=AOn4CLBdKdkLSf7i4pwKNqt5BlYY57UtSg",
+        "duration": 256,
+        "uploader": "Luaka Bop",
+        "view_count": 75057489,
+        "file": "video.mp4"
+      },
+      "audioMode": "both",
+      "generateLRCAfterRecording": false
+    },
+    {
+      "id": "mj7atzei-g4wchp",
+      "name": "60 Segundos",
+      "displayName": "60 Segundos",
+      "artist": "Unknown",
+      "duration": 179.46702947845804,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-15T15:18:52.797Z",
+        "lastProcessed": "2025-12-15T15:30:45.871Z"
+      },
+      "band": "band-1765811921564-g5add0p6r",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "OZNm90VP8Fs",
+        "title": "Gusttavo Lima - 60 Segundos (O Embaixador The Legacy)",
+        "url": "https://www.youtube.com/watch?v=OZNm90VP8Fs",
+        "thumbnail": "https://i.ytimg.com/vi_webp/OZNm90VP8Fs/maxresdefault.webp",
+        "duration": 180,
+        "uploader": "Gusttavo Lima Oficial",
+        "view_count": 41234979,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "mj7avy6a-a1qele",
+      "name": "Malandragem",
+      "displayName": "Malandragem",
+      "artist": "Unknown",
+      "duration": 300.18757369614514,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-15T15:20:24.521Z",
+        "lastProcessed": "2025-12-15T15:38:23.878Z"
+      },
+      "band": "band-1765398630839-m15yaa1gm",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "G_c8P5wjA94",
+        "title": "Frejat - Malandragem (Ao Vivo no Rock in Rio)",
+        "url": "https://www.youtube.com/watch?v=G_c8P5wjA94",
+        "thumbnail": "https://i.ytimg.com/vi_webp/G_c8P5wjA94/sddefault.webp",
+        "duration": 300,
+        "uploader": "Nas Nuvens Music Group",
+        "view_count": 2913167,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "mj7axuwz-22k3cl",
+      "name": "Na Sua Estante",
+      "displayName": "Na Sua Estante",
+      "artist": "Unknown",
+      "duration": 287.8809977324263,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-15T15:21:53.609Z",
+        "lastProcessed": "2025-12-15T15:38:57.301Z"
+      },
+      "band": "band-1765812105936-qtnewchak",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "QXYwKOq1c8E",
+        "title": "Pitty - Na Sua Estante (Ao Vivo) | Matriz Ao Vivo na Bahia",
+        "url": "https://www.youtube.com/watch?v=QXYwKOq1c8E",
+        "thumbnail": "https://i.ytimg.com/vi_webp/QXYwKOq1c8E/maxresdefault.webp",
+        "duration": 288,
+        "uploader": "Pitty",
+        "view_count": 49047598,
+        "file": "video.mp4"
+      },
+      "generateLRCAfterRecording": false
+    },
+    {
+      "id": "mj7dq18b-aojyxr",
+      "name": "Me Adora",
+      "displayName": "Me Adora",
+      "artist": "Unknown",
+      "duration": 273.29886621315194,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-15T16:39:47.393Z",
+        "lastProcessed": "2025-12-15T16:46:52.724Z"
+      },
+      "band": "band-1765812105936-qtnewchak",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "66PrK9b_WD8",
+        "title": "Pitty - Me Adora (Clipe Oficial)",
+        "url": "https://www.youtube.com/watch?v=66PrK9b_WD8",
+        "thumbnail": "https://i.ytimg.com/vi/66PrK9b_WD8/hqdefault.jpg",
+        "duration": 273,
+        "uploader": "Pitty",
+        "view_count": 114449886,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "mj7e63by-59cg1a",
+      "name": "Azul Da Cor Do Mar",
+      "displayName": "Azul Da Cor Do Mar",
+      "artist": "Unknown",
+      "duration": 198.25197278911565,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-15T16:52:16.610Z",
+        "lastProcessed": "2025-12-15T16:57:40.099Z"
+      },
+      "band": "band-1765811146530-g9hq89xy8",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "A9kTV-wpiWk",
+        "title": "Azul Da Cor Do Mar",
+        "url": "https://www.youtube.com/watch?v=A9kTV-wpiWk",
+        "thumbnail": "https://i.ytimg.com/vi_webp/A9kTV-wpiWk/maxresdefault.webp",
+        "duration": 198,
+        "uploader": "Tim Maia",
+        "view_count": 44583563,
+        "file": "video.mp4"
+      }
+    },
+    {
+      "id": "mj7fyaty-1ypagk",
+      "name": "Eu Te Devoro",
+      "displayName": "Eu Te Devoro",
+      "artist": "Unknown",
+      "duration": 288.043537414966,
+      "files": {
+        "original": "original.wav",
+        "vocals": "vocals.wav",
+        "instrumental": "instrumental.wav",
+        "waveform": "waveform.json",
+        "lyrics": "lyrics.lrc",
+        "video": "video.mp4"
+      },
+      "metadata": {
+        "sampleRate": 44100,
+        "format": "wav",
+        "createdAt": "2025-12-15T17:42:12.316Z",
+        "lastProcessed": "2025-12-15T17:50:57.365Z"
+      },
+      "band": "band-1765820530979-8zsp0sza8",
+      "status": {
+        "vocals": true,
+        "instrumental": true,
+        "waveform": true,
+        "lyrics": true,
+        "ready": true
+      },
+      "video": {
+        "id": "bUjQNMH1HYw",
+        "title": "Djavan - Eu Te Devoro (Ao Vivo)",
+        "url": "https://www.youtube.com/watch?v=bUjQNMH1HYw",
+        "thumbnail": "https://i.ytimg.com/vi/bUjQNMH1HYw/maxresdefault.jpg",
+        "duration": 288,
+        "uploader": "DjavanOficial",
+        "view_count": 31755352,
+        "file": "video.mp4"
+      }
     }
   ],
   "categories": [
@@ -1569,6 +1803,30 @@
       "createdAt": "2025-12-15T14:38:50.395Z",
       "updatedAt": "2025-12-15T14:53:25.246Z",
       "category": "cat-rock-001"
+    },
+    {
+      "id": "band-1765811146530-g9hq89xy8",
+      "name": "Tim Maia",
+      "createdAt": "2025-12-15T15:05:46.530Z",
+      "updatedAt": "2025-12-15T15:05:46.530Z"
+    },
+    {
+      "id": "band-1765811921564-g5add0p6r",
+      "name": "Gustamo Lima",
+      "createdAt": "2025-12-15T15:18:41.564Z",
+      "updatedAt": "2025-12-15T15:18:41.564Z"
+    },
+    {
+      "id": "band-1765812105936-qtnewchak",
+      "name": "Pitty",
+      "createdAt": "2025-12-15T15:21:45.936Z",
+      "updatedAt": "2025-12-15T15:21:45.936Z"
+    },
+    {
+      "id": "band-1765820530979-8zsp0sza8",
+      "name": "Djavan",
+      "createdAt": "2025-12-15T17:42:10.979Z",
+      "updatedAt": "2025-12-15T17:42:10.979Z"
     }
   ]
 }
