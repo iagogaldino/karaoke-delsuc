@@ -29,6 +29,9 @@ app.use(express.json());
 // Servir fotos de usuários estaticamente
 app.use('/music/users-photos', express.static(PATHS.USERS_PHOTOS_DIR));
 
+// Servir vídeos estaticamente do diretório music
+app.use('/music', express.static(PATHS.MUSIC_DIR));
+
 // Routes
 // Página HTML para QR code (deve vir antes das rotas de API)
 app.get('/qrcode/:qrId', qrcodeController.getNamePage);

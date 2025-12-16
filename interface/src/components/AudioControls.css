@@ -24,6 +24,35 @@
   gap: 0.5rem;
 }
 
+.video-test-btn-inline {
+  background: var(--accent-secondary, #e24a4a);
+  border: none;
+  border-radius: 8px;
+  color: var(--text-primary, #ffffff);
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.video-test-btn-inline:hover {
+  background: var(--accent-secondary-hover, #f25a5a);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-secondary, 0 4px 8px rgba(226, 74, 74, 0.3));
+}
+
+.video-test-btn-inline:active {
+  transform: translateY(0);
+}
+
+.video-test-btn-inline i {
+  font-size: 1rem;
+}
+
 .presentation-btn-inline {
   background: var(--accent-primary, #4a90e2);
   border: none;

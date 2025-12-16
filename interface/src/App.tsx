@@ -13,6 +13,7 @@ import LRCRegenerationComparison from './components/LRCRegenerationComparison';
 import LRCSegmentRegenerator from './components/LRCSegmentRegenerator';
 import RecordingTest from './components/RecordingTest';
 import ResultsScreen from './components/ResultsScreen';
+import VideoTestView from './components/VideoTestView';
 import { useSyncWebSocket } from './hooks/useSyncWebSocket';
 import { useAlert } from './hooks/useAlert';
 import { useAudioRecorder } from './hooks/useAudioRecorder';
@@ -28,7 +29,7 @@ import { useScoreCalculation } from './hooks/useScoreCalculation.js';
 import './App.css';
 
 function App() {
-  const [viewMode, setViewMode] = useState<'home' | 'config' | 'presentation' | 'results'>('home');
+  const [viewMode, setViewMode] = useState<'home' | 'config' | 'presentation' | 'results' | 'videoTest'>('home');
   const [songs, setSongs] = useState<Song[]>([]);
   const [bands, setBands] = useState<Band[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -62,6 +63,13 @@ function App() {
   const { alert, confirm, AlertComponent, ConfirmComponent } = useAlert();
   const { uploadRecording, generateLRC, error: recordingError, isUploading, isProcessing } = useAudioRecorder();
   const { calculateScoreFromRecordedLRC } = useScoreCalculation();
+
+  // Verificar se a música selecionada tem vídeo
+  const selectedSongHasVideo = useMemo(() => {
+    if (!selectedSong) return false;
+    const song = songs.find(s => s.id === selectedSong);
+    return !!(song && song.files?.video);
+  }, [selectedSong, songs]);
 
   // Carregar lista de músicas, categorias e bandas do banco de dados
   useEffect(() => {
@@ -957,6 +965,16 @@ function App() {
     );
   }
 
+  // Se estiver no modo de teste de vídeo, mostrar a tela de teste
+  if (viewMode === 'videoTest') {
+    return (
+      <VideoTestView
+        songId={selectedSong}
+        onBack={() => setViewMode('config')}
+      />
+    );
+  }
+
   // Se estiver no modo de apresentação, mostrar a tela de karaokê
   if (viewMode === 'presentation') {
     return (
@@ -1149,6 +1167,8 @@ function App() {
                       generateLRCAfterRecording={generateLRCAfterRecording}
                       showPresentationButton={!!selectedSong}
                       onPresentationClick={() => setViewMode('presentation')}
+                      hasVideo={selectedSongHasVideo}
+                      onVideoTestClick={() => setViewMode('videoTest')}
                       onGenerateLRCChange={async (enabled: boolean) => {
                         setGenerateLRCAfterRecording(enabled);
                         

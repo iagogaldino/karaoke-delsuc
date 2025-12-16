@@ -13,6 +13,8 @@ interface AudioControlsProps {
   onGenerateLRCChange?: (enabled: boolean) => void;
   onPresentationClick?: () => void;
   showPresentationButton?: boolean;
+  onVideoTestClick?: () => void;
+  hasVideo?: boolean;
 }
 
 export default function AudioControls({
@@ -25,7 +27,9 @@ export default function AudioControls({
   generateLRCAfterRecording = true,
   onGenerateLRCChange,
   onPresentationClick,
-  showPresentationButton = false
+  showPresentationButton = false,
+  onVideoTestClick,
+  hasVideo = false
 }: AudioControlsProps) {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -34,6 +38,16 @@ export default function AudioControls({
       <div className="audio-controls-header">
         <h3>Configurações de Áudio</h3>
         <div className="audio-controls-header-actions">
+          {hasVideo && onVideoTestClick && (
+            <button
+              className="video-test-btn-inline"
+              onClick={onVideoTestClick}
+              title="Testar vídeo da música"
+            >
+              <i className="fas fa-video"></i>
+              <span>Testar Vídeo</span>
+            </button>
+          )}
           {showPresentationButton && onPresentationClick && (
             <button
               className="presentation-btn-inline"

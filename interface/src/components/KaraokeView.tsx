@@ -35,6 +35,7 @@ export default function KaraokeView({
   const [isReady, setIsReady] = useState(false);
   const [showSongSelector, setShowSongSelector] = useState(false);
   const [hasVideo, setHasVideo] = useState(false);
+  const [videoFilename, setVideoFilename] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const { currentTime, isPlaying, play, pause, seek } = useSyncWebSocket();
   
@@ -44,6 +45,10 @@ export default function KaraokeView({
   const hasShownGameOverRef = useRef<boolean>(false);
   const wsRef = useRef<WebSocket | null>(null);
   const pauseRef = useRef(pause);
+  // Refs para controle de sincronização do vídeo
+  const lastSyncTimeRef = useRef<number>(0);
+  const syncIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isSeekingRef = useRef<boolean>(false);
 
   // Atualizar refs quando as funções mudarem
   useEffect(() => {
@@ -112,6 +117,7 @@ export default function KaraokeView({
 
     setIsReady(false);
     setHasVideo(false);
+    setVideoFilename(null);
     setSongDuration(0);
     hasShownGameOverRef.current = false;
 
@@ -120,6 +126,10 @@ export default function KaraokeView({
       .then(song => {
         if (song && song.files?.video) {
           setHasVideo(true);
+          setVideoFilename(song.files.video);
+        } else {
+          setHasVideo(false);
+          setVideoFilename(null);
         }
         // Usar duração da música se disponível
         if (song.duration && song.duration > 0) {
@@ -179,7 +189,7 @@ export default function KaraokeView({
     }
   }, [currentTime, songDuration, isPlaying, pause, seek]);
 
-  // Sincronizar vídeo com o áudio
+  // Sincronizar vídeo com o áudio - versão otimizada para evitar travamentos
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !hasVideo) return;
@@ -187,27 +197,93 @@ export default function KaraokeView({
     // Garantir que o vídeo está muted (sem áudio)
     video.muted = true;
 
-    // Sincronizar tempo
-    const timeDiff = Math.abs(video.currentTime - currentTime);
-    if (timeDiff > 0.5 && timeDiff < 5) { // Tolerância de 0.5s, mas evitar grandes saltos
-      video.currentTime = currentTime;
-    }
-
-    // Sincronizar play/pause
+    // Sincronizar play/pause imediatamente (não causa travamento)
     if (isPlaying && video.paused) {
       video.play().catch(() => {});
     } else if (!isPlaying && !video.paused) {
       video.pause();
     }
-  }, [currentTime, isPlaying, hasVideo]);
+  }, [isPlaying, hasVideo]);
 
-  // Lidar com seek do vídeo
-  const handleVideoSeek = () => {
+  // Sincronização de tempo com intervalo reduzido para evitar travamentos
+  useEffect(() => {
     const video = videoRef.current;
-    if (video && Math.abs(video.currentTime - currentTime) > 0.5) {
-      seek(video.currentTime);
+    if (!video || !hasVideo || !isPlaying) {
+      // Limpar intervalo se não estiver reproduzindo
+      if (syncIntervalRef.current !== null) {
+        clearInterval(syncIntervalRef.current);
+        syncIntervalRef.current = null;
+      }
+      return;
     }
-  };
+
+    // Limpar intervalo anterior se existir
+    if (syncIntervalRef.current !== null) {
+      clearInterval(syncIntervalRef.current);
+    }
+
+    // Usar intervalo de 1 segundo ao invés de requestAnimationFrame para reduzir frequência
+    syncIntervalRef.current = setInterval(() => {
+      const video = videoRef.current;
+      if (!video || !hasVideo || !isPlaying) return;
+
+      const timeDiff = Math.abs(video.currentTime - currentTime);
+      const SYNC_THRESHOLD = 0.5; // Threshold para reduzir sincronizações
+      const MAX_SYNC_DIFF = 10; // Limite máximo para evitar saltos muito grandes
+      const MIN_SYNC_INTERVAL = 1.0; // Mínimo de 1s entre sincronizações
+
+      const timeSinceLastSync = Date.now() / 1000 - lastSyncTimeRef.current;
+
+      // Só sincronizar se:
+      // 1. A diferença for significativa (> 0.5s)
+      // 2. Não estiver em processo de seek ou buffering
+      // 3. Passou tempo suficiente desde a última sincronização (1s)
+      // 4. A diferença não for muito grande (evitar saltos)
+      // 5. O vídeo não estiver esperando buffer (readyState >= 3)
+      if (
+        timeDiff > SYNC_THRESHOLD &&
+        timeDiff < MAX_SYNC_DIFF &&
+        !isSeekingRef.current &&
+        timeSinceLastSync > MIN_SYNC_INTERVAL &&
+        video.readyState >= 3 // HAVE_FUTURE_DATA ou superior
+      ) {
+        isSeekingRef.current = true;
+        lastSyncTimeRef.current = Date.now() / 1000;
+        
+        video.currentTime = currentTime;
+        
+        // Resetar flag após um delay maior para evitar múltiplas sincronizações
+        setTimeout(() => {
+          isSeekingRef.current = false;
+        }, 500);
+      }
+    }, 1000); // Verificar a cada 1 segundo
+
+    return () => {
+      if (syncIntervalRef.current !== null) {
+        clearInterval(syncIntervalRef.current);
+        syncIntervalRef.current = null;
+      }
+    };
+  }, [currentTime, hasVideo, isPlaying]);
+
+  // Sincronizar vídeo quando houver seek manual (via slider ou botões)
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !hasVideo) return;
+
+    // Quando currentTime muda significativamente (provavelmente um seek manual),
+    // sincronizar imediatamente, mas só se não estiver em processo de buffering
+    const timeDiff = Math.abs(video.currentTime - currentTime);
+    if (timeDiff > 1 && video.readyState >= 3) {
+      isSeekingRef.current = true;
+      video.currentTime = currentTime;
+      lastSyncTimeRef.current = Date.now() / 1000;
+      setTimeout(() => {
+        isSeekingRef.current = false;
+      }, 500); // Aumentar delay para evitar múltiplas sincronizações
+    }
+  }, [currentTime, hasVideo]);
 
   // normalizeText is now imported from utils
 
@@ -219,91 +295,6 @@ export default function KaraokeView({
       setShowSongSelector(false);
     }
   }, [songId]);
-
-  // Encontrar linha ativa baseada no tempo atual
-  const getActiveLyric = () => {
-    if (lyrics.length === 0) return null;
-    
-    let activeIndex = -1;
-    for (let i = lyrics.length - 1; i >= 0; i--) {
-      if (currentTime >= lyrics[i].time) {
-        activeIndex = i;
-        break;
-      }
-    }
-    
-    if (activeIndex >= 0) {
-      return { lyric: lyrics[activeIndex], index: activeIndex };
-    }
-    return null;
-  };
-
-
-  // Função para avançar para o próximo trecho
-  const goToNextLyric = () => {
-    if (lyrics.length === 0) {
-      return;
-    }
-
-    const activeLyricData = getActiveLyric();
-    let nextIndex = -1;
-
-    if (activeLyricData) {
-      const activeIndex = activeLyricData.index;
-      
-      // Se encontrou e não é a última, avançar para a próxima
-      if (activeIndex >= 0 && activeIndex < lyrics.length - 1) {
-        nextIndex = activeIndex + 1;
-      } else {
-        // Se já está na última, não fazer nada
-        return;
-      }
-    } else {
-      // Se não há letra ativa, ir para a primeira
-      nextIndex = 0;
-    }
-
-    if (nextIndex >= 0 && nextIndex < lyrics.length) {
-      const nextLyric = lyrics[nextIndex];
-      
-      // Fazer seek para o tempo do próximo trecho
-      seek(nextLyric.time);
-    }
-  };
-
-  // Função para voltar para o trecho anterior
-  const goToPreviousLyric = () => {
-    if (lyrics.length === 0) {
-      return;
-    }
-
-    const activeLyricData = getActiveLyric();
-    let previousIndex = -1;
-
-    if (activeLyricData) {
-      const activeIndex = activeLyricData.index;
-      
-      // Se encontrou e não é a primeira, voltar para a anterior
-      if (activeIndex > 0) {
-        previousIndex = activeIndex - 1;
-      } else {
-        // Se já está na primeira, não fazer nada
-        return;
-      }
-    } else {
-      // Se não há letra ativa, ir para a primeira
-      previousIndex = 0;
-    }
-
-    if (previousIndex >= 0 && previousIndex < lyrics.length) {
-      const previousLyric = lyrics[previousIndex];
-      
-      // Fazer seek para o tempo do trecho anterior
-      seek(previousLyric.time);
-    }
-  };
-
-
 
   // Função para iniciar reprodução com contagem regressiva
   const handlePlayWithCountdown = async () => {
@@ -385,21 +376,32 @@ export default function KaraokeView({
   return (
     <div className="karaoke-view">
       {/* Vídeo como background */}
-      {hasVideo && songId && (
+      {hasVideo && songId && videoFilename && (
         <video
           ref={videoRef}
-          src={`${API_CONFIG.BASE_URL}/api/video?song=${songId}`}
+          src={`${API_CONFIG.BASE_URL}/music/${songId}/${videoFilename}`}
           className="karaoke-video-background"
-          onTimeUpdate={handleVideoSeek}
+          preload="auto"
+          playsInline
+          muted={true}
           onLoadedMetadata={() => {
             const video = videoRef.current;
             if (video) {
               video.muted = true; // Garantir que está muted
               video.currentTime = currentTime;
+              lastSyncTimeRef.current = Date.now() / 1000;
             }
           }}
-          playsInline
-          muted={true}
+          onWaiting={() => {
+            // Quando o vídeo está esperando buffer, pausar temporariamente a sincronização
+            isSeekingRef.current = true;
+          }}
+          onCanPlay={() => {
+            // Quando o vídeo pode reproduzir, liberar sincronização
+            setTimeout(() => {
+              isSeekingRef.current = false;
+            }, 100);
+          }}
         />
       )}
       
@@ -411,19 +413,63 @@ export default function KaraokeView({
 
       {/* Caixas de som nas extremidades */}
       <div className="speaker speaker-left">
-        <div className="speaker-body">
+        <div className={`speaker-body ${isPlaying ? 'speaker-body-active' : ''}`}>
+          {/* LEDs ao redor da caixa */}
+          {isPlaying && (
+            <>
+              <div className="speaker-led speaker-led-top"></div>
+              <div className="speaker-led speaker-led-bottom"></div>
+            </>
+          )}
           <div className={`speaker-cone ${isPlaying ? 'speaker-cone-active' : ''}`}>
-            {isPlaying && <div className="speaker-cone-center"></div>}
+            {isPlaying && (
+              <>
+                <div className="speaker-cone-center"></div>
+                {/* LEDs dentro do cone principal */}
+                <div className="speaker-cone-led speaker-cone-led-1"></div>
+                <div className="speaker-cone-led speaker-cone-led-3"></div>
+                <div className="speaker-cone-led speaker-cone-led-5"></div>
+              </>
+            )}
           </div>
-          <div className={`speaker-cone speaker-cone-small ${isPlaying ? 'speaker-cone-active' : ''}`}></div>
+          <div className={`speaker-cone speaker-cone-small ${isPlaying ? 'speaker-cone-active' : ''}`}>
+            {isPlaying && (
+              <>
+                {/* LED no tweeter */}
+                <div className="speaker-tweeter-led"></div>
+              </>
+            )}
+          </div>
         </div>
       </div>
       <div className="speaker speaker-right">
-        <div className="speaker-body">
+        <div className={`speaker-body ${isPlaying ? 'speaker-body-active' : ''}`}>
+          {/* LEDs ao redor da caixa */}
+          {isPlaying && (
+            <>
+              <div className="speaker-led speaker-led-top"></div>
+              <div className="speaker-led speaker-led-bottom"></div>
+            </>
+          )}
           <div className={`speaker-cone ${isPlaying ? 'speaker-cone-active' : ''}`}>
-            {isPlaying && <div className="speaker-cone-center"></div>}
+            {isPlaying && (
+              <>
+                <div className="speaker-cone-center"></div>
+                {/* LEDs dentro do cone principal */}
+                <div className="speaker-cone-led speaker-cone-led-1"></div>
+                <div className="speaker-cone-led speaker-cone-led-3"></div>
+                <div className="speaker-cone-led speaker-cone-led-5"></div>
+              </>
+            )}
           </div>
-          <div className={`speaker-cone speaker-cone-small ${isPlaying ? 'speaker-cone-active' : ''}`}></div>
+          <div className={`speaker-cone speaker-cone-small ${isPlaying ? 'speaker-cone-active' : ''}`}>
+            {isPlaying && (
+              <>
+                {/* LED no tweeter */}
+                <div className="speaker-tweeter-led"></div>
+              </>
+            )}
+          </div>
         </div>
       </div>
 
@@ -446,40 +492,6 @@ export default function KaraokeView({
           ) : (
             <i className="fas fa-play"></i>
           )}
-        </button>
-        {currentTime > 0 && (
-          <button
-            className="karaoke-restart-btn"
-            onClick={() => {
-              seek(0);
-            }}
-            title="Reiniciar música"
-          >
-            <i className="fas fa-redo"></i>
-          </button>
-        )}
-        <button
-          className="karaoke-back-btn"
-          onClick={goToPreviousLyric}
-          title="Voltar para o trecho anterior"
-        >
-          <i className="fas fa-backward"></i>
-        </button>
-        {/* Botão de microfone desabilitado - gravação automática via AudioRecorder */}
-        <button
-          className="karaoke-mic-btn"
-          disabled
-          title="Gravação automática ativa (gerenciada pelo sistema)"
-          style={{ opacity: 0.5, cursor: 'not-allowed' }}
-        >
-          <i className="fas fa-microphone"></i>
-        </button>
-        <button
-          className="karaoke-test-btn"
-          onClick={goToNextLyric}
-          title="Avançar para o próximo trecho"
-        >
-          <i className="fas fa-forward"></i>
         </button>
         <button
           className="karaoke-settings-btn"
